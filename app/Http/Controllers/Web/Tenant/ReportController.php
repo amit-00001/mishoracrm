@@ -89,7 +89,7 @@ class ReportController extends Controller
         // ── Monthly revenue — last 12 months
         $monthlyRevenue = Invoice::where('status', 'paid')
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(paid_at, '%Y-%m') as month, SUM(total) as revenue")
+            ->selectRaw("TO_CHAR(paid_at, 'YYYY-MM') as month, SUM(total) as revenue")
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -255,7 +255,7 @@ class ReportController extends Controller
 
         // Monthly deal trend
         $monthlyDeals = Deal::whereBetween('created_at', [$from, $to])
-            ->selectRaw("DATE_FORMAT(created_at,'%Y-%m') as month, COUNT(*) as count, SUM(value) as total")
+            ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as count, SUM(value) as total")
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -339,7 +339,7 @@ class ReportController extends Controller
         // Monthly revenue
         $monthlyRevenue = Invoice::where('status','paid')
             ->where('paid_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(paid_at,'%Y-%m') as month, SUM(total) as revenue, COUNT(*) as count")
+            ->selectRaw("TO_CHAR(paid_at, 'YYYY-MM') as month, SUM(total) as revenue, COUNT(*) as count")
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -452,7 +452,7 @@ class ReportController extends Controller
             ->get();
 
         $monthlyTrend = ServiceSubscription::where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+            ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as count")
             ->groupBy('month')
             ->orderBy('month')
             ->get();
