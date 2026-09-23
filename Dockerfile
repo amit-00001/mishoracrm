@@ -53,7 +53,6 @@ RUN apk add --no-cache \
     libzip-dev \
     oniguruma-dev \
     libxml2-dev \
-    postgresql-dev \
     zip \
     unzip \
     $PHPIZE_DEPS \
@@ -61,8 +60,8 @@ RUN apk add --no-cache \
         --with-freetype \
         --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        pdo_pgsql \
-        pgsql \
+        pdo_mysql \
+        mysqli \
         mbstring \
         exif \
         pcntl \
@@ -150,4 +149,4 @@ EXPOSE 8000
 ##
 ## Start Nginx + PHP-FPM
 ##
-CMD ["sh", "-c", "sed -i \"s/__PORT__/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i \"s/__PORT__/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf && php artisan migrate --force && php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"]

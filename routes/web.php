@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/healthz', fn() => response('ok', 200));
 
-// Route::get('/', fn() => view('welcome'))->name('home');
 Route::redirect('/', '/login', 301)->name('home');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/privacy-policy', fn() => view('legal.privacy-policy'))->name('privacy-policy');
