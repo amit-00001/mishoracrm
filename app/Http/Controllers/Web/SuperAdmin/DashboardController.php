@@ -52,7 +52,7 @@ class DashboardController extends Controller
         ];
 
         // ── Signups chart ─────────────────────────────────────────
-        $signupsRaw = Tenant::selectRaw('EXTRACT(MONTH FROM created_at) as month, COUNT(*) as count')
+        $signupsRaw = Tenant::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')

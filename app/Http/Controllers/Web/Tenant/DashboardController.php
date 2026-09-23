@@ -232,7 +232,7 @@ class DashboardController extends Controller
         // ── Revenue chart — last 12 months ────────────────────────
         $revenueRaw = Invoice::where('status', 'paid')
             ->whereYear('paid_at', now()->year)
-            ->selectRaw('EXTRACT(MONTH FROM paid_at) as month, SUM(total) as total')
+            ->selectRaw('MONTH(paid_at) as month, SUM(total) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')
@@ -250,16 +250,16 @@ class DashboardController extends Controller
         $monthKey    = fn($y, $m) => $y . '-' . $m;
 
         $leadsByMonth = Lead::where('created_at', '>=', $sparkFrom)
-            ->selectRaw('EXTRACT(YEAR FROM created_at) y, EXTRACT(MONTH FROM created_at) m, COUNT(*) c')
+            ->selectRaw('YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $dealsByMonth = Deal::where('created_at', '>=', $sparkFrom)
-            ->selectRaw('EXTRACT(YEAR FROM created_at) y, EXTRACT(MONTH FROM created_at) m, COUNT(*) c')
+            ->selectRaw('YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $wonByMonth = Deal::where('stage', 'won')->where('updated_at', '>=', $sparkFrom)
-            ->selectRaw('EXTRACT(YEAR FROM updated_at) y, EXTRACT(MONTH FROM updated_at) m, SUM(value) v')
+            ->selectRaw('YEAR(updated_at) y, MONTH(updated_at) m, SUM(value) v')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $convByMonth = Lead::whereNotNull('converted_at')->where('converted_at', '>=', $sparkFrom)
-            ->selectRaw('EXTRACT(YEAR FROM converted_at) y, EXTRACT(MONTH FROM converted_at) m, COUNT(*) c')
+            ->selectRaw('YEAR(converted_at) y, MONTH(converted_at) m, COUNT(*) c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
 
         $spark = ['leads' => [], 'deals' => [], 'won' => [], 'conversion' => []];
@@ -324,7 +324,7 @@ class DashboardController extends Controller
         $pipeMonths   = collect(range(5, 0))->map(fn($i) => now()->startOfMonth()->subMonths($i));
         $pipeSparkRaw = Deal::whereIn('stage', $stageOrder)
             ->where('created_at', '>=', $pipeMonths->first())
-            ->selectRaw('stage, EXTRACT(YEAR FROM created_at) y, EXTRACT(MONTH FROM created_at) m, COUNT(*) c')
+            ->selectRaw('stage, YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
             ->groupBy('stage', 'y', 'm')
             ->get();
 
