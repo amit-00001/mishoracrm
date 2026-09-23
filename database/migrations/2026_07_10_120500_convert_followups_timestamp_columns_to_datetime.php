@@ -18,6 +18,10 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE followups ALTER COLUMN scheduled_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+            DB::statement('ALTER TABLE followups ALTER COLUMN done_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+            DB::statement('ALTER TABLE followups ALTER COLUMN due_notified_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+            DB::statement('ALTER TABLE followups ALTER COLUMN overdue_notified_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
             return;
         }
 
@@ -30,6 +34,10 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE followups ALTER COLUMN scheduled_at TYPE TIMESTAMP');
+            DB::statement('ALTER TABLE followups ALTER COLUMN done_at TYPE TIMESTAMP');
+            DB::statement('ALTER TABLE followups ALTER COLUMN due_notified_at TYPE TIMESTAMP');
+            DB::statement('ALTER TABLE followups ALTER COLUMN overdue_notified_at TYPE TIMESTAMP');
             return;
         }
 
