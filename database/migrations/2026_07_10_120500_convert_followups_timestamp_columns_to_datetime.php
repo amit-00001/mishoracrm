@@ -3,29 +3,21 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-// MySQL implicitly attaches "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
-// to the first non-nullable TIMESTAMP column in a table when
-// explicit_defaults_for_timestamp is OFF (this server's setting). Since
-// `scheduled_at` was that column, MySQL was silently overwriting every
-// user-picked follow-up date/time with "now" on *any* row update (marking
-// done, editing notes, adding an attachment, etc.) — which is why follow-up
-// reminders never fired at the right time. DATETIME columns are never
-// subject to this behaviour, so we switch the affected columns to DATETIME.
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE followups MODIFY scheduled_at DATETIME NOT NULL');
-        DB::statement('ALTER TABLE followups MODIFY done_at DATETIME NULL DEFAULT NULL');
-        DB::statement('ALTER TABLE followups MODIFY due_notified_at DATETIME NULL DEFAULT NULL');
-        DB::statement('ALTER TABLE followups MODIFY overdue_notified_at DATETIME NULL DEFAULT NULL');
+        DB::statement('ALTER TABLE followups ALTER COLUMN scheduled_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+        DB::statement('ALTER TABLE followups ALTER COLUMN done_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+        DB::statement('ALTER TABLE followups ALTER COLUMN due_notified_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
+        DB::statement('ALTER TABLE followups ALTER COLUMN overdue_notified_at TYPE TIMESTAMP(0) WITHOUT TIME ZONE');
     }
 
     public function down(): void
     {
-        DB::statement('ALTER TABLE followups MODIFY scheduled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
-        DB::statement('ALTER TABLE followups MODIFY done_at TIMESTAMP NULL DEFAULT NULL');
-        DB::statement('ALTER TABLE followups MODIFY due_notified_at TIMESTAMP NULL DEFAULT NULL');
-        DB::statement('ALTER TABLE followups MODIFY overdue_notified_at TIMESTAMP NULL DEFAULT NULL');
+        DB::statement('ALTER TABLE followups ALTER COLUMN scheduled_at TYPE TIMESTAMP');
+        DB::statement('ALTER TABLE followups ALTER COLUMN done_at TYPE TIMESTAMP');
+        DB::statement('ALTER TABLE followups ALTER COLUMN due_notified_at TYPE TIMESTAMP');
+        DB::statement('ALTER TABLE followups ALTER COLUMN overdue_notified_at TYPE TIMESTAMP');
     }
 };
