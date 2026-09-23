@@ -2,40 +2,30 @@
 
 namespace Database\Seeders;
 
-use App\Models\Notification;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * Only idempotent, production-critical seeders belong here (they use
+     * firstOrCreate/updateOrCreate, so re-running on every deploy is safe
+     * and never creates duplicates). Fake/demo data (sample leads, deals,
+     * tasks) lives in DemoDataSeeder — run that manually, only in local/dev.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password'=>'password'
-        ]);
-
-
         $this->call([
-         RolesAndPermissionsSeeder::class,
-         PlanSeeder::class,
-         SuperAdminSeeder::class,
-         MessageTemplateSeeder::class,
-         NotificationSeeder::class,
-         CustomFieldSeeder::class,
-         GlobalFieldTemplateSeeder::class,
-         LeadSeeder::class,
-         DealSeeder::class,
-         TaskSeeder::class,
-         TaskTemplateSeeder::class,
-        //  RolesAndPermissionsSeeder::class
+            RolesAndPermissionsSeeder::class,
+            PlanSeeder::class,
+            SuperAdminSeeder::class,
+            MessageTemplateSeeder::class,
+            NotificationSeeder::class,
+            CustomFieldSeeder::class,
+            GlobalFieldTemplateSeeder::class,
+            TaskTemplateSeeder::class,
+            
         ]);
     }
 }

@@ -150,4 +150,4 @@ EXPOSE 8000
 ##
 ## Start Nginx + PHP-FPM
 ##
-CMD ["sh", "-c", "sed -i \"s/__PORT__/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf && php artisan migrate --force && php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i \"s/__PORT__/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"]
