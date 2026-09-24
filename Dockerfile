@@ -158,8 +158,16 @@ EXPOSE 8000
 #     php artisan storage:link || true; \
 #     php-fpm -D && nginx -g 'daemon off;'
 
+# CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
+#     sed -i "s/__*PORT__*/${P}/g" /etc/nginx/http.d/default.conf; \
+#     php artisan migrate --force || echo 'migrate failed'; \
+#     php artisan storage:link || true; \
+#     php-fpm -D && nginx -g 'daemon off;'
+
 CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
     sed -i "s/__*PORT__*/${P}/g" /etc/nginx/http.d/default.conf; \
     php artisan migrate --force || echo 'migrate failed'; \
     php artisan storage:link || true; \
+    chown -R www-data:www-data storage bootstrap/cache; \
+    chmod -R ug+rwX storage bootstrap/cache; \
     php-fpm -D && nginx -g 'daemon off;'
