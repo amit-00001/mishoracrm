@@ -151,9 +151,15 @@ EXPOSE 8000
 ##
 ##CMD ["sh", "-c", "off -i \"s/__PORT__/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf && php artisan migrate --force && php artisan storage:link && php-fpm -D && nginx -g 'daemon off;'"]
 ## CMD ["sh", "-c", "sed -i \"s/_PORT_/${PORT:-8000}/g\" /etc/nginx/http.d/default.conf; php artisan migrate --force || echo 'migrate failed'; php artisan storage:link || true; php-fpm -D && nginx -g 'daemon off;'"]
+# CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
+#     tr -d '\r' < /etc/nginx/http.d/default.conf > /tmp/default.conf && cat /tmp/default.conf > /etc/nginx/http.d/default.conf; \
+#     sed -i "s/_PORT_/${P}/g" /etc/nginx/http.d/default.conf; \
+#     php artisan migrate --force || echo 'migrate failed'; \
+#     php artisan storage:link || true; \
+#     php-fpm -D && nginx -g 'daemon off;'
+
 CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
-    tr -d '\r' < /etc/nginx/http.d/default.conf > /tmp/default.conf && cat /tmp/default.conf > /etc/nginx/http.d/default.conf; \
-    sed -i "s/_PORT_/${P}/g" /etc/nginx/http.d/default.conf; \
+    sed -i "s/__*PORT__*/${P}/g" /etc/nginx/http.d/default.conf; \
     php artisan migrate --force || echo 'migrate failed'; \
     php artisan storage:link || true; \
     php-fpm -D && nginx -g 'daemon off;'
