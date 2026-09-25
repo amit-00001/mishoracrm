@@ -53,6 +53,7 @@ RUN apk add --no-cache \
     libzip-dev \
     oniguruma-dev \
     libxml2-dev \
+    postgresql-dev \
     zip \
     unzip \
     $PHPIZE_DEPS \
@@ -61,6 +62,7 @@ RUN apk add --no-cache \
         --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         mysqli \
         mbstring \
         exif \
