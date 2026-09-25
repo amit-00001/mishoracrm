@@ -7,11 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE instagram_logs MODIFY event_type ENUM('comment','dm_received','dm_sent','automation_triggered','chatbot_triggered','n8n_triggered','oauth_connect','oauth_deauthorize','data_deletion_request','webhook_received') NOT NULL");
+        \App\Helpers\Sql::setEnum('instagram_logs', 'event_type', ['comment', 'dm_received', 'dm_sent', 'automation_triggered', 'chatbot_triggered', 'n8n_triggered', 'oauth_connect', 'oauth_deauthorize', 'data_deletion_request', 'webhook_received'], null, true);
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE instagram_logs MODIFY event_type ENUM('comment','dm_received','dm_sent','automation_triggered','chatbot_triggered','n8n_triggered','oauth_connect','oauth_deauthorize','data_deletion_request') NOT NULL");
+        \App\Helpers\Sql::setEnum('instagram_logs', 'event_type', ['comment', 'dm_received', 'dm_sent', 'automation_triggered', 'chatbot_triggered', 'n8n_triggered', 'oauth_connect', 'oauth_deauthorize', 'data_deletion_request'], null, true);
     }
 };

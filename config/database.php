@@ -54,8 +54,17 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // The bundled CA is for the remote (TLS) database. A local MySQL
+            // (Herd/XAMPP) drops the connection ("server has gone away") if it
+            // is forced, so only use it for non-local hosts. Override or
+            // disable (empty value) with MYSQL_ATTR_SSL_CA.
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => storage_path('certs/ca.pem'),
+                PDO::MYSQL_ATTR_SSL_CA => env(
+                    'MYSQL_ATTR_SSL_CA',
+                    in_array(trim(env('DB_HOST', '127.0.0.1')), ['127.0.0.1', 'localhost', '::1'], true)
+                        ? null
+                        : storage_path('certs/ca.pem')
+                ),
             ]) : [],
         ],
 
@@ -91,7 +100,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'require'),
         ],
 
         'sqlsrv' => [

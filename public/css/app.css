@@ -1267,3 +1267,395 @@ select.form-control option { background: var(--bg-elevated); color: var(--text-1
     font-size:14px;
     font-family:inherit;
 }
+
+/* ================================================================
+   UI POLISH LAYER (inputs · sidebar · dark theme · cards · tables)
+   Loaded last so it refines the base design system above.
+================================================================ */
+
+/* ── Inputs: one consistent, clearly-visible look everywhere ──────────
+   Pages ship their own <style> blocks (loaded AFTER this file) that define
+   .field-input / .fi / .filter-input / .qf-input ... with faint borders and
+   4px corners. To restyle all of them without touching ~50 views, the
+   visual properties below use !important. Layout properties (width, padding,
+   height on compact filter bars) stay under each page's control. */
+:root {
+  --input-bg:     #FFFFFF;
+  --input-border: #C9D5E1;
+  --input-hover:  #A9BBCC;
+}
+[data-theme="light"] {
+  --input-bg:     #0F1A25;
+  --input-border: rgba(255,255,255,.22);
+  --input-hover:  rgba(255,255,255,.30);
+}
+
+/* Roomy field inputs */
+.form-control, .form-input, .field-input, .fi, .qf-input, .qf-sel, .pf-input,
+.tt-input, .vbf-input, .recv-input, .option-input, .qtt-input, .bk-input, .pt-input,
+.rw-input, .pq-input, .cf-input, .vf-input, .lf-input, .qc-input, .dinput, .pay-input,
+.select, .field-select {
+  min-height: 42px !important;
+}
+/* Compact inputs (filter bars, table cells) keep their small height */
+.filter-input, .item-input, .mini-input, .di-fi { min-height: 36px !important; }
+
+textarea.form-control, textarea.form-input, textarea.field-input, textarea.qf-input,
+textarea.pf-input, textarea.vf-input, textarea.bk-input, textarea.fi, .field-textarea,
+.qf-area, .pf-area, .vf-textarea {
+  min-height: 96px !important; line-height: 1.6;
+}
+
+/* Shared visual language */
+.form-control, .form-input, .field-input, .fi, .di-fi, .qf-input, .qf-sel, .pf-input,
+.tt-input, .vbf-input, .recv-input, .option-input, .qtt-input, .bk-input, .pt-input,
+.rw-input, .pq-input, .cf-input, .vf-input, .lf-input, .qc-input, .dinput, .pay-input,
+.select, .field-select, .filter-input, .item-input, .mini-input {
+  background-color: var(--input-bg) !important;
+  border: 1.5px solid var(--input-border) !important;
+  border-radius: 10px !important;
+  color: var(--text-100);
+  font-family: var(--font);
+  font-size: 13.5px;
+  box-shadow: 0 1px 2px rgba(51, 71, 91, .06) !important;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease !important;
+}
+.filter-input, .item-input, .mini-input { font-size: 13px; border-radius: 9px !important; }
+.form-control:hover:not(:focus):not(:disabled), .form-input:hover:not(:focus):not(:disabled),
+.field-input:hover:not(:focus):not(:disabled), .fi:hover:not(:focus):not(:disabled),
+.di-fi:hover:not(:focus):not(:disabled), .qf-input:hover:not(:focus):not(:disabled),
+.pf-input:hover:not(:focus):not(:disabled), .filter-input:hover:not(:focus):not(:disabled),
+.item-input:hover:not(:focus):not(:disabled), .bk-input:hover:not(:focus):not(:disabled),
+.cf-input:hover:not(:focus):not(:disabled), .vf-input:hover:not(:focus):not(:disabled),
+.select:hover:not(:focus):not(:disabled), .field-select:hover:not(:focus):not(:disabled) {
+  border-color: var(--input-hover) !important;
+}
+.form-control:focus, .form-input:focus, .field-input:focus, .fi:focus, .di-fi:focus,
+.qf-input:focus, .qf-sel:focus, .pf-input:focus, .tt-input:focus, .vbf-input:focus,
+.recv-input:focus, .option-input:focus, .qtt-input:focus, .bk-input:focus, .pt-input:focus,
+.rw-input:focus, .pq-input:focus, .cf-input:focus, .vf-input:focus, .lf-input:focus,
+.qc-input:focus, .dinput:focus, .pay-input:focus, .select:focus, .field-select:focus,
+.filter-input:focus, .item-input:focus, .mini-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+  background-color: var(--input-bg) !important;
+  outline: none;
+}
+/* Read-only / disabled: visibly not editable */
+:is(.form-control, .form-input, .field-input, .fi, .qf-input, .pf-input, .item-input,
+    .vf-input, .cf-input, .bk-input, .filter-input):is(:disabled, [readonly]) {
+  background-color: var(--bg-hover) !important;
+  color: var(--text-300);
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+.item-amount-input { background-color: var(--bg-elevated) !important; cursor: default; }
+/* Validation states */
+.form-control.is-error, .field-input.is-error, .qf-input.is-error, .pf-input.is-error,
+.fi.is-error, .form-input.is-error, .is-invalid, .has-error {
+  border-color: var(--red) !important;
+}
+.form-control.is-error:focus, .field-input.is-error:focus, .form-input.is-error:focus,
+.is-invalid:focus, .has-error:focus { box-shadow: 0 0 0 3px var(--red-dim) !important; }
+
+::placeholder { color: var(--text-400); opacity: 1; }
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(.85); cursor: pointer; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+input[type="file"] { font-family: var(--font); font-size: 13px; color: var(--text-200); }
+input[type="file"]::file-selector-button {
+  margin-right: 12px; padding: 7px 14px; border: none; border-radius: 8px;
+  background: var(--accent-dim); color: var(--accent); font-weight: 600; cursor: pointer;
+  font-family: var(--font); transition: background .15s, color .15s;
+}
+input[type="file"]::file-selector-button:hover { background: var(--accent); color: #fff; }
+
+/* Labels */
+.form-label, .field-label, .qf-label, .pf-label, .lf-label, .vf-label, .cf-label {
+  font-weight: 600; color: var(--text-200); letter-spacing: .1px;
+}
+
+/* Select2 */
+.select2-container--default .select2-selection--multiple {
+  min-height: 42px !important; border-radius: 10px !important;
+  background: var(--input-bg) !important; border: 1.5px solid var(--input-border) !important;
+  padding: 3px 6px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background: var(--accent-dim) !important; color: var(--accent) !important;
+  border: none !important; border-radius: 6px !important; padding: 2px 8px !important; font-weight: 600;
+}
+.select2-container--default .select2-selection--single {
+  background: var(--input-bg) !important; border-color: var(--input-border) !important;
+}
+
+/* ── Sidebar: richer, more attractive ──────────────────────────── */
+.sidebar {
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+  box-shadow: 2px 0 24px rgba(51, 71, 91, .06);
+  border-right: 1px solid var(--border-default);
+}
+[data-theme="light"] .sidebar { box-shadow: 2px 0 28px rgba(0, 0, 0, .35); }
+.sb-header { border-bottom: 1px solid var(--border-default); padding: 0 18px; }
+.sb-section-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10.5px; letter-spacing: 1.2px; color: var(--text-300);
+  padding: 20px 22px 8px;
+}
+.sb-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.sb-item {
+  padding: 8px 12px; margin: 2px 10px; border-radius: 10px;
+  font-size: 13.5px; font-weight: 500; gap: 12px;
+  width: calc(100% - 20px);
+}
+.sb-item .sb-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--bg-hover); color: var(--text-300);
+  transition: background .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
+}
+.sb-item:hover { background: var(--bg-hover); color: var(--text-100); }
+.sb-item:hover .sb-icon { background: var(--accent-dim); color: var(--accent); transform: scale(1.06); }
+.sb-item.active {
+  background: linear-gradient(90deg, var(--accent-dim), transparent);
+  color: var(--accent); font-weight: 600;
+}
+.sb-item.active .sb-icon { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+.sb-item.active::before { left: -10px; height: 24px; width: 4px; }
+.sb-sub .sb-item { padding: 8px 12px 8px 54px; font-size: 13px; margin: 1px 10px; }
+.sb-sub .sb-item .sb-icon { display: none; }
+.sb-sub .sb-item::after {
+  content: ''; position: absolute; left: 28px; top: 50%; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--border-strong); transform: translateY(-50%);
+  transition: background .15s, transform .15s;
+}
+.sb-sub .sb-item:hover::after, .sb-sub .sb-item.active::after { background: var(--accent); transform: translateY(-50%) scale(1.3); }
+.sb-sub .sb-item.active::before { display: none; }
+.sb-item.sub-open { color: var(--text-100); }
+.sb-item.sub-open .sb-icon { background: var(--accent-dim); color: var(--accent); }
+.sb-item.active .sb-icon svg, .sb-item:hover .sb-icon svg { stroke-width: 2; }
+.sb-badge { box-shadow: 0 2px 6px rgba(226, 76, 63, .35); }
+.sidebar.collapsed .sb-item { padding: 8px 9px; }
+.sidebar.collapsed .sb-sub .sb-item { padding-left: 30px; }
+.sidebar.collapsed .sb-sub .sb-item::after { left: 14px; }
+.sidebar.collapsed .sb-section-label { padding: 12px 0 4px; }
+.sidebar.collapsed .sb-section-label::after { display: none; }
+.sidebar.collapsed .sb-footer { margin: 8px 6px 10px; padding: 6px; }
+.sb-footer {
+  margin: 8px 10px 10px; padding: 8px; border: 1px solid var(--border-default);
+  border-radius: 12px; background: var(--bg-elevated);
+}
+.sb-avatar { background: var(--accent); color: #fff; border: 2px solid var(--bg-surface); box-shadow: 0 0 0 1.5px var(--accent-dim); }
+
+/* ── Dark theme: deeper contrast, softer surfaces ──────────────── */
+[data-theme="light"] {
+  --bg-base: #0C141D; --bg-surface: #131F2B; --bg-elevated: #192837;
+  --bg-input: #101B26; --bg-hover: #1F3040;
+  --border-default: rgba(255,255,255,.09); --border-strong: rgba(255,255,255,.2);
+  --text-200: #C3CFDB;
+}
+[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]),
+[data-theme="light"] select, [data-theme="light"] textarea,
+[data-theme="light"] .form-control, [data-theme="light"] .field-input {
+  background-color: var(--bg-input); color: var(--text-100);
+}
+[data-theme="light"] .select2-container--default .select2-selection--multiple { background: var(--bg-input) !important; }
+[data-theme="light"] .card, [data-theme="light"] .stat-card { box-shadow: 0 2px 12px rgba(0,0,0,.25); }
+[data-theme="light"] .topbar { background: color-mix(in srgb, var(--bg-surface) 88%, transparent); backdrop-filter: blur(10px); }
+
+/* ── Topbar / page header ──────────────────────────────────────── */
+.topbar { box-shadow: 0 1px 0 var(--border-default), 0 4px 18px rgba(51,71,91,.04); }
+.page-head { padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--border-default); }
+.page-title { font-size: 24px; font-weight: 800; letter-spacing: -.6px; }
+.page-sub { font-size: 13.5px; margin-top: 4px; }
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.btn { padding: 10px 18px; border-radius: 10px; }
+.btn-sm { padding: 6px 13px; border-radius: 8px; }
+.btn-primary { background: linear-gradient(180deg, var(--accent), var(--accent-hover)); }
+.btn-secondary { background: var(--bg-surface); box-shadow: var(--shadow-sm); }
+
+/* ── Cards, stat cards, tables: less flat ──────────────────────── */
+.card, .stat-card, .list-wrap { border-radius: 14px; box-shadow: var(--shadow-sm); border-color: var(--border-default); }
+.card:hover { box-shadow: var(--shadow-md); }
+.card-header { padding: 16px 22px; background: linear-gradient(180deg, var(--bg-elevated), var(--bg-surface)); }
+.card-body { padding: 22px; }
+.card-title { font-size: 15px; }
+.stat-card::before { height: 3px; }
+.stat-num { font-size: 32px; }
+.data-table th, .di-table th { background: var(--bg-elevated); color: var(--text-300); padding: 12px 16px; font-size: 11px; letter-spacing: .7px; }
+.data-table td { padding: 14px 16px; }
+.data-table tbody tr, .di-table tbody tr { transition: background .12s; }
+.data-table tbody tr:hover td, .di-table tbody tr:hover td { background: var(--accent-dim); }
+.badge { padding: 4px 10px; font-size: 11.5px; }
+.empty-state { padding: 72px 20px; }
+.empty-state-icon {
+  width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); font-size: 32px;
+}
+.modal-box { border-radius: 16px; }
+.pagination .page-item .page-link { border-radius: 9px; }
+
+.btn-icon { padding: 7px; }
+.btn-lg { padding: 12px 24px; }
+
+
+/* ================================================================
+   PAGE COMPONENTS — recurring patterns that individual pages style
+   locally (loaded after this file), unified here with a few
+   !important visual properties (radius / shadow / colours only).
+================================================================ */
+
+/* Card-like containers */
+.form-card, .form-section, .pf-card, .qf-section, .detail-card, .dcard, .chart-card,
+.kpi-card, .cs-card, .qs-card, .fc-section, .table-card, .dup-group, .dup-empty,
+.flow-box, .rpt-card {
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+.kpi-card, .chart-card, .detail-card, .dcard {
+  transition: box-shadow .18s var(--ease), transform .18s var(--ease), border-color .18s var(--ease);
+}
+.kpi-card:hover { box-shadow: var(--shadow-md) !important; transform: translateY(-2px); }
+.chart-card:hover, .detail-card:hover, .dcard:hover { box-shadow: var(--shadow-md) !important; }
+.form-section-title, .dcard-h, .dcard-t, .qs-card-title, .flow-box-title, .card-head {
+  font-weight: 700; letter-spacing: -.1px;
+}
+
+/* Table headers + row hover, for every page-local table class */
+.sub-table th, .dup-table th, .rtable th, .log-table th, .prod-table th, .ls-table th,
+.tt-table th, .qtt-table th, .mini-table th, .tenant-table th, .sessions-table th,
+.sd-table th, .recent-table th, .map-table th, .method-table th, .invoice-table th,
+.items-table th, .qs-items-table th, .ps-items-table th, .vb-items th, .di-table th {
+  background: var(--bg-elevated) !important;
+  color: var(--text-300) !important;
+  font-weight: 700 !important;
+  letter-spacing: .6px;
+  border-bottom: 1px solid var(--border-default) !important;
+}
+.sub-table tbody tr, .dup-table tbody tr, .rtable tbody tr, .log-table tbody tr,
+.prod-table tbody tr, .ls-table tbody tr, .tt-table tbody tr, .recent-table tbody tr,
+.sd-table tbody tr, .sessions-table tbody tr, .tenant-table tbody tr {
+  transition: background .12s var(--ease);
+}
+.sub-table tbody tr:hover td, .dup-table tbody tr:hover td, .rtable tbody tr:hover td,
+.log-table tbody tr:hover td, .prod-table tbody tr:hover td, .ls-table tbody tr:hover td,
+.tt-table tbody tr:hover td, .recent-table tbody tr:hover td, .sd-table tbody tr:hover td,
+.sessions-table tbody tr:hover td, .tenant-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-surface)) !important;
+}
+.sub-table, .rtable, .log-table, .tenant-table, .sessions-table {
+  border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm);
+}
+
+/* Filter tabs (pill style) */
+.s-tab {
+  padding: 8px 16px !important; border-radius: 999px !important;
+  border: 1.5px solid var(--border-default) !important;
+  background: var(--bg-surface);
+  font-weight: 600; letter-spacing: .1px;
+  transition: border-color .15s var(--ease), color .15s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease);
+}
+.s-tab:hover { border-color: var(--accent) !important; color: var(--accent); }
+.s-tab.active {
+  background: var(--accent-dim) !important; color: var(--accent) !important;
+  border-color: var(--accent) !important; box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* Empty states get an icon tile instead of a bare glyph */
+.empty-icon, .ds-empty-icon {
+  width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-dim); color: var(--accent);
+}
+.empty-title { font-weight: 700; color: var(--text-100); }
+.empty-sub, .empty-hint { color: var(--text-300); line-height: 1.55; }
+.dup-empty, .dempty, .sr-empty, .sd-empty, .pa-empty {
+  background: var(--bg-surface);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 14px;
+}
+
+/* Links & focus visibility for keyboard users */
+a:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+
+/* ── Catch-all for any other page-local input class (df-input, lf-select,
+   etc). :where() keeps specificity at 0 so the explicit rules above and any
+   page-level !important sizing (e.g. compact filter bars) always win. ── */
+:where(input, select, textarea):where([class*="input"], [class*="-sel"], [class*="-fi"], [class*="-area"], [class*="field-select"], [class*="field-textarea"]):where(:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"], [type="color"], [type="submit"], [type="button"])) {
+  background-color: var(--input-bg) !important;
+  border: 1.5px solid var(--input-border) !important;
+  border-radius: 10px !important;
+  color: var(--text-100);
+  font-family: var(--font);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease !important;
+}
+:where(input, select, textarea):where([class*="input"], [class*="-sel"], [class*="-fi"], [class*="-area"], [class*="field-select"], [class*="field-textarea"]):where(:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"], [type="color"], [type="submit"], [type="button"])):hover:not(:focus):not(:disabled) { border-color: var(--input-hover) !important; }
+:where(input, select, textarea):where([class*="input"], [class*="-sel"], [class*="-fi"], [class*="-area"], [class*="field-select"], [class*="field-textarea"]):where(:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"], [type="color"], [type="submit"], [type="button"])):focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+  outline: none;
+}
+:where(input, select, textarea):where([class*="input"], [class*="-sel"], [class*="-fi"], [class*="-area"], [class*="field-select"], [class*="field-textarea"]):where(:not([type="checkbox"], [type="radio"], [type="file"], [type="hidden"], [type="range"], [type="color"], [type="submit"], [type="button"])):is(:disabled, [readonly]) {
+  background-color: var(--bg-hover) !important; color: var(--text-300); cursor: not-allowed;
+}
+.df-input, .df-sel, .lf-select { min-height: 42px !important; }
+textarea.df-input, .df-area { min-height: 96px !important; }
+
+/* Select2 height: match roomy form inputs (42px); compact inside toolbars / filter bars (36px) */
+.select2-container--default .select2-selection--single { height: 42px !important; }
+.select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 39px !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; }
+[class*="toolbar"] .select2-container--default .select2-selection--single,
+[class*="filter"] .select2-container--default .select2-selection--single { height: 36px !important; }
+[class*="toolbar"] .select2-container--default .select2-selection--single .select2-selection__rendered,
+[class*="filter"] .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 33px !important; font-size: 12.5px; }
+[class*="toolbar"] .select2-container--default .select2-selection--single .select2-selection__arrow,
+[class*="filter"] .select2-container--default .select2-selection--single .select2-selection__arrow { height: 34px !important; }
+.select2-container--default .select2-selection--single .select2-selection__rendered { color: var(--text-100) !important; }
+
+/* Collapsed sidebar: submenus become hover flyouts. Fix: (1) flyout labels were
+   invisible because collapsed hides every .sb-label, (2) server-opened sections
+   left their flyout permanently visible over the page, (3) hover gap flicker. */
+.sidebar.collapsed .sb-sub .sb-label, .sidebar.collapsed .sb-sub .sb-badge { opacity: 1; pointer-events: auto; }
+.sidebar.collapsed .sb-sub.open:not(:hover) {
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translateX(-6px);
+}
+.sidebar.collapsed .sb-sub::before { content: ''; position: absolute; left: -14px; top: 0; bottom: 0; width: 14px; }
+.sidebar.collapsed .sb-sub { overflow: visible; }
+
+/* ── Inputs styled by inline style="" or by a page-scoped ".x input" selector ──
+   Same visual language as above; the inline "error" red border is preserved
+   because only the default (border-default) inline border is recoloured. */
+:where(input, select, textarea)[style*="var(--bg-input)"]:where(:not([type="checkbox"], [type="radio"], [type="hidden"], [type="file"], [type="range"], [type="color"], [type="submit"], [type="button"])),
+.lk-form input, .ct-phone input, .ct-bill input, .settings-grid input,
+.log-filters input, .log-filters select, .filters select,
+.filters input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: var(--input-bg) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(51, 71, 91, .06) !important;
+  transition: border-color .15s ease, box-shadow .15s ease !important;
+}
+:where(input, select, textarea)[style*="solid var(--border-default)"],
+.lk-form input, .ct-phone input, .ct-bill input, .settings-grid input,
+.log-filters input, .log-filters select, .filters select,
+.filters input:not([type="checkbox"]):not([type="radio"]) {
+  border-color: var(--input-border) !important;
+}
+:where(input, select, textarea)[style*="var(--bg-input)"]:focus,
+.lk-form input:focus, .ct-phone input:focus, .ct-bill input:focus, .settings-grid input:focus,
+.log-filters input:focus, .log-filters select:focus, .filters select:focus,
+.filters input:not([type="checkbox"]):not([type="radio"]):focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+  outline: none;
+}
+
+/* Cards built with inline styles (surface bg + large radius) get the same depth as .card */
+[style*="background:var(--bg-surface)"][style*="border-radius:var(--r-lg)"] {
+  border-radius: 14px !important; box-shadow: var(--shadow-sm);
+}

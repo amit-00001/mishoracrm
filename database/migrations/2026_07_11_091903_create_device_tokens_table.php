@@ -33,7 +33,11 @@ return new class extends Migration
         });
 
         // A full unique index on varchar(1000) exceeds MySQL's 3072-byte key limit under utf8mb4.
-        DB::statement('ALTER TABLE device_tokens ADD UNIQUE device_tokens_device_token_unique (device_token(700))');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE device_tokens ADD CONSTRAINT device_tokens_device_token_unique UNIQUE (device_token)');
+        } else {
+            DB::statement('ALTER TABLE device_tokens ADD UNIQUE device_tokens_device_token_unique (device_token(700))');
+        }
     }
 
     /**

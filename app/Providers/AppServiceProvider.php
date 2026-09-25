@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Database\CaseInsensitivePostgresGrammar;
 use App\Models\Deal;
 use App\Models\Lead;
 use App\Observers\DealObserver;
@@ -9,6 +10,7 @@ use App\Observers\LeadObserver;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +29,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Make LIKE searches case-insensitive on PostgreSQL (Supabase), like MySQL.
+        if (config('database.default') === 'pgsql') {
+            DB::connection()->setQueryGrammar(new CaseInsensitivePostgresGrammar);
+        }
+
         // Production sits behind a reverse proxy that terminates SSL and
         // forwards plain HTTP to the app, so $request->getScheme() (and
         // every url()/route() call built from it — including the Meta

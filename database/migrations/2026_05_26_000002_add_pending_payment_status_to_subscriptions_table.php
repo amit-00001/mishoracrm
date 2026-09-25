@@ -7,11 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('trial','active','cancelled','expired','past_due','pending_payment') DEFAULT 'trial'");
+        \App\Helpers\Sql::setEnum('subscriptions', 'status', ['trial', 'active', 'cancelled', 'expired', 'past_due', 'pending_payment'], 'trial');
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE subscriptions MODIFY COLUMN status ENUM('trial','active','cancelled','expired','past_due') DEFAULT 'trial'");
+        \App\Helpers\Sql::setEnum('subscriptions', 'status', ['trial', 'active', 'cancelled', 'expired', 'past_due'], 'trial');
     }
 };

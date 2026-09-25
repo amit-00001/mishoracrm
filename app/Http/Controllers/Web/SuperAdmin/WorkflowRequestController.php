@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\WorkflowRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ class WorkflowRequestController extends Controller
     public function index(Request $request): View
     {
         $query = WorkflowRequest::with(['tenant', 'user', 'template'])
-            ->orderByRaw("FIELD(status, 'new', 'in_progress', 'completed', 'rejected')")
+            ->orderByRaw(Sql::fieldOrder('status', ['new', 'in_progress', 'completed', 'rejected']))
             ->orderByDesc('created_at');
 
         if ($request->filled('status')) {

@@ -11,6 +11,12 @@ return new class extends Migration
     // doctrine/dbal (needed for column->change()) isn't installed.
     public function up(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE tasks ALTER COLUMN taskable_type DROP NOT NULL');
+            DB::statement('ALTER TABLE tasks ALTER COLUMN taskable_id DROP NOT NULL');
+            return;
+        }
+
         DB::statement('ALTER TABLE tasks MODIFY taskable_type VARCHAR(255) NULL');
         DB::statement('ALTER TABLE tasks MODIFY taskable_id BIGINT UNSIGNED NULL');
     }
@@ -19,6 +25,12 @@ return new class extends Migration
     {
         DB::statement("UPDATE tasks SET taskable_type = '' WHERE taskable_type IS NULL");
         DB::statement('UPDATE tasks SET taskable_id = 0 WHERE taskable_id IS NULL');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE tasks ALTER COLUMN taskable_type SET NOT NULL');
+            DB::statement('ALTER TABLE tasks ALTER COLUMN taskable_id SET NOT NULL');
+            return;
+        }
+
         DB::statement('ALTER TABLE tasks MODIFY taskable_type VARCHAR(255) NOT NULL');
         DB::statement('ALTER TABLE tasks MODIFY taskable_id BIGINT UNSIGNED NOT NULL');
     }

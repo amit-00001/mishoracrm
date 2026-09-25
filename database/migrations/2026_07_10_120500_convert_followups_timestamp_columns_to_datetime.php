@@ -15,6 +15,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            return; // MySQL-only implicit ON UPDATE quirk; nothing to fix on PostgreSQL.
+        }
+
         DB::statement('ALTER TABLE followups MODIFY scheduled_at DATETIME NOT NULL');
         DB::statement('ALTER TABLE followups MODIFY done_at DATETIME NULL DEFAULT NULL');
         DB::statement('ALTER TABLE followups MODIFY due_notified_at DATETIME NULL DEFAULT NULL');
@@ -23,6 +27,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE followups MODIFY scheduled_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
         DB::statement('ALTER TABLE followups MODIFY done_at TIMESTAMP NULL DEFAULT NULL');
         DB::statement('ALTER TABLE followups MODIFY due_notified_at TIMESTAMP NULL DEFAULT NULL');

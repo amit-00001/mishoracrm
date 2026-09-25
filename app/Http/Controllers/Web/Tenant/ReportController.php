@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\Appointment;
 use App\Models\Contact;
 use App\Models\Deal;
@@ -89,7 +90,7 @@ class ReportController extends Controller
         // ── Monthly revenue — last 12 months
         $monthlyRevenue = Invoice::where('status', 'paid')
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(paid_at, '%Y-%m') as month, SUM(total) as revenue")
+            ->selectRaw(Sql::yearMonth('paid_at') . ' as month, SUM(total) as revenue')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -145,7 +146,7 @@ class ReportController extends Controller
 
         // Daily trend
         $dailyTrend = Lead::whereBetween('created_at', [$from, $to])
-            ->selectRaw("DATE(created_at) as day, COUNT(*) as count")
+            ->selectRaw(Sql::date('created_at') . ' as day, COUNT(*) as count')
             ->groupBy('day')
             ->orderBy('day')
             ->get();
@@ -205,7 +206,7 @@ class ReportController extends Controller
 
         $avgDaysToConvert = (clone $baseQuery)
             ->whereNotNull('converted_at')
-            ->selectRaw('AVG(DATEDIFF(converted_at, created_at)) as avg_days')
+            ->selectRaw('AVG(' . Sql::daysBetween('created_at', 'converted_at') . ') as avg_days')
             ->value('avg_days');
 
         $leads = (clone $baseQuery)
@@ -255,7 +256,7 @@ class ReportController extends Controller
 
         // Monthly deal trend
         $monthlyDeals = Deal::whereBetween('created_at', [$from, $to])
-            ->selectRaw("DATE_FORMAT(created_at,'%Y-%m') as month, COUNT(*) as count, SUM(value) as total")
+            ->selectRaw(Sql::yearMonth('created_at') . ' as month, COUNT(*) as count, SUM(value) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -339,7 +340,7 @@ class ReportController extends Controller
         // Monthly revenue
         $monthlyRevenue = Invoice::where('status','paid')
             ->where('paid_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(paid_at,'%Y-%m') as month, SUM(total) as revenue, COUNT(*) as count")
+            ->selectRaw(Sql::yearMonth('paid_at') . ' as month, SUM(total) as revenue, COUNT(*) as count')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -452,7 +453,7 @@ class ReportController extends Controller
             ->get();
 
         $monthlyTrend = ServiceSubscription::where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count")
+            ->selectRaw(Sql::yearMonth('created_at') . ' as month, COUNT(*) as count')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -500,7 +501,7 @@ class ReportController extends Controller
             ->get()->keyBy('status');
 
         $dailyTrend = Appointment::whereBetween('starts_at', [$from, $to])
-            ->selectRaw('DATE(starts_at) as day, COUNT(*) as count')
+            ->selectRaw(Sql::date('starts_at') . ' as day, COUNT(*) as count')
             ->groupBy('day')
             ->orderBy('day')
             ->get();
@@ -529,7 +530,7 @@ class ReportController extends Controller
         // Avg resolution time in hours, for tickets that have a resolved_at
         $avgResolutionHours = (clone $base)
             ->whereNotNull('resolved_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_hours')
+            ->selectRaw('AVG(' . Sql::hoursBetween('created_at', 'resolved_at') . ') as avg_hours')
             ->value('avg_hours');
 
         $byPriority = Ticket::whereBetween('created_at', [$from, $to])

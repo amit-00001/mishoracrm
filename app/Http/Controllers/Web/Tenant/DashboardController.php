@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\Appointment;
 use App\Models\Deal;
 use App\Models\Followup;
@@ -232,7 +233,7 @@ class DashboardController extends Controller
         // ── Revenue chart — last 12 months ────────────────────────
         $revenueRaw = Invoice::where('status', 'paid')
             ->whereYear('paid_at', now()->year)
-            ->selectRaw('MONTH(paid_at) as month, SUM(total) as total')
+            ->selectRaw(Sql::month('paid_at') . ' as month, SUM(total) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')
@@ -250,16 +251,16 @@ class DashboardController extends Controller
         $monthKey    = fn($y, $m) => $y . '-' . $m;
 
         $leadsByMonth = Lead::where('created_at', '>=', $sparkFrom)
-            ->selectRaw('YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
+            ->selectRaw(Sql::year('created_at') . ' as y, ' . Sql::month('created_at') . ' as m, COUNT(*) as c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $dealsByMonth = Deal::where('created_at', '>=', $sparkFrom)
-            ->selectRaw('YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
+            ->selectRaw(Sql::year('created_at') . ' as y, ' . Sql::month('created_at') . ' as m, COUNT(*) as c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $wonByMonth = Deal::where('stage', 'won')->where('updated_at', '>=', $sparkFrom)
-            ->selectRaw('YEAR(updated_at) y, MONTH(updated_at) m, SUM(value) v')
+            ->selectRaw(Sql::year('updated_at') . ' as y, ' . Sql::month('updated_at') . ' as m, SUM(value) as v')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
         $convByMonth = Lead::whereNotNull('converted_at')->where('converted_at', '>=', $sparkFrom)
-            ->selectRaw('YEAR(converted_at) y, MONTH(converted_at) m, COUNT(*) c')
+            ->selectRaw(Sql::year('converted_at') . ' as y, ' . Sql::month('converted_at') . ' as m, COUNT(*) as c')
             ->groupBy('y', 'm')->get()->keyBy(fn($r) => $monthKey($r->y, $r->m));
 
         $spark = ['leads' => [], 'deals' => [], 'won' => [], 'conversion' => []];
@@ -324,7 +325,7 @@ class DashboardController extends Controller
         $pipeMonths   = collect(range(5, 0))->map(fn($i) => now()->startOfMonth()->subMonths($i));
         $pipeSparkRaw = Deal::whereIn('stage', $stageOrder)
             ->where('created_at', '>=', $pipeMonths->first())
-            ->selectRaw('stage, YEAR(created_at) y, MONTH(created_at) m, COUNT(*) c')
+            ->selectRaw('stage, ' . Sql::year('created_at') . ' as y, ' . Sql::month('created_at') . ' as m, COUNT(*) as c')
             ->groupBy('stage', 'y', 'm')
             ->get();
 

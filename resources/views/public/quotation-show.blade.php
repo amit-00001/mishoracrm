@@ -7,7 +7,7 @@
 <title>Quotation {{ $quotation->number }} — {{ $quotation->tenant->name ?? 'Quotation' }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="{{ asset('css/app.css') }}"/>
+<link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: '1' }}"/>
 <style>
 body { background: var(--bg-app); min-height:100vh; padding:24px 16px; }
 .pq-wrap { max-width:820px; margin:0 auto; display:flex; flex-direction:column; gap:16px; }

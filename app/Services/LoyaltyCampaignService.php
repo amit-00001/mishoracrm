@@ -41,12 +41,12 @@ class LoyaltyCampaignService
             'spend' => $q
                 ->select('contacts.*')
                 ->addSelect(['_metric' => $paidInvoiceSum($config['within_days'] ?? null)])
-                ->having('_metric', '>=', (float) ($config['min_spend'] ?? 0)),
+                ->where($paidInvoiceSum($config['within_days'] ?? null), '>=', (float) ($config['min_spend'] ?? 0)),
 
             'visits' => $q
                 ->select('contacts.*')
                 ->addSelect(['_metric' => $paidInvoiceCount($config['within_days'] ?? null)])
-                ->having('_metric', '>=', (int) ($config['min_visits'] ?? 1)),
+                ->where($paidInvoiceCount($config['within_days'] ?? null), '>=', (int) ($config['min_visits'] ?? 1)),
 
             'inactive' => $q
                 ->whereHas('invoices', fn ($iq) => $iq->where('status', 'paid'))

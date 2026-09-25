@@ -90,101 +90,112 @@ select.di-fi {
 .kanban-scroll::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 20px; }
 .kanban-scroll::-webkit-scrollbar-track { background: transparent; }
 .kanban-board  {
-    display: flex; gap: 12px; align-items: stretch;
-    background: color-mix(in srgb, var(--accent) 5%, var(--bg-elevated));
-    border-radius: 20px; padding: 16px;
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 4px 2px 8px;
 }
 
 .k-col {
-    width: 290px; flex-shrink: 0; display: flex; flex-direction: column;
-    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
-    border-radius: 12px; overflow: hidden;
-    max-height: calc(100vh - 300px); min-height: 260px;
+    width: 310px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: color-mix(in srgb, var(--text-100) 3.5%, var(--bg-base));
+    border: 1px solid var(--border-default);
+    border-radius: 16px; overflow: hidden;
+    max-height: calc(100vh - 280px); min-height: 280px;
+    box-shadow: var(--shadow-sm);
 }
 .k-col-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
+    padding: 14px 16px; flex-shrink: 0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-default);
+    position: relative;
 }
 .k-col-head-l { display: flex; align-items: center; gap: 8px; }
-.k-col-title  { font-size: 13px; font-weight: 600; }
-.k-col-count  { font-size: 11px; font-family: var(--mono); padding: 2px 7px; border-radius: 10px; font-weight: 600; color: #fff; }
+.k-col-ico { font-size: 16px; display: inline-flex; }
+.k-col-head { background: color-mix(in srgb, var(--stage-color, var(--accent)) 8%, var(--bg-surface)); }
+.tc-cnt.is-overdue { color: var(--red); background: var(--red-dim); }
+.tc-who { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.tc-who-name { font-size: 11.5px; font-weight: 600; color: var(--text-200); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.k-col-title  { font-size: 13.5px; font-weight: 700; letter-spacing: -.1px; }
+.k-col-count  { font-size: 11px; font-family: var(--mono); padding: 2px 9px; border-radius: 20px; font-weight: 700; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
 
 /* Drop zone — scrolls internally so one busy column never stretches the whole page */
 .k-drop-zone {
-    flex: 1; min-height: 0; padding: 10px;
-    display: flex; flex-direction: column; gap: 8px;
+    flex: 1; min-height: 120px; padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
     transition: background .2s;
     overflow-y: auto;
 }
 .k-view-all-btn {
     display: flex; align-items: center; justify-content: center; gap: 5px;
     margin-top: 2px; padding: 9px; background: var(--bg-surface);
-    border: 1px solid var(--border-default); border-radius: 8px;
+    border: 1px solid var(--border-default); border-radius: 10px;
     font-size: 11.5px; font-weight: 600; color: var(--accent); cursor: pointer;
     font-family: var(--font); transition: all .15s; text-decoration: none;
     flex-shrink: 0;
 }
 .k-view-all-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
 .k-drop-zone.drag-over {
-    background: rgba(255,122,89,.06);
+    background: var(--accent-dim);
     outline: 2px dashed var(--accent);
-    outline-offset: -4px;
+    outline-offset: -6px;
 }
 
 /* Task card */
 .task-card {
-    background: var(--bg-surface); border: 1px solid color-mix(in srgb, var(--text-100) 6%, transparent);
-    border-radius: 13px; padding: 13px 14px; cursor: grab;
-    box-shadow: 0 2px 8px rgba(20,20,50,.06);
-    transition: box-shadow .15s, transform .15s, opacity .15s;
-    user-select: none; position: relative;
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 12px; padding: 14px; cursor: grab;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow .18s, transform .18s, opacity .15s, border-color .18s;
+    user-select: none; position: relative; overflow: hidden;
 }
-.task-card:hover  { box-shadow: 0 8px 20px rgba(20,20,50,.12); transform: translateY(-2px); }
-.task-card.is-dragging { opacity: .45; cursor: grabbing; transform: scale(.97) rotate(-1deg); box-shadow: 0 12px 26px rgba(20,20,50,.18); }
+.task-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--card-accent, var(--border-strong));
+}
+.task-card:hover  { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+.task-card.is-dragging { opacity: .5; cursor: grabbing; transform: scale(.97) rotate(-1.5deg); box-shadow: var(--shadow-lg); }
 
-.tc-chip { display:inline-block; font-size:10px; font-weight:700; color:#fff; padding:3px 9px; border-radius:6px; margin-bottom:9px; letter-spacing:.1px; }
+.tc-chip { display:inline-flex; align-items:center; font-size:10px; font-weight:700; color:#fff; padding:3px 10px; border-radius:20px; margin-bottom:10px; letter-spacing:.3px; text-transform:uppercase; }
 .tc-top     { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:4px; }
-.tc-title   { font-size: 13.5px; font-weight: 700; color: var(--text-100); line-height: 1.42; flex: 1; }
+.tc-title   { font-size: 13.5px; font-weight: 700; color: var(--text-100); line-height: 1.45; flex: 1; }
 .tc-grip    { width:16px; height:20px; flex-shrink:0; opacity:0; transition:opacity .15s; display:flex; align-items:center; justify-content:center; color:var(--text-400); cursor:grab; }
 .task-card:hover .tc-grip { opacity: 1; }
-.tc-desc    { font-size: 11.5px; color: var(--text-300); margin-bottom: 4px; line-height: 1.5; }
-.tc-foot    { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; }
+.tc-desc    { font-size: 12px; color: var(--text-300); margin-bottom: 4px; line-height: 1.55; }
+.tc-foot    { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; padding-top:11px; border-top:1px solid var(--border-subtle); }
 .tc-cnts    { display:flex; gap:8px; }
-.tc-cnt     { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color: var(--text-300); }
+.tc-cnt     { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color: var(--text-300); background: var(--bg-hover); padding: 3px 8px; border-radius: 6px; }
 .tc-right   { display:flex; align-items:center; gap:6px; }
 .tc-date    { font-size: 11px; color: var(--text-400); font-family: var(--mono); }
 .tc-av      {
-    width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-size:9.5px; font-weight:700; box-shadow: 0 0 0 2px var(--bg-surface);
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; box-shadow: 0 0 0 2px var(--bg-surface);
 }
 .tc-view-btn {
-    width: 24px; height: 24px; border-radius: 8px;
-    background: color-mix(in srgb, var(--text-100) 5%, transparent); display: flex; align-items: center; justify-content: center;
-    color: var(--text-400); text-decoration: none; transition: all .15s; flex-shrink: 0;
+    width: 26px; height: 26px; border-radius: 8px;
+    background: var(--bg-hover); display: flex; align-items: center; justify-content: center;
+    color: var(--text-300); text-decoration: none; transition: all .15s; flex-shrink: 0;
 }
 .tc-view-btn:hover { background: var(--accent); color: #fff; transform: translateX(1px); }
-.k-empty { text-align:center; padding:30px 14px; font-size:12px; color:var(--text-400); line-height:1.6; }
+.k-empty { text-align:center; padding:34px 14px; font-size:12px; color:var(--text-400); line-height:1.6; border: 1.5px dashed var(--border-strong); border-radius: 12px; }
 .k-empty i { opacity: .5; }
 
-/* Per-card status picker — soft ghost control, no boxed border by default */
-.tc-status-row { margin-top: 9px; }
+/* Per-card status picker */
+.tc-status-row { margin-top: 10px; }
 .tc-status-select {
-    width: 100%; padding: 7px 10px; font-size: 11.5px; font-weight: 600;
-    background: color-mix(in srgb, var(--text-100) 4%, transparent); border: 1px solid transparent;
-    border-radius: 8px; color: var(--text-200); font-family: var(--font);
+    width: 100%; padding: 0 28px 0 10px; min-height: 32px !important; font-size: 11.5px; font-weight: 600;
+    background-color: var(--bg-hover) !important; border: 1px solid transparent !important;
+    border-radius: 8px !important; color: var(--text-200);
     cursor: pointer; outline: none; appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239aa0ac' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center;
-    transition: background .15s, border-color .15s, box-shadow .15s;
 }
-.tc-status-select:hover  { background: color-mix(in srgb, var(--text-100) 7%, transparent); }
-.tc-status-select:focus { background: var(--bg-surface); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.tc-status-select:hover  { border-color: var(--border-strong) !important; }
+.tc-status-select:focus { background-color: var(--bg-surface) !important; border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-glow); }
 .k-add-btn {
     display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0;
-    margin: 2px 4px 4px; padding: 10px;
-    border: 1.5px dashed color-mix(in srgb, var(--text-100) 14%, transparent); border-radius: 12px;
-    font-size: 12px; font-weight: 600; color: var(--text-400); cursor: pointer;
+    margin: 0 12px 12px; padding: 10px;
+    border: 1.5px dashed var(--border-strong); border-radius: 12px;
+    font-size: 12px; font-weight: 600; color: var(--text-300); cursor: pointer;
     font-family: var(--font); transition: all .15s; text-decoration: none; background: transparent;
 }
 .k-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); border-style: solid; }
@@ -463,7 +474,7 @@ select.di-fi {
                 $hasMore  = $colCount > $colTasks->count();
             @endphp
 
-            <div class="k-col" data-stage="{{ $slug }}"
+            <div class="k-col" data-stage="{{ $slug }}" style="--stage-color:{{ $stage['color'] }}"
                  ondragover="taskDragOver(event)"
                  ondragenter="taskDragEnter(event)"
                  ondragleave="taskDragLeave(event)"
@@ -472,6 +483,7 @@ select.di-fi {
                 {{-- Column header --}}
                 <div class="k-col-head" style="border-top:3px solid {{ $stage['color'] }}">
                     <div class="k-col-head-l">
+                        <span class="k-col-ico" style="color:{{ $stage['color'] }}"><i class="ti {{ $stageIcons[$slug] ?? 'ti-circle' }}"></i></span>
                         <span class="k-col-title" style="color:{{ $stage['text_color'] }}">
                             {{ $stage['label'] }}
                         </span>
@@ -505,6 +517,7 @@ select.di-fi {
                     @endphp
 
                     <div class="task-card"
+                         style="--card-accent:{{ $priority['color'] ?? 'var(--border-strong)' }}"
                          draggable="true"
                          id="card_{{ $task->id }}"
                          data-task-id="{{ $task->id }}"
@@ -521,7 +534,7 @@ select.di-fi {
                             <div class="tc-title">
                                 {{ $task->title }}
                                 @if($task->isOverdue())
-                                <span style="margin-left:5px;font-size:9px;font-weight:700;color:var(--red);background:rgba(224,82,82,.12);padding:1px 6px;border-radius:99px;white-space:nowrap">OVERDUE</span>
+                                <span style="margin-left:5px;font-size:9px;font-weight:700;color:var(--red);background:var(--red-dim);padding:1px 6px;border-radius:99px;white-space:nowrap">OVERDUE</span>
                                 @endif
                             </div>
                             <div class="tc-grip">
@@ -550,7 +563,7 @@ select.di-fi {
                         <div class="tc-foot">
                             <div class="tc-cnts">
                                 @if($task->due_at)
-                                <span class="tc-cnt" style="{{ $task->isOverdue() ? 'color:var(--red)' : '' }}">
+                                <span class="tc-cnt {{ $task->isOverdue() ? 'is-overdue' : '' }}">
                                     <i class="ti ti-calendar" style="font-size:11px"></i>
                                     {{ \Carbon\Carbon::parse($task->due_at)->format('M d') }}
                                 </span>
@@ -558,9 +571,11 @@ select.di-fi {
                             </div>
                             <div class="tc-right">
                                 @if($task->assignedTo)
-                                <div class="tc-av" style="background:{{ $avBg }};color:{{ $avTx }}"
-                                     title="{{ $task->assignedTo->name }}">
-                                    {{ substr($taskInitials,0,2) }}
+                                <div class="tc-who" title="{{ $task->assignedTo->name }}">
+                                    <div class="tc-av" style="background:{{ $avBg }};color:{{ $avTx }}">
+                                        {{ substr($taskInitials,0,2) }}
+                                    </div>
+                                    <span class="tc-who-name">{{ \Illuminate\Support\Str::before($task->assignedTo->name, ' ') }}</span>
                                 </div>
                                 @endif
                                 <a href="{{ route('tenant.tasks.show', $task->id) }}"

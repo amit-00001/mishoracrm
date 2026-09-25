@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\Tenant;
@@ -52,7 +53,7 @@ class DashboardController extends Controller
         ];
 
         // ── Signups chart ─────────────────────────────────────────
-        $signupsRaw = Tenant::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+        $signupsRaw = Tenant::selectRaw(Sql::month('created_at') . ' as month, COUNT(*) as count')
             ->whereYear('created_at', now()->year)
             ->groupBy('month')
             ->orderBy('month')
@@ -181,7 +182,7 @@ class DashboardController extends Controller
                 ->selectRaw('
                     SUM(
                         CASE
-                            WHEN subscriptions.billing_cycle = "yearly"
+                            WHEN subscriptions.billing_cycle = \'yearly\'
                             THEN plans.yearly_price / 12
                             ELSE plans.monthly_price
                         END

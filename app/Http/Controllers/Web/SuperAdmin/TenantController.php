@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\AuditLog;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -69,7 +70,7 @@ class TenantController extends Controller
         $users = User::withoutGlobalScopes()
             ->where('tenant_id', $tenant->id)
             ->with('roles')
-            ->orderByRaw("FIELD(user_type, 'tenant_admin', 'staff')")
+            ->orderByRaw(Sql::fieldOrder('user_type', ['tenant_admin', 'staff']))
             ->orderByDesc('last_login_at')
             ->get();
 

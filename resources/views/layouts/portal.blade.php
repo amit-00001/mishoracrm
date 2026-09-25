@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="{{ asset('css/app.css') }}"/>
+<link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: '1' }}"/>
 <style>
 body { background:var(--bg-base); background-image:radial-gradient(circle at 15% 0%, var(--accent-dim), transparent 40%), radial-gradient(circle at 85% 100%, var(--accent-dim), transparent 40%); min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:32px 16px; }
 .pt-wrap { width:100%; max-width:440px; display:flex; flex-direction:column; gap:14px; }

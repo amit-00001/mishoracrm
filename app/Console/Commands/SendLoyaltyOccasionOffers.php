@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Contact;
+use App\Helpers\Sql;
 use App\Services\LoyaltyNotifier;
 use App\Services\LoyaltyService;
 use Illuminate\Console\Command;
@@ -21,7 +22,7 @@ class SendLoyaltyOccasionOffers extends Command
         foreach (['birthday', 'anniversary'] as $occasion) {
             $contacts = Contact::withoutGlobalScopes()
                 ->whereNotNull($occasion)
-                ->whereRaw("DATE_FORMAT({$occasion}, '%m-%d') = ?", [$today])
+                ->whereRaw(Sql::monthDay($occasion) . ' = ?', [$today])
                 ->with('tenant')
                 ->get();
 

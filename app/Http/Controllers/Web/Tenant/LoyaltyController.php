@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Sql;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\LoyaltyTransaction;
@@ -61,7 +62,7 @@ class LoyaltyController extends Controller
             ->where('status', 'paid')
             ->whereNotNull('contact_id')
             ->where('paid_at', '>=', $since)
-            ->selectRaw('DATE(paid_at) as d, count(*) as c')
+            ->selectRaw(Sql::date('paid_at') . ' as d, count(*) as c')
             ->groupBy('d')
             ->pluck('c', 'd');
 
@@ -130,16 +131,19 @@ class LoyaltyController extends Controller
             default => null,
         };
 
+        // Spend subquery — filtered with where() rather than HAVING, since
+        // PostgreSQL does not allow select aliases in HAVING.
+        $spend = \App\Models\Invoice::withoutGlobalScopes()
+            ->selectRaw('COALESCE(SUM(total),0)')
+            ->whereColumn('invoices.contact_id', 'contacts.id')
+            ->whereNull('invoices.deleted_at')
+            ->where('invoices.status', 'paid')
+            ->when($since, fn ($q) => $q->where('invoices.paid_at', '>=', $since));
+
         $customers = Contact::query()
             ->select('contacts.*')
-            ->addSelect(['_spend' => \App\Models\Invoice::withoutGlobalScopes()
-                ->selectRaw('COALESCE(SUM(total),0)')
-                ->whereColumn('invoices.contact_id', 'contacts.id')
-                ->whereNull('invoices.deleted_at')
-                ->where('invoices.status', 'paid')
-                ->when($since, fn ($q) => $q->where('invoices.paid_at', '>=', $since)),
-            ])
-            ->having('_spend', '>', 0)
+            ->addSelect(['_spend' => $spend])
+            ->where($spend, '>', 0)
             ->orderByDesc('_spend')
             ->limit(50)
             ->get();
