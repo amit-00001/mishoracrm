@@ -2,22 +2,31 @@
 
 namespace App\Support;
 
-// Local-dev shortcut for the customer wallet login (config/portal.php): one
-// fixed phone signs in with one fixed code. Hard-gated to local/testing so it
-// can never act as a backdoor on a real deployment, whatever the env says.
+use App\Models\PlatformSetting;
+
+// Test login for the customer wallet: one fixed phone signs in with one fixed
+// code (config/portal.php), so testers don't need a real OTP. It is ON only while
+// a superadmin has switched it on (Superadmin → Portal Customers) — off by default,
+// and switching it off removes the test data and stops the shortcut immediately.
 class PortalTestLogin
 {
+    public const SETTING = 'portal_test_login';
+
     public static function active(): bool
     {
-        return (bool) config('portal.test_login.enabled')
-            && app()->environment(['local', 'testing']);
+        return PlatformSetting::get(self::SETTING) === '1';
     }
 
     public static function matches(?string $phone): bool
     {
-        return self::active()
-            && $phone !== null
-            && self::last10($phone) === self::last10((string) config('portal.test_login.phone'));
+        return $phone !== null
+            && self::last10($phone) === self::phone()
+            && self::active();
+    }
+
+    public static function phone(): string
+    {
+        return self::last10((string) config('portal.test_login.phone'));
     }
 
     public static function code(): string

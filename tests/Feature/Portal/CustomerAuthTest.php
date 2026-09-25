@@ -58,7 +58,8 @@ class CustomerAuthTest extends TestCase
 
     private function enableTestLogin(string $phone = '9999999999', string $otp = '123456'): void
     {
-        config(['portal.test_login.enabled' => true, 'portal.test_login.phone' => $phone, 'portal.test_login.otp' => $otp]);
+        config(['portal.test_login.phone' => $phone, 'portal.test_login.otp' => $otp]);
+        \App\Models\PlatformSetting::set(\App\Support\PortalTestLogin::SETTING, '1');
     }
 
     public function test_test_login_signs_the_dev_number_in_with_the_fixed_code_and_no_contact(): void
@@ -125,26 +126,21 @@ class CustomerAuthTest extends TestCase
         $this->assertGuest('customer');
     }
 
-    public function test_test_login_never_works_outside_local_or_testing(): void
+    public function test_test_login_stops_the_moment_the_superadmin_switches_it_off(): void
     {
         $this->enableTestLogin();
         $this->assertTrue(\App\Support\PortalTestLogin::matches('9999999999'));
 
-        $this->app->detectEnvironment(fn () => 'production');
+        \App\Models\PlatformSetting::set(\App\Support\PortalTestLogin::SETTING, '0');
 
         $this->assertFalse(\App\Support\PortalTestLogin::active());
         $this->assertFalse(\App\Support\PortalTestLogin::matches('9999999999'));
 
-        // Through HTTP too. Outside "testing" Laravel enforces CSRF, so send a real token.
-        $csrf = ['_token' => 'csrf-token'];
-        $this->withSession($csrf)
-            ->post(route('portal.login.request-otp'), $csrf + ['phone' => '9999999999'])
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])
             ->assertOk()->assertDontSee('Test login is on');
-
         $this->assertSame(0, Customer::withTrashed()->count());
 
-        $this->withSession($csrf)
-            ->post(route('portal.login.verify'), $csrf + ['phone' => '9999999999', 'code' => '123456']);
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '123456']);
         $this->assertGuest('customer');
     }
 

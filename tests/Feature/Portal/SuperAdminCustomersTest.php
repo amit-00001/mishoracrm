@@ -184,4 +184,125 @@ class SuperAdminCustomersTest extends TestCase
         $this->actingAs($admin)->post(route('superadmin.customers.block', $customer->id))->assertNotFound();
         $this->assertFalse($this->actingAs($admin)->get(route('superadmin.customers.index'))->viewData('customers')->pluck('id')->contains($customer->id));
     }
+
+    // ── Test login switch ──────────────────────────────────────
+
+    private function switchOn($admin = null): void
+    {
+        $this->actingAs($admin ?? $this->superadmin())
+            ->post(route('superadmin.customers.test-login.enable'))->assertRedirect();
+    }
+
+    public function test_only_a_superadmin_can_flip_the_test_login_switch(): void
+    {
+        $tenant = $this->setUpTenant();
+        $admin  = $this->makeUser($tenant, 'tenant_admin');
+
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.enable'))->assertForbidden();
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.disable'))->assertForbidden();
+
+        $this->assertFalse(\App\Support\PortalTestLogin::active());
+    }
+
+    public function test_the_page_shows_the_switch_and_its_state(): void
+    {
+        $admin = $this->superadmin();
+
+        $this->actingAs($admin)->get(route('superadmin.customers.index'))
+            ->assertOk()->assertSee('Test login')->assertSee('Turn ON')->assertSee('9999999999')->assertSee('123456');
+
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.enable'));
+
+        $this->actingAs($admin)->get(route('superadmin.customers.index'))
+            ->assertOk()->assertSee('Turn OFF')->assertDontSee('Turn ON');
+    }
+
+    public function test_switching_on_adds_the_test_customer_to_the_first_five_tenants_only(): void
+    {
+        $tenants = collect([$this->setUpTenant()])->merge(Tenant::factory()->count(5)->create()); // 6 tenants
+        $admin   = $this->makeUser($tenants->first(), 'superadmin');
+
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.enable'))
+            ->assertRedirect()->assertSessionHas('success', fn ($m) => str_contains($m, '5 tenants'));
+
+        $this->assertTrue(\App\Support\PortalTestLogin::active());
+
+        $customer = Customer::where('phone', '9999999999')->firstOrFail();
+        $sorted   = $tenants->sortBy('id')->values();
+
+        foreach ($sorted->take(5) as $tenant) {
+            $contact = Contact::withoutGlobalScopes()->where('tenant_id', $tenant->id)->where('phone_normalized', '9999999999')->firstOrFail();
+            $this->assertSame('Test Customer', $contact->name);
+            $this->assertSame(80, $contact->loyalty_points);
+            $this->assertSame($customer->id, $contact->customer_id);
+            $this->assertTrue($contact->phone_verified);
+            $fresh = $tenant->fresh();
+            $this->assertTrue($fresh->hasModuleEnabled('loyalty'));
+            $this->assertTrue($fresh->hasModuleEnabled('customer_portal'));
+        }
+
+        $this->assertSame(0, Contact::withoutGlobalScopes()->where('tenant_id', $sorted[5]->id)->where('phone_normalized', '9999999999')->count());
+        $this->assertCount(5, $customer->walletContacts());
+    }
+
+    public function test_switching_on_twice_creates_no_duplicates(): void
+    {
+        $admin = $this->superadmin();
+        $this->switchOn($admin);
+        $this->switchOn($admin);
+
+        $this->assertSame(1, Customer::where('phone', '9999999999')->count());
+        $this->assertSame(1, Contact::withoutGlobalScopes()->where('phone_normalized', '9999999999')->count());
+    }
+
+    public function test_after_switching_on_the_wallet_login_works_with_the_fixed_code(): void
+    {
+        $this->switchOn();
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])->assertOk()->assertSee('123456');
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '123456'])->assertRedirect();
+
+        $this->assertAuthenticated('customer');
+        $this->get('/wallet')->assertOk()->assertSee('80');
+    }
+
+    public function test_switching_off_stops_the_login_and_removes_only_the_test_data(): void
+    {
+        $tenantA = $this->setUpTenant();
+        $tenantB = Tenant::factory()->create();
+        $admin   = $this->makeUser($tenantA, 'superadmin');
+        // Shop A already has a real contact on that number, so the seeder leaves it alone
+        // (it only links it); shop B gets a fresh "Test Customer" contact.
+        $real    = Contact::create(['tenant_id' => $tenantA->id, 'name' => 'Real Person', 'phone' => '9999999999']);
+
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.enable'));
+        $this->assertSame(2, Contact::withoutGlobalScopes()->where('phone_normalized', '9999999999')->count());
+        $this->assertSame(1, Contact::withoutGlobalScopes()->where('tenant_id', $tenantB->id)->where('name', 'Test Customer')->count());
+
+        $this->actingAs($admin)->post(route('superadmin.customers.test-login.disable'))->assertRedirect();
+
+        $this->assertFalse(\App\Support\PortalTestLogin::active());
+        $this->assertSame(0, Customer::withTrashed()->where('phone', '9999999999')->count());
+
+        $left = Contact::withoutGlobalScopes()->where('phone_normalized', '9999999999')->get();
+        $this->assertCount(1, $left);                                  // the real contact survives
+        $this->assertSame($real->id, $left->first()->id);
+        $this->assertNull($left->first()->customer_id);
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])->assertOk()->assertDontSee('Test login is on');
+        $this->assertGuest('customer');
+    }
+
+    public function test_the_seeder_only_acts_while_the_switch_is_on(): void
+    {
+        $this->setUpTenant();
+
+        $this->seed(\Database\Seeders\PortalTestCustomerSeeder::class);
+        $this->assertSame(0, Customer::count());
+
+        \App\Models\PlatformSetting::set(\App\Support\PortalTestLogin::SETTING, '1');
+        $this->seed(\Database\Seeders\PortalTestCustomerSeeder::class);
+        $this->assertSame(1, Customer::where('phone', '9999999999')->count());
+        $this->assertSame(1, Contact::withoutGlobalScopes()->where('phone_normalized', '9999999999')->count());
+    }
 }

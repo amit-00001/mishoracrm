@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\PlatformSetting;
+use App\Services\PortalTestData;
+use App\Support\PortalTestLogin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +60,11 @@ class CustomerController extends Controller
         return view('superadmin.customers.index', [
             'customers' => $customers,
             'metrics'   => $this->metrics(),
+            'testLogin' => [
+                'on'    => PortalTestLogin::active(),
+                'phone' => PortalTestLogin::phone(),
+                'otp'   => PortalTestLogin::code(),
+            ],
             'scope'     => $scope,
             'status'    => $status,
             'search'    => $search,
@@ -77,6 +85,27 @@ class CustomerController extends Controller
         $customer->forceFill(['blocked_at' => null])->save();
 
         return back()->with('success', "Customer ending {$this->tail($customer)} unblocked.");
+    }
+
+    // ── Test login switch ────────────────────────────────────────
+    // ON: the wallet accepts the test phone with the fixed code, and the test
+    // customer is added to the first 5 tenants. OFF: the shortcut stops working
+    // at once and the test customer / test contacts are removed.
+    public function enableTestLogin(): RedirectResponse
+    {
+        PlatformSetting::set(PortalTestLogin::SETTING, '1');
+        $tenants = PortalTestData::seed();
+
+        return back()->with('success', 'Test login is ON — ' . PortalTestLogin::phone() . ' / OTP ' . PortalTestLogin::code()
+            . " added to {$tenants} " . Str::plural('tenant', $tenants) . '.');
+    }
+
+    public function disableTestLogin(): RedirectResponse
+    {
+        PlatformSetting::set(PortalTestLogin::SETTING, '0');
+        PortalTestData::purge();
+
+        return back()->with('success', 'Test login is OFF — the test customer and its test contacts were removed.');
     }
 
     private function tail(Customer $customer): string

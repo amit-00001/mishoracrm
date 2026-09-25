@@ -8,6 +8,11 @@
 .stat-card { background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); padding:14px 18px; }
 .stat-card .s-label { font-size:12px; color:var(--text-400); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
 .stat-card .s-value { font-size:24px; font-weight:800; color:var(--text-100); margin-top:4px; }
+.tl-card { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); padding:14px 18px; margin-bottom:20px; }
+.tl-card.is-on { border-color:var(--green); }
+.tl-title { font-size:14px; font-weight:700; color:var(--text-100); display:flex; align-items:center; gap:8px; }
+.tl-sub { font-size:12.5px; color:var(--text-400); margin-top:3px; max-width:640px; }
+.tl-sub code { color:var(--accent); }
 .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
 .table-card { background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); overflow:hidden; }
 .data-table { width:100%; border-collapse:collapse; }
@@ -35,6 +40,37 @@
     ✓ {{ session('success') }}
 </div>
 @endif
+
+<div class="tl-card {{ $testLogin['on'] ? 'is-on' : '' }}">
+    <div>
+        <div class="tl-title">
+            Test login
+            <span class="badge {{ $testLogin['on'] ? 'badge-green' : 'badge-red' }}">{{ $testLogin['on'] ? 'ON' : 'OFF' }}</span>
+        </div>
+        <div class="tl-sub">
+            @if($testLogin['on'])
+            Phone <code>{{ $testLogin['phone'] }}</code> signs in to the wallet with OTP <code>{{ $testLogin['otp'] }}</code> — no real code needed.
+            A "Test Customer" card (80 points) has been added to the first 5 tenants. Turning this OFF removes them again.
+            @else
+            Turn on to let phone <code>{{ $testLogin['phone'] }}</code> sign in with OTP <code>{{ $testLogin['otp'] }}</code> and to add a
+            "Test Customer" card (80 points) to the first 5 tenants, so you can try the wallet end to end. Testing only — it puts fake contacts in those tenants.
+            @endif
+        </div>
+    </div>
+    @if($testLogin['on'])
+    <form method="POST" action="{{ route('superadmin.customers.test-login.disable') }}"
+          onsubmit="return confirm('Turn test login OFF? The test customer and its test contacts will be removed.')">
+        @csrf
+        <button type="submit" class="btn btn-secondary">Turn OFF</button>
+    </form>
+    @else
+    <form method="POST" action="{{ route('superadmin.customers.test-login.enable') }}"
+          onsubmit="return confirm('Turn test login ON? This adds a fake Test Customer to the first 5 tenants.')">
+        @csrf
+        <button type="submit" class="btn btn-primary">Turn ON</button>
+    </form>
+    @endif
+</div>
 
 <div class="stat-row">
     <div class="stat-card"><div class="s-label">Customers</div><div class="s-value">{{ number_format($metrics['total']) }}</div></div>

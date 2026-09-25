@@ -206,6 +206,8 @@ Route::prefix('superadmin')
         // Customer-portal accounts (platform-level — never exposed to tenants)
         Route::prefix('customers')->name('customers.')->controller(SuperAdmin\CustomerController::class)->group(function () {
             Route::get('/',                    'index')->name('index');
+            Route::post('/test-login/enable',  'enableTestLogin')->name('test-login.enable');
+            Route::post('/test-login/disable', 'disableTestLogin')->name('test-login.disable');
             Route::post('/{customer}/block',   'block')->name('block');
             Route::post('/{customer}/unblock', 'unblock')->name('unblock');
         });
