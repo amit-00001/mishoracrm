@@ -7,10 +7,14 @@ use App\Models\Deal;
 use App\Models\Lead;
 use App\Observers\DealObserver;
 use App\Observers\LeadObserver;
+use App\Support\PortalTestLogin;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -89,6 +93,15 @@ class AppServiceProvider extends ServiceProvider
 
             return route('tenant.dashboard', ['tenant' => $user->tenant->subdomain]);
         });
+
+        // Customer-portal login limits, per IP. Named limiters (not "throttle:5,10")
+        // so the local-dev test number (config/portal.php) can be exempted without
+        // touching anyone else's limit.
+        foreach (['portal-otp' => 5, 'portal-verify' => 10, 'portal-pin' => 5] as $name => $perTenMinutes) {
+            RateLimiter::for($name, fn (Request $request) => PortalTestLogin::matches($request->input('phone'))
+                ? Limit::none()
+                : Limit::perMinutes(10, $perTenMinutes)->by($request->ip()));
+        }
 
         Lead::observe(LeadObserver::class);
         Deal::observe(DealObserver::class);

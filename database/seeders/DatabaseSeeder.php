@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             CustomFieldSeeder::class,
             GlobalFieldTemplateSeeder::class,
             TaskTemplateSeeder::class,
-            
+            PortalTestCustomerSeeder::class, // local/testing only — no-op in production
         ]);
     }
 }

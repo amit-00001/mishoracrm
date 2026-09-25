@@ -11,6 +11,7 @@ use App\Models\WhatsappSetting;
 use App\Services\CustomerLinkService;
 use App\Services\EmailService;
 use App\Services\WhatsappChatbotService;
+use App\Support\PortalTestLogin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -61,6 +62,11 @@ class CustomerAuthController extends Controller
 
         if (strlen($phone) < 10) {
             return back()->withInput()->withErrors(['phone' => 'Enter a valid 10-digit phone number.']);
+        }
+
+        // Local-dev shortcut: skips the rate limits and any real delivery.
+        if (PortalTestLogin::matches($phone)) {
+            return $this->issueTestLoginCode($request, $phone);
         }
 
         $hourKey = "portal_otp_hour:{$phone}";
@@ -181,6 +187,38 @@ class CustomerAuthController extends Controller
     }
 
     // ── Helpers ────────────────────────────────────────────────────
+
+    // config/portal.php test login: make sure the Customer exists (no Contact
+    // needed), link any contacts on that number as a real login would, and store
+    // the fixed code as an ordinary OTP so /login/verify checks it the usual way.
+    private function issueTestLoginCode(Request $request, string $phone): View
+    {
+        $customer = Customer::withTrashed()->firstOrCreate(['phone' => $phone]);
+        if ($customer->trashed()) {
+            $customer->restore();
+        }
+
+        if (!$customer->isBlocked()) {
+            app(CustomerLinkService::class)->linkByPhone($customer);
+
+            CustomerOtp::create([
+                'customer_id' => $customer->id,
+                'phone'       => $phone,
+                'channel'     => 'test',
+                'code_hash'   => Hash::make(PortalTestLogin::code()),
+                'attempts'    => 0,
+                'ip'          => $request->ip(),
+                'expires_at'  => now()->addMinutes(CustomerOtp::TTL_MINUTES),
+            ]);
+        }
+
+        return view('portal.auth.verify', [
+            'phone'   => $phone,
+            'notice'  => self::SENT_NOTICE,
+            'error'   => null,
+            'devHint' => 'Test login is on — enter ' . PortalTestLogin::code() . '.',
+        ]);
+    }
 
     private function loginAndRedirect(Request $request, Customer $customer): RedirectResponse
     {

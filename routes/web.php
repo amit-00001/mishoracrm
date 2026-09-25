@@ -118,9 +118,9 @@ Route::prefix('/wallet')->name('portal.')->controller(\App\Http\Controllers\Port
     Route::get('/login', 'showLogin')->name('login');
     // Prefixed so each endpoint has its own per-IP bucket instead of sharing
     // Laravel's default one with every other public throttled route.
-    Route::post('/login/request-otp', 'requestOtp')->middleware('throttle:5,10,portal-otp')->name('login.request-otp');
-    Route::post('/login/verify', 'verify')->middleware('throttle:10,10,portal-verify')->name('login.verify');
-    Route::post('/login/pin', 'loginWithPin')->middleware('throttle:5,10,portal-pin')->name('login.pin');
+    Route::post('/login/request-otp', 'requestOtp')->middleware('throttle:portal-otp')->name('login.request-otp');
+    Route::post('/login/verify', 'verify')->middleware('throttle:portal-verify')->name('login.verify');
+    Route::post('/login/pin', 'loginWithPin')->middleware('throttle:portal-pin')->name('login.pin');
     Route::middleware('customer.auth')->group(function () {
         Route::get('/pin', 'showSetPin')->name('pin.setup');
         Route::post('/pin', 'setPin')->name('pin.set');

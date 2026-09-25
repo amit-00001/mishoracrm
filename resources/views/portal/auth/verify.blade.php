@@ -9,6 +9,9 @@
 @if($error)
 <div class="pt-flash error">{{ $error }}</div>
 @endif
+@if(!empty($devHint))
+<div class="pt-flash success">{{ $devHint }}</div>
+@endif
 
 <div class="pt-card">
     <div class="pt-hero">

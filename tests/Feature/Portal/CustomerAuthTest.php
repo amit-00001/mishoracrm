@@ -54,6 +54,127 @@ class CustomerAuthTest extends TestCase
         return $code;
     }
 
+    // ── Local-dev test login (config/portal.php) ───────────────
+
+    private function enableTestLogin(string $phone = '9999999999', string $otp = '123456'): void
+    {
+        config(['portal.test_login.enabled' => true, 'portal.test_login.phone' => $phone, 'portal.test_login.otp' => $otp]);
+    }
+
+    public function test_test_login_signs_the_dev_number_in_with_the_fixed_code_and_no_contact(): void
+    {
+        Http::fake();
+        $this->enableTestLogin();
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '99999 99999'])
+            ->assertOk()
+            ->assertSee('Test login is on')
+            ->assertSee('123456');
+
+        Http::assertNothingSent();
+        $customer = Customer::where('phone', '9999999999')->first();
+        $this->assertNotNull($customer);
+
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '123456'])
+            ->assertRedirect(route('portal.pin.setup'));
+
+        $this->assertAuthenticatedAs($customer, 'customer');
+    }
+
+    public function test_test_login_still_links_the_contacts_on_that_number(): void
+    {
+        $this->enableTestLogin();
+        $tenant  = $this->setUpTenant();
+        $contact = Contact::create(['tenant_id' => $tenant->id, 'name' => 'Test Customer', 'phone' => '9999999999']);
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])->assertOk();
+
+        $customer = Customer::where('phone', '9999999999')->first();
+        $this->assertSame($customer->id, $contact->fresh()->customer_id);
+        $this->assertTrue($contact->fresh()->phone_verified);
+    }
+
+    public function test_test_login_honours_a_custom_number_and_code(): void
+    {
+        $this->enableTestLogin('9000000000', '654321');
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '9000000000'])->assertOk()->assertSee('654321');
+        $this->post(route('portal.login.verify'), ['phone' => '9000000000', 'code' => '654321'])->assertRedirect();
+
+        $this->assertAuthenticated('customer');
+    }
+
+    public function test_test_login_rejects_a_wrong_code(): void
+    {
+        $this->enableTestLogin();
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999']);
+
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '000000'])
+            ->assertOk()->assertSee('incorrect or has expired');
+
+        $this->assertGuest('customer');
+    }
+
+    public function test_test_login_is_off_unless_enabled(): void
+    {
+        $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])
+            ->assertOk()->assertDontSee('Test login is on');
+
+        $this->assertSame(0, Customer::withTrashed()->count());
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '123456']);
+        $this->assertGuest('customer');
+    }
+
+    public function test_test_login_never_works_outside_local_or_testing(): void
+    {
+        $this->enableTestLogin();
+        $this->assertTrue(\App\Support\PortalTestLogin::matches('9999999999'));
+
+        $this->app->detectEnvironment(fn () => 'production');
+
+        $this->assertFalse(\App\Support\PortalTestLogin::active());
+        $this->assertFalse(\App\Support\PortalTestLogin::matches('9999999999'));
+
+        // Through HTTP too. Outside "testing" Laravel enforces CSRF, so send a real token.
+        $csrf = ['_token' => 'csrf-token'];
+        $this->withSession($csrf)
+            ->post(route('portal.login.request-otp'), $csrf + ['phone' => '9999999999'])
+            ->assertOk()->assertDontSee('Test login is on');
+
+        $this->assertSame(0, Customer::withTrashed()->count());
+
+        $this->withSession($csrf)
+            ->post(route('portal.login.verify'), $csrf + ['phone' => '9999999999', 'code' => '123456']);
+        $this->assertGuest('customer');
+    }
+
+    public function test_test_login_only_covers_the_configured_number(): void
+    {
+        $this->enableTestLogin();
+
+        $this->post(route('portal.login.request-otp'), ['phone' => '9888888888'])->assertOk()->assertDontSee('Test login is on');
+
+        $this->assertSame(0, Customer::count());
+    }
+
+    public function test_test_login_is_not_blocked_by_the_otp_limits_but_everyone_else_still_is(): void
+    {
+        Http::fake();
+        $this->enableTestLogin();
+
+        // Well past the per-phone resend window, hourly cap and the per-IP throttle.
+        for ($i = 0; $i < 8; $i++) {
+            $this->post(route('portal.login.request-otp'), ['phone' => '9999999999'])->assertOk();
+        }
+        $this->post(route('portal.login.verify'), ['phone' => '9999999999', 'code' => '123456'])->assertRedirect();
+
+        // A normal number is still throttled per IP after 5 requests / 10 minutes.
+        for ($i = 0; $i < 5; $i++) {
+            $this->post(route('portal.login.request-otp'), ['phone' => '9000000' . str_pad((string) $i, 3, '0', STR_PAD_LEFT)]);
+        }
+        $this->post(route('portal.login.request-otp'), ['phone' => '9000000777'])->assertStatus(429);
+    }
+
     // ── Login page + guard redirects ───────────────────────────
 
     public function test_login_page_renders(): void

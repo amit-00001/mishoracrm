@@ -169,6 +169,7 @@ EXPOSE 8000
 CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
     sed -i "s/__*PORT__*/${P}/g" /etc/nginx/http.d/default.conf; \
     php artisan migrate --force || echo 'migrate failed'; \
+    if [ "$PORTAL_TEST_LOGIN" = "true" ]; then php artisan db:seed --class=PortalTestCustomerSeeder --force || echo 'test customer seed failed'; fi; \
     php artisan storage:link || true; \
     chown -R www-data:www-data storage bootstrap/cache; \
     chmod -R ug+rwX storage bootstrap/cache; \
