@@ -90,6 +90,12 @@ class ScreenshotController extends Controller
 
     public function show(Attendance $attendance)
     {
+        // A staff member may review their own screenshots; anyone else's are admin-only.
+        abort_unless(
+            auth()->user()->user_type === 'tenant_admin' || $attendance->staff?->user_id === auth()->id(),
+            403
+        );
+
         $tenantSlug   = auth()->user()->tenant->subdomain;
         $screenshots  = $attendance->screenshots()->get();
 
@@ -104,6 +110,8 @@ class ScreenshotController extends Controller
 
     public function destroy(AttendanceScreenshot $screenshot)
     {
+        abort_unless(auth()->user()->user_type === 'tenant_admin', 403, 'Only workspace admins can delete screenshots.');
+
         Storage::disk('public')->delete($screenshot->path);
         $screenshot->delete();
 

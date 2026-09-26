@@ -100,6 +100,8 @@ class PurchaseOrderController extends Controller
     // ── Create ────────────────────────────────────────────────────
     public function create(Request $request): View
     {
+        $this->authorize('create', PurchaseOrder::class);
+
         $vendors  = Vendor::where('tenant_id', auth()->user()->tenant_id)->orderBy('name')->get(['id', 'name', 'company', 'phone', 'email', 'address', 'city', 'state', 'gst_number']);
         $products = Product::where('tenant_id', auth()->user()->tenant_id)->active()->orderBy('name')->get(['id', 'product_code', 'name', 'description', 'rate', 'cost_price', 'tax_percent', 'hsn', 'unit']);
 

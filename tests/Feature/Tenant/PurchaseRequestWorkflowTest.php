@@ -58,7 +58,7 @@ class PurchaseRequestWorkflowTest extends TestCase
         $this->assertSame(1, Notification::where('user_id', $requester->id)->where('type', 'purchase_request.approved')->count());
     }
 
-    public function test_approving_twice_does_not_create_a_second_purchase_order(): void
+    public function test_approving_twice_is_denied_and_does_not_create_a_second_purchase_order(): void
     {
         $tenant = $this->setUpTenant();
         $admin  = $this->makeUser($tenant, 'tenant_admin');
@@ -67,8 +67,8 @@ class PurchaseRequestWorkflowTest extends TestCase
         ]);
 
         $this->actingAs($admin)->post(route('tenant.purchase-requests.approve', $pr->id));
-        $this->actingAs($admin)->post(route('tenant.purchase-requests.approve', $pr->id))
-            ->assertRedirect(route('tenant.purchase-requests.show', $pr->id));
+        // Policy only lets a pending request be approved.
+        $this->actingAs($admin)->post(route('tenant.purchase-requests.approve', $pr->id))->assertForbidden();
 
         $this->assertSame(1, PurchaseOrder::where('purchase_request_id', $pr->id)->count());
     }

@@ -20,7 +20,15 @@ $sections   = $dealConfig['sections'];
 $grouped    = $cfgFields->groupBy('section');
 
 /* current values helper */
-$val = fn(string $key) => old($key, $model->{$key} ?? '');
+$val = function (string $key) use ($model) {
+    $v = $model->{$key} ?? '';
+    /* Date casts come back as Carbon — <input type=date> only accepts Y-m-d, so the
+       default "Y-m-d H:i:s" string rendered blank and the next save cleared the date. */
+    if ($v instanceof \Carbon\CarbonInterface) {
+        $v = $v->format('Y-m-d');
+    }
+    return old($key, $v);
+};
 
 /* pre-filled stage from query string (create page) or model (edit) */
 $activeStage = old('stage', $model->stage ?? request('stage', 'new'));

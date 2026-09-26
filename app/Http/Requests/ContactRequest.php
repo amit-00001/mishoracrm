@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ContactRequest extends FormRequest
 {
@@ -25,7 +26,12 @@ class ContactRequest extends FormRequest
             'pincode'     => ['nullable', 'string', 'max:10'],
             'gst_number'  => ['nullable', 'string', 'max:20'],
             'notes'       => ['nullable', 'string', 'max:5000'],
-            'lead_id'     => ['nullable', 'exists:leads,id'],
+            // Must be a live lead in this tenant. A foreign or soft-deleted lead would
+            // save but never resolve through the tenant-scoped relation, so the
+            // contact page would show "Linked Lead: Not provided".
+            'lead_id'     => ['nullable', 'integer', Rule::exists('leads', 'id')
+                ->where('tenant_id', $this->user()?->tenant_id)
+                ->whereNull('deleted_at')],
 
             // ── Loyalty engagement ───────────────────────────────────
             'birthday'         => ['nullable', 'date'],
@@ -59,6 +65,7 @@ class ContactRequest extends FormRequest
             'name.required'  => 'Contact name is required.',
             'phone.required' => 'Phone number is required.',
             'email.email'    => 'Please enter a valid email.',
+            'lead_id.exists' => 'Selected lead was not found.',
         ];
     }
 }

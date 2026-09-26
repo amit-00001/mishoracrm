@@ -35,7 +35,7 @@ class TaskPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->user_type === 'superadmin' || $user->can('tasks.create');
     }
 
     public function update(User $user, Task $task): bool

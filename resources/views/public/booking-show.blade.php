@@ -102,7 +102,7 @@ body {
         @if(!$enabled)
             <div class="bk-disabled">Online booking is currently unavailable. Please contact us directly.</div>
         @elseif($services->isEmpty())
-            <div class="bk-disabled">No bookable services available right now.</div>
+            <div class="bk-disabled">No services are open for online booking yet. Please contact {{ $tenant->name }} directly to book.</div>
         @else
             <div class="bk-progress" id="bkProgress">
                 <span class="active" data-step="1"></span>

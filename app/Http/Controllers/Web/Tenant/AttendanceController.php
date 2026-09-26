@@ -74,10 +74,10 @@ class AttendanceController extends Controller
     {
         $data = $request->validated();
 
-        $data['clock_in']  = $data['clock_in']
+        $data['clock_in']  = ! empty($data['clock_in'])
             ? Carbon::parse($data['date'] . ' ' . $data['clock_in'])
             : null;
-        $data['clock_out'] = $data['clock_out']
+        $data['clock_out'] = ! empty($data['clock_out'])
             ? Carbon::parse($data['date'] . ' ' . $data['clock_out'])
             : null;
 
@@ -100,10 +100,10 @@ class AttendanceController extends Controller
     {
         $data = $request->validated();
 
-        $data['clock_in']  = $data['clock_in']
+        $data['clock_in']  = ! empty($data['clock_in'])
             ? Carbon::parse($data['date'] . ' ' . $data['clock_in'])
             : null;
-        $data['clock_out'] = $data['clock_out']
+        $data['clock_out'] = ! empty($data['clock_out'])
             ? Carbon::parse($data['date'] . ' ' . $data['clock_out'])
             : null;
 
@@ -181,52 +181,81 @@ class AttendanceController extends Controller
         return view('tenant.attendances.clock', compact('staffList', 'today'));
     }
 
+    // The staff member acting is always the authenticated user's own staff
+    // profile. A posted staff_id is never trusted — it is optional and, when
+    // present, must match — so nobody can clock another person in or out by
+    // editing a hidden field.
+    private function actingStaff(Request $request): Staff
+    {
+        $request->validate(['staff_id' => ['nullable', 'integer']]);
+
+        $staff = auth()->user()->staff;
+
+        abort_unless($staff, 403, 'Your account is not linked to a staff profile.');
+
+        abort_if(
+            $request->filled('staff_id') && (int) $request->staff_id !== $staff->id,
+            403,
+            'You can only clock in or out for yourself.'
+        );
+
+        return $staff;
+    }
+
     public function clockIn(Request $request)
     {
-        $request->validate(['staff_id' => 'required|exists:staff,id']);
+        $staff = $this->actingStaff($request);
 
-        $attendance = Attendance::firstOrCreate(
-            ['staff_id' => $request->staff_id, 'date' => today()],
+        // createOrFirst: (staff_id, date) is unique, so two simultaneous
+        // requests resolve to the same row instead of one of them 500ing.
+        $attendance = Attendance::createOrFirst(
+            ['staff_id' => $staff->id, 'date' => today()->toDateString()],
             ['status'   => 'present']
         );
 
-        if ($attendance->clock_in) {
+        // Atomic guard: only the request that flips clock_in from NULL wins,
+        // so a double-click cannot overwrite the first clock-in time.
+        $clockedIn = Attendance::whereKey($attendance->id)
+            ->whereNull('clock_in')
+            ->update(['clock_in' => now()]);
+
+        if (! $clockedIn) {
             return back()->with('error', 'Staff already clock in hai!');
         }
-
-        $attendance->update(['clock_in' => now()]);
 
         // ✅ att_id aur staff_id redirect mein pass karo
         // JS isko read karke monitoring start karega
         return redirect()->route('tenant.attendances.clock', [
-            'tenant'   => auth()->user()->tenant->subdomain,
+            'tenant'   => $this->tenantSlug(),
             'att_id'   => $attendance->id,
-            'staff_id' => $request->staff_id,
+            'staff_id' => $staff->id,
         ])->with('success', 'Clock In ho gaya! Screen monitoring shuru...');
     }
 
     public function clockOut(Request $request)
     {
-        $request->validate(['staff_id' => 'required|exists:staff,id']);
+        $staff = $this->actingStaff($request);
 
         $attendance = Attendance::forDate(today())
-            ->forStaff($request->staff_id)
+            ->forStaff($staff->id)
             ->first();
 
         if (! $attendance?->clock_in) {
             return back()->with('error', 'Pehle clock in karo!');
         }
 
-        if ($attendance->clock_out) {
+        $clockedOut = Attendance::whereKey($attendance->id)
+            ->whereNull('clock_out')
+            ->update(['clock_out' => now()]);
+
+        if (! $clockedOut) {
             return back()->with('error', 'Already clock out ho chuka hai!');
         }
 
-        $attendance->update(['clock_out' => now()]);
-
         return redirect()->route('tenant.attendances.clock', [
-            'tenant' => auth()->user()->tenant->subdomain,
+            'tenant' => $this->tenantSlug(),
         ])
-            ->with('success', "Clock Out! Kaam kiya: {$attendance->worked_hours} hrs ✅")
+            ->with('success', "Clock Out! Kaam kiya: {$attendance->fresh()->worked_hours} hrs ✅")
             ->with('clocked_out', true); // JS localStorage clear karega
     }
 }

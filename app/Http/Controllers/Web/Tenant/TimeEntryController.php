@@ -63,7 +63,9 @@ class TimeEntryController extends Controller
     }
 
     // ── Start a timer ─────────────────────────────────────────────
-    public function start(Request $request): JsonResponse
+    // JSON for API/AJAX clients (Accept: application/json); browser form posts get
+    // a redirect back to the page they came from with a flash message.
+    public function start(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
             'task_id'    => ['nullable', 'integer', 'exists:tasks,id'],
@@ -77,6 +79,7 @@ class TimeEntryController extends Controller
             ->where('user_id', auth()->id())
             ->running()
             ->first();
+        $replaced = $existing?->isRunning();
         $existing?->stop();
 
         $service = $request->filled('service_id')
@@ -93,16 +96,36 @@ class TimeEntryController extends Controller
             'started_at' => now(),
         ]);
 
-        return response()->json(['ok' => true, 'id' => $entry->id, 'started_at' => $entry->started_at->toIso8601String()]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'id' => $entry->id, 'started_at' => $entry->started_at->toIso8601String()]);
+        }
+
+        return back()->with('success', $replaced ? 'Timer started — your previous timer was stopped.' : 'Timer started.');
     }
 
     // ── Stop a timer ──────────────────────────────────────────────
-    public function stop(int|string $id): JsonResponse
+    public function stop(Request $request, int|string $id): JsonResponse|RedirectResponse
     {
         $entry = $this->findEntry($id);
+
+        // A timer belongs to the person running it; workspace admins may stop any.
+        abort_unless(
+            $entry->user_id === auth()->id() || auth()->user()->user_type === 'tenant_admin',
+            403,
+            'You can only stop your own timer.'
+        );
+
+        $wasRunning = $entry->isRunning();
         $entry->stop();
 
-        return response()->json(['ok' => true, 'duration_minutes' => $entry->duration_minutes]);
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'duration_minutes' => $entry->duration_minutes]);
+        }
+
+        return back()->with(
+            $wasRunning ? 'success' : 'error',
+            $wasRunning ? "Timer stopped — {$entry->duration_minutes} min logged." : 'That timer was already stopped.'
+        );
     }
 
     // ── Manual entry ──────────────────────────────────────────────

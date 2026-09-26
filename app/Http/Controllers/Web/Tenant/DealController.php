@@ -139,6 +139,8 @@ class DealController extends Controller
     // ── Create ────────────────────────────────────────────────────
     public function create(Request $request): View
     {
+        $this->authorize('create', Deal::class);
+
         $tenantId  = auth()->user()->tenant_id;
         $staffList = $this->getStaffList();
         $contacts  = Contact::where('tenant_id', $tenantId)->orderBy('name')->get(['id', 'name', 'company']);

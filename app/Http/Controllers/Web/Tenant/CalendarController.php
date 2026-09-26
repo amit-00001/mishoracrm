@@ -208,6 +208,8 @@ class CalendarController extends Controller
         $tenantId = auth()->user()->tenant_id;
         $userId   = auth()->id();
 
+        $this->authorize('create', $request->kind === 'followup' ? Followup::class : Task::class);
+
         if ($request->kind === 'followup') {
             Followup::create([
                 'tenant_id'    => $tenantId,

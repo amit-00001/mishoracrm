@@ -129,6 +129,9 @@ class LeadController extends Controller
     // ── Create ────────────────────────────────────────────────────
     public function create(): View
     {
+        // Same gate as store(): the form must not render for users who cannot submit it.
+        $this->authorize('create', Lead::class);
+
         return view('tenant.leads.create', [
             'staffList'    => $this->getStaffList(),
             'sources'      => Lead::sources(),
@@ -216,9 +219,12 @@ class LeadController extends Controller
         $lead = $this->findLead($id);
         $this->authorize('modify', $lead);
 
-        $leadData = $request->leadData();
+        // Partial update: fields missing from the request keep their stored value.
+        $leadData = $request->updateData();
 
-        $leadData['assigned_to'] = $this->validateAssignee($leadData['assigned_to'] ?? null);
+        if (array_key_exists('assigned_to', $leadData)) {
+            $leadData['assigned_to'] = $this->validateAssignee($leadData['assigned_to']);
+        }
 
         if ($request->status) {
             $leadData = array_merge($leadData, Lead::statusTimestamps($request->status, $lead->status));

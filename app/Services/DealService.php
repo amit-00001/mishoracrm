@@ -44,25 +44,54 @@ class DealService
     }
 
     // ── Update an existing deal from a form/API payload ─────────────
+    // Partial-safe: keys missing from $data keep their stored value.
     public static function update(Deal $deal, array $data): Deal
     {
-        $justWon = $data['stage'] === 'won' && $deal->stage !== 'won';
+        $stage        = $data['stage'] ?? $deal->stage;
+        $stageChanged = $stage !== $deal->stage;
 
-        if ($justWon) {
+        if ($stage === 'won' && $stageChanged) {
             $data['actual_close_date'] = now()->toDateString();
         }
 
-        if (empty($data['probability'])) {
-            $data['probability'] = self::defaultProbability($data['stage']);
-        }
-
-        if (isset($data['stage']) && $data['stage'] !== $deal->stage) {
+        if ($stageChanged) {
             $data['stage_changed_at'] = now();
         }
+
+        $data = self::resolveProbability($data, $deal, $stage, $stageChanged);
 
         $deal->update($data);
 
         return $deal;
+    }
+
+    // The edit form always re-posts the stored probability, so "non-empty" does
+    // not mean "the user chose this". Rules:
+    //  - a Won/Lost deal is 100%/0% by definition, whatever was posted;
+    //  - moving to another stage with the probability left untouched adopts the
+    //    new stage's default (otherwise Won kept the old 10%);
+    //  - an explicit, different probability on an open stage is respected;
+    //  - a blank probability falls back to the stage default;
+    //  - a payload without the key leaves the stored value alone.
+    private static function resolveProbability(array $data, Deal $deal, string $stage, bool $stageChanged): array
+    {
+        if (in_array($stage, ['won', 'lost'], true)) {
+            $data['probability'] = self::defaultProbability($stage);
+
+            return $data;
+        }
+
+        if (array_key_exists('probability', $data)) {
+            $posted = $data['probability'];
+
+            if ($posted === null || $posted === '' || ($stageChanged && (int) $posted === (int) $deal->probability)) {
+                $data['probability'] = self::defaultProbability($stage);
+            }
+        } elseif ($stageChanged) {
+            $data['probability'] = self::defaultProbability($stage);
+        }
+
+        return $data;
     }
 
     // ── Move a deal to a new stage (Kanban drag / quick action) ─────

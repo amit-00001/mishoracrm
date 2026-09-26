@@ -631,14 +631,14 @@ if ($lead->assignedTo) {
             {{-- Assigned To --}}
             <div class="ls-card" style="padding:16px">
                 <div class="ls-card-title" style="margin-bottom:14px">Assigned To</div>
-                @if($lead->assignee)
+                @if($lead->assignedTo)
                 <div class="ls-assignee-row">
                     <div class="ls-sm-avatar" style="background:var(--accent-dim);color:var(--accent)">
                         {{ $assigneeInitials }}
                     </div>
                     <div>
-                        <div class="ls-assignee-name">{{ $lead->assignee->name }}</div>
-                        <div class="ls-assignee-role">{{ $lead->assignee->designation ?? 'Sales Team' }}</div>
+                        <div class="ls-assignee-name">{{ $lead->assignedTo->name }}</div>
+                        <div class="ls-assignee-role">{{ $lead->assignedTo->designation ?? 'Sales Team' }}</div>
                     </div>
                     @if($isAdmin || $lead->assigned_to === auth()->id())
                     <a href="{{ route('tenant.leads.edit', $lead) }}" style="margin-left:auto;font-size:12px;color:var(--accent);text-decoration:none">Change</a>

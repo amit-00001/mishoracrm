@@ -3,6 +3,10 @@
 
 @push('styles')
 <style>
+/* Positioned suffix for the GST field — these rules otherwise only load with the plan form
+   partial, which left the "%" unpositioned (a stray "%" beside the input). */
+.input-prefix-wrap { position:relative; display:flex; align-items:center; }
+.input-suffix  { position:absolute; right:11px; color:var(--text-400); font-size:14px; pointer-events:none; }
 .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
 @media(max-width:700px){ .stat-row { grid-template-columns:1fr 1fr; } }
 .stat-card { background:var(--bg-surface); border:1px solid var(--border-default); border-radius:var(--r-lg); padding:16px 20px; }

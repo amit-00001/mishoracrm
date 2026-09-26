@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\Lead;
 use App\Models\TenantFieldAssignment;
 
@@ -82,6 +83,22 @@ class LeadRequest extends FormRequest
         ];
     }
 
+    /**
+     * Only the core fields that were actually submitted. Use this for updates:
+     * a key that is absent from the request (e.g. the edit form has no company /
+     * city / value inputs) must keep its stored value, whereas a key that is
+     * present but empty is an intentional clear. leadData() maps every field —
+     * absent ones as null — so writing it on update wipes them.
+     */
+    public function updateData(): array
+    {
+        return array_filter(
+            $this->leadData(),
+            fn (string $field) => $this->has($field),
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
     private function coreRules(): array
     {
         return [
@@ -96,7 +113,9 @@ class LeadRequest extends FormRequest
             'status'               => ['nullable', 'in:' . implode(',', array_keys(Lead::statuses()))],
             'priority'             => ['nullable', 'in:low,medium,high'],
             'lead_value'           => ['nullable', 'numeric', 'min:0'],
-            'assigned_to'          => ['nullable', 'exists:users,id'],
+            // Tenant-scoped: an assignee from another tenant is a validation error,
+            // not a silent fall-back to "Unassigned".
+            'assigned_to'          => ['nullable', Rule::exists('users', 'id')->where('tenant_id', auth()->user()?->tenant_id)],
             'notes'                => ['nullable', 'string', 'max:5000'],
             // 'lost_reason'          => ['nullable', 'string', 'max:500'],
             'expected_close_date'  => ['nullable', 'date', 'after:today'],

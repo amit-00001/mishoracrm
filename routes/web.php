@@ -372,7 +372,7 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::post('/calendar/quick-create', [Tenant\CalendarController::class, 'quickCreate'])->name('calendar.quick-create');
 
         // ── Lead Integrations ─────────────────────────────────────
-        Route::prefix('lead-integrations')->name('lead-integrations.')->controller(TenantLeadIntegrationController::class)->group(function () {
+        Route::prefix('lead-integrations')->name('lead-integrations.')->middleware('tenant.admin')->controller(TenantLeadIntegrationController::class)->group(function () {
             Route::get('/',                      'index')->name('index');
             Route::get('/{platform}/setup',      'setup')->name('setup');
             Route::post('/{platform}/save',      'save')->name('save');
@@ -440,8 +440,10 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/contacts')->name('contacts.')->group(function () {
             Route::controller(Tenant\ContactController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
+                Route::middleware('permission:contacts.create')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                });
             });
 
             // Import / Export / Duplicates — static segments, must precede /{id} below.
@@ -459,18 +461,22 @@ Route::middleware(['tenant', 'auth', 'subscription'])
                 Route::post('/duplicates/merge', 'mergeContacts')->name('duplicates.merge');
             });
 
-            Route::post('/check-duplicate', [Tenant\ContactController::class, 'checkDuplicate'])->name('check-duplicate');
+            Route::post('/check-duplicate', [Tenant\ContactController::class, 'checkDuplicate'])->name('check-duplicate')
+                ->middleware('permission:contacts.create|contacts.edit_all|contacts.edit_own');
 
             // Employee attachment delete — static "employees" segment, must precede /{id} below.
-            Route::delete('/employees/{employee}/attachments/{attachment}', [Tenant\ContactController::class, 'destroyEmployeeAttachment'])->name('employees.attachments.destroy');
+            Route::delete('/employees/{employee}/attachments/{attachment}', [Tenant\ContactController::class, 'destroyEmployeeAttachment'])->name('employees.attachments.destroy')
+                ->middleware('permission:contacts.edit_all|contacts.edit_own');
 
             Route::controller(Tenant\ContactController::class)->group(function () {
                 Route::get('/{id}', 'show')->name('show');
-                Route::get('/{id}/edit', 'edit')->name('edit');
-                Route::put('/{id}', 'update')->name('update');
-                Route::delete('/{id}', 'destroy')->name('destroy');
+                Route::middleware('permission:contacts.edit_all|contacts.edit_own')->group(function () {
+                    Route::get('/{id}/edit', 'edit')->name('edit');
+                    Route::put('/{id}', 'update')->name('update');
+                    Route::delete('/{id}/attachments/{attachment}', 'destroyAttachment')->name('attachments.destroy');
+                });
+                Route::delete('/{id}', 'destroy')->name('destroy')->middleware('permission:contacts.delete');
                 Route::get('/{id}/report', 'customerReport')->name('report');
-                Route::delete('/{id}/attachments/{attachment}', 'destroyAttachment')->name('attachments.destroy');
                 //    search customer
                 Route::get('/search', 'searchCustomers')->name('search');
             });
@@ -522,8 +528,8 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             ->controller(Tenant\QuotationTermsTemplateController::class)
             ->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/{id}/edit', 'edit')->name('edit');
                 Route::middleware('permission:quotations.edit')->group(function () {
+                    Route::get('/{id}/edit', 'edit')->name('edit');
                     Route::post('/', 'store')->name('store');
                     Route::put('/{id}', 'update')->name('update');
                     Route::delete('/{id}', 'destroy')->name('destroy');
@@ -535,18 +541,24 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/invoices')->name('invoices.')->group(function () {
             Route::controller(Tenant\InvoiceController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
+                Route::middleware('permission:invoices.create')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                });
                 Route::get('/{id}', 'show')->name('show');
-                Route::get('/{id}/edit', 'edit')->name('edit');
-                Route::put('/{id}', 'update')->name('update');
+                Route::middleware('permission:invoices.edit')->group(function () {
+                    Route::get('/{id}/edit', 'edit')->name('edit');
+                    Route::put('/{id}', 'update')->name('update');
+                    Route::post('/{id}/status', 'updateStatus')->name('update_status');
+                });
 
-                Route::delete('/{id}', 'destroy')->name('destroy');
-                Route::post('/{id}/status', 'updateStatus')->name('update_status');
+                Route::delete('/{id}', 'destroy')->name('destroy')->middleware('permission:invoices.delete');
                 Route::get('/{id}/pdf', 'pdf')->name('pdf');
-                Route::post('/{id}/send', 'send')->name('send');
-                Route::post('/{id}/send-whatsapp', 'sendWhatsapp')->name('send_whatsapp');
-                Route::post('/{id}/record-payment', 'recordPayment')->name('record_payment');
+                Route::middleware('permission:invoices.send')->group(function () {
+                    Route::post('/{id}/send', 'send')->name('send');
+                    Route::post('/{id}/send-whatsapp', 'sendWhatsapp')->name('send_whatsapp');
+                });
+                Route::post('/{id}/record-payment', 'recordPayment')->name('record_payment')->middleware('permission:invoices.record_payment');
 
                 // Loyalty points redemption + campaign coupons against an invoice.
                 Route::middleware(['module:loyalty', 'permission:loyalty.manage'])->group(function () {
@@ -658,6 +670,12 @@ Route::middleware(['tenant', 'auth', 'subscription'])
                 Route::delete('/{id}', 'destroy')->name('destroy')->middleware('permission:appointments.cancel');
             });
         });
+
+        // The Time Tracking screen lives at /time-entries; /time-tracking is the URL people
+        // (and old links/bookmarks) naturally try. GET-only, and cache-safe (no closure).
+        Route::get('/time-tracking', \Illuminate\Routing\RedirectController::class)
+            ->defaults('destination', '/time-entries')->defaults('status', 302)
+            ->name('time-tracking.redirect');
 
         // Time Tracking routes — gated behind the Service module toggle
         Route::prefix('/time-entries')->name('time-entries.')->middleware('module:time_tracking')->group(function () {
@@ -857,8 +875,8 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/tasks')->name('tasks.')->group(function () {
             Route::controller(Tenant\TaskController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
+                Route::get('/create', 'create')->name('create')->middleware('permission:tasks.create');
+                Route::post('/', 'store')->name('store')->middleware('permission:tasks.create');
                 Route::post('/bulk-action', 'bulkAction')->name('bulk_action');
                 Route::post('/saved-filters', 'storeSavedFilter')->name('saved_filters.store');
                 Route::delete('/saved-filters/{id}', 'destroySavedFilter')->name('saved_filters.destroy');
@@ -890,11 +908,15 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/task-templates')->name('task-templates.')->group(function () {
             Route::controller(Tenant\TaskTemplateController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
-                Route::get('/{id}/edit', 'edit')->name('edit');
-                Route::put('/{id}', 'update')->name('update');
-                Route::delete('/{id}', 'destroy')->name('destroy');
+                Route::middleware('permission:tasks.create')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                });
+                Route::middleware('permission:tasks.edit_all|tasks.edit_own')->group(function () {
+                    Route::get('/{id}/edit', 'edit')->name('edit');
+                    Route::put('/{id}', 'update')->name('update');
+                });
+                Route::delete('/{id}', 'destroy')->name('destroy')->middleware('permission:tasks.delete');
             });
         });
 
@@ -938,15 +960,19 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/attendances')->name('attendances.')->group(function () {
             Route::controller(Tenant\AttendanceController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
-                // Route::get('/{attendance}', 'show')->name('show');
-                Route::get('/{attendance}/edit', 'edit')->name('edit');
-                Route::put('/{attendance}', 'update')->name('update');
-                Route::delete('/{attendance}', 'destroy')->name('destroy');
-                // bulk attendance upload route
-                Route::get('/bulk-upload', 'bulk')->name('bulk');
-                Route::post('/bulk-upload', 'bulkStore')->name('bulk.store');
+                // Editing anyone's attendance is an admin function; staff only clock
+                // themselves in/out (identity taken from the logged-in user).
+                Route::middleware('tenant.admin')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    // Route::get('/{attendance}', 'show')->name('show');
+                    Route::get('/{attendance}/edit', 'edit')->name('edit');
+                    Route::put('/{attendance}', 'update')->name('update');
+                    Route::delete('/{attendance}', 'destroy')->name('destroy');
+                    // bulk attendance upload route
+                    Route::get('/bulk-upload', 'bulk')->name('bulk');
+                    Route::post('/bulk-upload', 'bulkStore')->name('bulk.store');
+                });
                 // clock in/out routes
                 Route::get('/clock', 'clockView')->name('clock');
                 Route::post('/clock-in', 'clockIn')->name('clock.in');
@@ -1007,27 +1033,30 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('whatsapp')->name('whatsapp.')->group(function () {
             Route::get('/',                    [Tenant\WhatsappController::class, 'index'])->name('index');
             Route::get('templates',            [Tenant\WhatsappController::class, 'templates'])->name('templates');
-            Route::post('templates',           [Tenant\WhatsappController::class, 'storeTemplate'])->name('templates.store');
-            Route::put('templates/{id}',       [Tenant\WhatsappController::class, 'updateTemplate'])->name('templates.update');
-            Route::delete('templates/{id}',    [Tenant\WhatsappController::class, 'deleteTemplate'])->name('templates.delete');
-            Route::get('send',                 [Tenant\WhatsappController::class, 'sendForm'])->name('send');
-            Route::post('send',                [Tenant\WhatsappController::class, 'send'])->name('send.store');
-            Route::get('bulk',                 [Tenant\WhatsappController::class, 'bulkForm'])->name('bulk');
-            Route::post('bulk',                [Tenant\WhatsappController::class, 'sendBulk'])->name('bulk.send');
+            Route::middleware('permission:whatsapp.manage_templates')->group(function () {
+                Route::post('templates',           [Tenant\WhatsappController::class, 'storeTemplate'])->name('templates.store');
+                Route::put('templates/{id}',       [Tenant\WhatsappController::class, 'updateTemplate'])->name('templates.update');
+                Route::delete('templates/{id}',    [Tenant\WhatsappController::class, 'deleteTemplate'])->name('templates.delete');
+            });
+            Route::get('send',                 [Tenant\WhatsappController::class, 'sendForm'])->name('send')->middleware('permission:whatsapp.send');
+            Route::post('send',                [Tenant\WhatsappController::class, 'send'])->name('send.store')->middleware('permission:whatsapp.send');
+            Route::get('bulk',                 [Tenant\WhatsappController::class, 'bulkForm'])->name('bulk')->middleware('permission:whatsapp.bulk_send');
+            Route::post('bulk',                [Tenant\WhatsappController::class, 'sendBulk'])->name('bulk.send')->middleware('permission:whatsapp.bulk_send');
             Route::get('logs',                 [Tenant\WhatsappController::class, 'logs'])->name('logs');
-            Route::post('preview-template',    [Tenant\WhatsappController::class, 'previewTemplate'])->name('preview');
+            Route::post('preview-template',    [Tenant\WhatsappController::class, 'previewTemplate'])->name('preview')
+                ->middleware('permission:whatsapp.send|whatsapp.bulk_send|whatsapp.manage_templates');
 
             // WhatsApp Chatbot & Business API settings
             Route::get('chatbot',                   [Tenant\WhatsappChatbotController::class, 'flows'])->name('chatbot');
             Route::get('conversations',             [Tenant\WhatsappChatbotController::class, 'conversations'])->name('conversations');
-            Route::post('chatbot',                  [Tenant\WhatsappChatbotController::class, 'storeFlow'])->name('chatbot.store');
-            Route::put('chatbot/{id}',              [Tenant\WhatsappChatbotController::class, 'updateFlow'])->name('chatbot.update');
-            Route::post('chatbot/{id}/toggle',      [Tenant\WhatsappChatbotController::class, 'toggleFlow'])->name('chatbot.toggle');
-            Route::post('chatbot/{id}/position',    [Tenant\WhatsappChatbotController::class, 'updateFlowPosition'])->name('chatbot.position');
-            Route::delete('chatbot/{id}',           [Tenant\WhatsappChatbotController::class, 'destroyFlow'])->name('chatbot.destroy');
+            Route::post('chatbot',                  [Tenant\WhatsappChatbotController::class, 'storeFlow'])->name('chatbot.store')->middleware('tenant.admin');
+            Route::put('chatbot/{id}',              [Tenant\WhatsappChatbotController::class, 'updateFlow'])->name('chatbot.update')->middleware('tenant.admin');
+            Route::post('chatbot/{id}/toggle',      [Tenant\WhatsappChatbotController::class, 'toggleFlow'])->name('chatbot.toggle')->middleware('tenant.admin');
+            Route::post('chatbot/{id}/position',    [Tenant\WhatsappChatbotController::class, 'updateFlowPosition'])->name('chatbot.position')->middleware('tenant.admin');
+            Route::delete('chatbot/{id}',           [Tenant\WhatsappChatbotController::class, 'destroyFlow'])->name('chatbot.destroy')->middleware('tenant.admin');
             Route::get('api-settings',              [Tenant\WhatsappChatbotController::class, 'settings'])->name('api-settings');
-            Route::post('api-settings',             [Tenant\WhatsappChatbotController::class, 'saveSettings'])->name('api-settings.save');
-            Route::post('api-settings/test',        [Tenant\WhatsappChatbotController::class, 'testConnection'])->name('api-settings.test');
+            Route::post('api-settings',             [Tenant\WhatsappChatbotController::class, 'saveSettings'])->name('api-settings.save')->middleware('tenant.admin');
+            Route::post('api-settings/test',        [Tenant\WhatsappChatbotController::class, 'testConnection'])->name('api-settings.test')->middleware('tenant.admin');
             Route::get('oauth/qr',                  [Tenant\WhatsappChatbotController::class, 'oauthGenerateQr'])->name('oauth.qr');
             Route::get('oauth/status',              [Tenant\WhatsappChatbotController::class, 'oauthStatus'])->name('oauth.status');
         });
@@ -1036,15 +1065,18 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('email')->name('email.')->group(function () {
             Route::get('/',                    [Tenant\EmailController::class, 'index'])->name('index');
             Route::get('templates',            [Tenant\EmailController::class, 'templates'])->name('templates');
-            Route::post('templates',           [Tenant\EmailController::class, 'storeTemplate'])->name('templates.store');
-            Route::put('templates/{id}',       [Tenant\EmailController::class, 'updateTemplate'])->name('templates.update');
-            Route::delete('templates/{id}',    [Tenant\EmailController::class, 'deleteTemplate'])->name('templates.delete');
-            Route::get('send',                 [Tenant\EmailController::class, 'sendForm'])->name('send');
-            Route::post('send',                [Tenant\EmailController::class, 'send'])->name('send.store');
-            Route::get('bulk',                 [Tenant\EmailController::class, 'bulkForm'])->name('bulk');
-            Route::post('bulk',                [Tenant\EmailController::class, 'sendBulk'])->name('bulk.send');
+            Route::middleware('permission:email.manage_templates')->group(function () {
+                Route::post('templates',           [Tenant\EmailController::class, 'storeTemplate'])->name('templates.store');
+                Route::put('templates/{id}',       [Tenant\EmailController::class, 'updateTemplate'])->name('templates.update');
+                Route::delete('templates/{id}',    [Tenant\EmailController::class, 'deleteTemplate'])->name('templates.delete');
+            });
+            Route::get('send',                 [Tenant\EmailController::class, 'sendForm'])->name('send')->middleware('permission:email.send');
+            Route::post('send',                [Tenant\EmailController::class, 'send'])->name('send.store')->middleware('permission:email.send');
+            Route::get('bulk',                 [Tenant\EmailController::class, 'bulkForm'])->name('bulk')->middleware('permission:email.bulk_send');
+            Route::post('bulk',                [Tenant\EmailController::class, 'sendBulk'])->name('bulk.send')->middleware('permission:email.bulk_send');
             Route::get('logs',                 [Tenant\EmailController::class, 'logs'])->name('logs');
-            Route::post('preview-template',    [Tenant\EmailController::class, 'previewTemplate'])->name('preview');
+            Route::post('preview-template',    [Tenant\EmailController::class, 'previewTemplate'])->name('preview')
+                ->middleware('permission:email.send|email.bulk_send|email.manage_templates');
 
             // SMTP connect settings (tenant_admin only)
             Route::get('settings',             [Tenant\EmailController::class, 'settings'])->name('settings')->middleware(['tenant.admin']);
@@ -1052,7 +1084,11 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::post('settings/test',       [Tenant\EmailController::class, 'testConnection'])->name('settings.test')->middleware(['tenant.admin']);
         });
 
-        // Reports
+        // Reports — bare /reports has no page of its own; land on the overview.
+        Route::get('/reports', \Illuminate\Routing\RedirectController::class)
+            ->defaults('destination', '/reports/overview')->defaults('status', 302)
+            ->name('reports.index');
+
         Route::prefix('reports')->name('reports.')->middleware('permission:reports.view_basic|reports.view_all')->group(function () {
             Route::get('/overview', [Tenant\ReportController::class, 'overview'])->name('overview');
             Route::get('/deals',    [Tenant\ReportController::class, 'deals'])->name('deals');
@@ -1094,7 +1130,7 @@ Route::middleware(['tenant', 'auth', 'subscription'])
 
 
         // custom fields
-        Route::prefix('custom-fields')->name('custom-fields.')->group(function () {
+        Route::prefix('custom-fields')->name('custom-fields.')->middleware('permission:settings.custom_fields')->group(function () {
             Route::get('/',                      [Tenant\CustomFieldController::class, 'index'])->name('index');
             Route::get('/{module}',              [Tenant\CustomFieldController::class, 'module'])->name('module');
             Route::get('/{module}/create',       [Tenant\CustomFieldController::class, 'create'])->name('create');

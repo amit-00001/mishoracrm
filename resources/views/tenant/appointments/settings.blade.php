@@ -42,13 +42,25 @@
 
         <div class="field" style="flex-direction:row;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-elevated);border-radius:var(--r-sm)">
             <input type="checkbox" name="enabled" value="1" id="enabled" {{ $settings['enabled'] ? 'checked' : '' }} style="width:16px;height:16px;cursor:pointer"/>
-            <label for="enabled" style="font-size:13.5px;color:var(--text-200);cursor:pointer">Enable public online booking</label>
+            <label for="enabled" style="font-size:13.5px;color:var(--text-200);cursor:pointer">Enable public online booking
+                <span style="display:block;font-size:11.5px;color:var(--text-400)">Customers can only book services you also tick under "Bookable Services" below.</span>
+            </label>
         </div>
 
         @if($settings['enabled'])
         <div style="font-size:12.5px;color:var(--text-300);padding:10px 12px;background:var(--bg-input);border-radius:var(--r-sm)">
             Public booking link: <code style="color:var(--accent)">{{ $tenant->bookingPublicUrl() }}</code>
         </div>
+
+        @if($bookableCount === 0)
+        <div id="noBookableWarning" role="alert" style="font-size:12.5px;padding:10px 12px;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);border-radius:var(--r-sm);font-weight:500">
+            ⚠ Online booking is on, but <strong>no service is enabled for booking yet</strong>, so customers will see "no services available".
+            A service must be ticked under <em>Bookable Services</em> below before it can be booked — then save.
+            @if($bookableServices->isEmpty() && \Illuminate\Support\Facades\Route::has('tenant.services.index'))
+            <a href="{{ route('tenant.services.index') }}" style="color:inherit;text-decoration:underline">Add a service first.</a>
+            @endif
+        </div>
+        @endif
         @endif
 
         <div class="field" style="flex-direction:row;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-elevated);border-radius:var(--r-sm)">
@@ -103,7 +115,7 @@
                 <span style="font-size:12.5px;color:var(--text-400)">No active services available — add some from the Services page first.</span>
                 @endforelse
             </div>
-            <span style="font-size:11.5px;color:var(--text-400)">Only checked services will be shown to customers on the public booking page.</span>
+            <span style="font-size:11.5px;color:var(--text-400)">A service must be checked here to be bookable — only checked services appear on the public booking page, even when online booking is enabled.</span>
         </div>
 
     </div>

@@ -109,6 +109,8 @@ class QuotationController extends Controller
     // ── Create ────────────────────────────────────────────────────
     public function create(Request $request): View
     {
+        $this->authorize('create', Quotation::class);
+
         $contacts = Contact::orderBy('name')->get(['id', 'name', 'company', 'phone', 'email', 'address', 'city', 'state', 'gst_number']);
         $leads    = Lead::orderBy('name')->get(['id', 'name', 'phone']);
 

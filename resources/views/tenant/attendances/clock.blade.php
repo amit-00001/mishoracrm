@@ -109,7 +109,7 @@
 
                             {{-- Screenshots count --}}
                             <td data-label="Screenshots">
-                                @if($att && $att->screenshots_count > 0)
+                                @if($att && $att->screenshots_count > 0 && (auth()->user()->user_type === 'tenant_admin' || $staff->id === $currentStaffId))
                                     <a href="{{ route('tenant.screenshots.show', $att->id) }}" style="font-size:12.5px;color:var(--accent);text-decoration:none;
                                               display:flex;align-items:center;gap:4px">
                                         📷 {{ $att->screenshots_count }}
@@ -167,13 +167,13 @@
     <form id="clockInForm" method="POST" action="{{ route('tenant.attendances.clock.in', ['tenant' => $tenantSlug]) }}"
         style="display:none">
         @csrf
-        <input type="hidden" name="staff_id" id="clockInStaffId">
+        <input type="hidden" name="staff_id" id="clockInStaffId" value="{{ $currentStaffId ?: '' }}">
     </form>
 
     <form id="clockOutForm" method="POST" action="{{ route('tenant.attendances.clock.out', ['tenant' => $tenantSlug]) }}"
         style="display:none">
         @csrf
-        <input type="hidden" name="staff_id" id="clockOutStaffId">
+        <input type="hidden" name="staff_id" id="clockOutStaffId" value="{{ $currentStaffId ?: '' }}">
     </form>
 
 @endsection

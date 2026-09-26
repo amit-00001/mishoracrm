@@ -329,7 +329,10 @@ class AppointmentController extends Controller
         $notifyCustomers = $tenant->wantsAppointmentNotifications();
         $bookableServices = Service::where('tenant_id', $this->tenantId())->active()->orderBy('name')->get(['id', 'name', 'is_bookable']);
 
-        return view('tenant.appointments.settings', compact('tenant', 'settings', 'bookableServices', 'notifyCustomers'));
+        // Online booking only lists services that are individually ticked as bookable.
+        $bookableCount = $bookableServices->where('is_bookable', true)->count();
+
+        return view('tenant.appointments.settings', compact('tenant', 'settings', 'bookableServices', 'bookableCount', 'notifyCustomers'));
     }
 
     public function updateSettings(Request $request): RedirectResponse
@@ -378,6 +381,14 @@ class AppointmentController extends Controller
                 ->update(['is_bookable' => true]);
         }
 
-        return back()->with('success', 'Booking settings updated.');
+        $redirect = back()->with('success', 'Booking settings updated.');
+
+        // Enabling booking alone isn't enough — say so instead of leaving the public
+        // page silently empty.
+        if ($request->boolean('enabled') && empty($data['bookable_service_ids'])) {
+            $redirect->with('error', 'Online booking is on, but no service is enabled for booking yet — customers will see nothing to book. Tick at least one under "Bookable Services".');
+        }
+
+        return $redirect;
     }
 }
