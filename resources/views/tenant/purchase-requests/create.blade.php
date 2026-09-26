@@ -39,6 +39,11 @@
 .items-table tr:last-child td { border-bottom:none; }
 .item-input { width:100%; padding:7px 9px; background:var(--bg-input); border:1.5px solid var(--border-default); border-radius:7px; color:var(--text-100); font-family:'DM Sans',var(--font),sans-serif; font-size:13px; outline:none; }
 .item-input:focus { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-dim); }
+.item-input.is-err { border-color:var(--red); }
+.item-err { display:block; margin-top:4px; font-size:11.5px; color:var(--red); font-weight:500; }
+.pf-alert { padding:11px 15px; background:var(--red-dim); border:1px solid var(--red); border-radius:8px; margin-bottom:14px; font-size:13px; color:var(--red); }
+.pf-alert-title { font-weight:600; margin-bottom:4px; }
+.pf-alert ul { margin:0; padding-left:18px; }
 .del-row-btn { width:28px; height:28px; border-radius:6px; background:transparent; border:1px solid var(--border-subtle); cursor:pointer; color:var(--text-400); display:flex; align-items:center; justify-content:center; margin:2px auto 0; }
 .del-row-btn:hover { background:var(--red-dim); border-color:var(--red); color:var(--red); }
 .add-item-btn { display:flex; align-items:center; gap:6px; padding:9px 16px; margin:12px 0 0; background:transparent; border:1.5px dashed var(--border-default); border-radius:8px; font-size:13px; color:var(--text-300); cursor:pointer; font-family:'DM Sans',var(--font),sans-serif; }
@@ -73,8 +78,18 @@
         </a>
     </div>
 
-    <form method="POST" action="{{ route('tenant.purchase-requests.store') }}" novalidate id="prForm">
+    <div class="pf-alert" id="prErrors" role="alert" @if(!$errors->any()) style="display:none" @endif>
+        <div class="pf-alert-title">Please fix the following before submitting:</div>
+        <ul id="prErrorList">
+            @foreach(array_unique($errors->all()) as $message)
+            <li>{{ $message }}</li>
+            @endforeach
+        </ul>
+    </div>
+
+    <form method="POST" action="{{ route('tenant.purchase-requests.store') }}" novalidate id="prForm" data-submit-once>
         @csrf
+        <input type="hidden" name="submission_token" value="{{ old('submission_token', $submissionToken) }}"/>
         <div class="pf-layout">
             <div>
                 <div class="pf-card" style="margin-bottom:14px">
@@ -99,6 +114,7 @@
                                 <input type="date" name="date" id="pr_date" class="pf-input {{ $errors->has('date')?'is-err':'' }}"
                                        value="{{ old('date', now()->format('Y-m-d')) }}" required/>
                                 @error('date')<span class="pf-err">{{ $message }}</span>@enderror
+                                <span class="pf-err" id="dateErr" style="display:none"></span>
                             </div>
                             <div class="pf-field span-full">
                                 <label class="pf-label" for="pr_department">Department</label>
@@ -138,6 +154,8 @@
                                 <tbody id="itemsBody"></tbody>
                             </table>
                         </div>
+                        @error('items')<span class="pf-err" style="display:block;margin-top:8px">{{ $message }}</span>@enderror
+                        <span class="pf-err" id="itemsErr" style="display:none;margin-top:8px"></span>
                         <button type="button" class="add-item-btn" onclick="addItemRow()">
                             <i class="ti ti-plus" style="font-size:14px"></i> Add Item
                         </button>
@@ -222,12 +240,14 @@ window.addItemRow = function(name='', description='', qty=1, note='', productId=
             <input type="hidden" name="items[${i}][product_id]" id="pid_${i}" value="${productId}"/>
             <input type="text" name="items[${i}][name]" id="name_${i}" class="item-input" style="margin-top:5px"
                    placeholder="Item name" value="${esc(name)}" required/>
+            <span class="item-err" id="nameErr_${i}" style="display:none"></span>
         </td>
         <td data-label="Description">
             <input type="text" name="items[${i}][description]" id="desc_${i}" class="item-input" placeholder="Optional description" value="${esc(description)}"/>
         </td>
         <td data-label="Qty">
-            <input type="number" name="items[${i}][quantity]" class="item-input" value="${qty}" min="0.01" step="0.01" required oninput="updateCount()"/>
+            <input type="number" name="items[${i}][quantity]" id="qty_${i}" class="item-input" value="${qty}" min="0.01" step="0.01" required oninput="updateCount()"/>
+            <span class="item-err" id="qtyErr_${i}" style="display:none"></span>
         </td>
         <td data-label="Note">
             <input type="text" name="items[${i}][reason]" class="item-input" placeholder="Optional note" value="${esc(note)}"/>
@@ -263,10 +283,97 @@ window.updateCount = function(){
     document.getElementById('itemsCount').textContent = rows.length + (rows.length===1?' item':' items');
 };
 
+// ── Validation (inline, per field) ───────────────────────────────
+function setErr(inputEl, errEl, message){
+    if(inputEl) inputEl.classList.toggle('is-err', !!message);
+    if(errEl){ errEl.textContent = message || ''; errEl.style.display = message ? 'block' : 'none'; }
+}
+
+function showSummary(messages){
+    const box  = document.getElementById('prErrors');
+    const list = document.getElementById('prErrorList');
+    list.innerHTML = [...new Set(messages)].map(m => `<li>${esc(m)}</li>`).join('');
+    box.style.display = messages.length ? '' : 'none';
+    if(messages.length) box.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// Runs on submit (the form has novalidate, so the browser won't). Returns the
+// list of problems; an empty list means the form may be posted.
+function validateForm(){
+    const messages = [];
+    let firstBad = null;
+    const bad = el => { if(!firstBad) firstBad = el; };
+
+    const dateEl  = document.getElementById('pr_date');
+    const dateMsg = dateEl.value ? '' : 'Date is required.';
+    setErr(dateEl, document.getElementById('dateErr'), dateMsg);
+    if(dateMsg){ messages.push(dateMsg); bad(dateEl); }
+
+    const rows     = document.querySelectorAll('#itemsBody tr');
+    const itemsErr = document.getElementById('itemsErr');
+    if(rows.length === 0){
+        itemsErr.textContent   = 'At least one item is required.';
+        itemsErr.style.display = 'block';
+        messages.push('At least one item is required.');
+        bad(document.querySelector('.add-item-btn'));
+    } else {
+        itemsErr.style.display = 'none';
+    }
+
+    rows.forEach(tr => {
+        const i      = tr.id.replace('row_', '');
+        const nameEl = document.getElementById('name_'+i);
+        const qtyEl  = document.getElementById('qty_'+i);
+
+        const nameMsg = nameEl.value.trim() ? '' : 'Item name is required.';
+        setErr(nameEl, document.getElementById('nameErr_'+i), nameMsg);
+        if(nameMsg){ messages.push(nameMsg); bad(nameEl); }
+
+        const qty    = parseFloat(qtyEl.value);
+        const qtyMsg = (qtyEl.value === '' || isNaN(qty)) ? 'Quantity is required.'
+                     : (qty < 0.01 ? 'Quantity must be greater than zero.' : '');
+        setErr(qtyEl, document.getElementById('qtyErr_'+i), qtyMsg);
+        if(qtyMsg){ messages.push(qtyMsg); bad(qtyEl); }
+    });
+
+    showSummary(messages);
+    if(firstBad) firstBad.focus();
+    return messages;
+}
+
+document.getElementById('prForm').addEventListener('submit', function(e){
+    // Blocks the post. Because the event is then defaultPrevented, the layout's
+    // data-submit-once guard leaves the button enabled so the user can retry.
+    if(validateForm().length) e.preventDefault();
+});
+
+// Clear a field's error as soon as the user edits it.
+document.getElementById('itemsBody').addEventListener('input', function(e){
+    const el = e.target;
+    if(!el.classList.contains('item-input')) return;
+    el.classList.remove('is-err');
+    const slot = el.parentElement.querySelector('.item-err');
+    if(slot) slot.style.display = 'none';
+});
+
+// Mark rows the server rejected (its errors are keyed by the *submitted* row index).
+const SERVER_ERRORS = @json($errors->getMessages());
+function markServerRowErrors(rowIdx, submittedKey){
+    const nameMsg = (SERVER_ERRORS[`items.${submittedKey}.name`] || [])[0];
+    const qtyMsg  = (SERVER_ERRORS[`items.${submittedKey}.quantity`] || [])[0];
+    setErr(document.getElementById('name_'+rowIdx), document.getElementById('nameErr_'+rowIdx), nameMsg);
+    setErr(document.getElementById('qty_'+rowIdx),  document.getElementById('qtyErr_'+rowIdx),  qtyMsg);
+}
+
 @if(old('items'))
 const oldItems = @json(old('items'));
-if(oldItems && oldItems.length){
-    oldItems.forEach(item => addItemRow(item.name||'', item.description||'', item.quantity||1, item.reason||'', item.product_id||''));
+// Object.entries: submitted rows can be non-contiguous ({0:…, 2:…}) if a row was removed.
+const oldEntries = Object.entries(oldItems || {});
+if(oldEntries.length){
+    oldEntries.forEach(([key, item]) => {
+        addItemRow(item.name||'', item.description||'', item.quantity ?? '', item.reason||'', item.product_id||'');
+        markServerRowErrors(rowIndex - 1, key);
+    });
 } else {
     addItemRow();
 }

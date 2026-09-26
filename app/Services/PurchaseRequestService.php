@@ -7,25 +7,45 @@ use App\Models\PurchaseRequest;
 
 class PurchaseRequestService
 {
-    // ── Create — collision-safe number generation ──────────────────
+    // ── Create — collision-safe number generation + idempotent by token ──
     // number is a unique column generated from max(id)+1; two concurrent
     // submissions can race and compute the same number, so retry a few
     // times on a unique-constraint violation rather than 500ing.
+    //
+    // When the form supplies a submission token, (tenant_id, submission_token)
+    // is unique: a repeated submit of the same form (double-click, browser
+    // retry, slow response) returns the request that was already created
+    // instead of inserting a duplicate. Callers can tell the two apart via
+    // $purchaseRequest->wasRecentlyCreated.
     public static function store(array $data, int $tenantId, int $userId): PurchaseRequest
     {
-        return retry(3, function () use ($data, $tenantId, $userId) {
-            return PurchaseRequest::create(array_merge($data, [
-                'tenant_id'    => $tenantId,
+        $token = $data['submission_token'] ?? null;
+        unset($data['submission_token']);
+
+        return retry(3, function () use ($data, $tenantId, $userId, $token) {
+            $attributes = array_merge($data, [
                 'number'       => PurchaseRequest::generateNumber(),
                 'requested_by' => $userId,
                 'status'       => 'pending',
-            ]));
+            ]);
+
+            if ($token === null || $token === '') {
+                return PurchaseRequest::create($attributes + ['tenant_id' => $tenantId]);
+            }
+
+            return PurchaseRequest::createOrFirst(
+                ['tenant_id' => $tenantId, 'submission_token' => $token],
+                $attributes
+            );
         }, 50, fn ($e) => static::isNumberCollision($e));
     }
 
     // ── Update — only reachable while pending, enforced by policy ──
     public static function update(PurchaseRequest $purchaseRequest, array $data): PurchaseRequest
     {
+        // The token identifies the original create submission and must never change.
+        unset($data['submission_token']);
+
         $purchaseRequest->update($data);
 
         return $purchaseRequest;

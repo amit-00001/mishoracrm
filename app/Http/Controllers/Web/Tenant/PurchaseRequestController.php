@@ -14,6 +14,7 @@ use App\Services\PurchaseRequestService;
 use App\Services\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PurchaseRequestController extends Controller
@@ -94,7 +95,9 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        return view('tenant.purchase-requests.create', compact('departments', 'products', 'number', 'prefillItems'));
+        $submissionToken = (string) Str::uuid();
+
+        return view('tenant.purchase-requests.create', compact('departments', 'products', 'number', 'prefillItems', 'submissionToken'));
     }
 
     // ── Store ─────────────────────────────────────────────────────
@@ -103,6 +106,14 @@ class PurchaseRequestController extends Controller
         $this->authorize('create', PurchaseRequest::class);
 
         $purchaseRequest = PurchaseRequestService::store($request->validated(), auth()->user()->tenant_id, auth()->id());
+
+        // Same form submitted twice (double-click / retry): the original request
+        // is returned untouched — don't notify approvers a second time.
+        if (!$purchaseRequest->wasRecentlyCreated) {
+            return redirect()
+                ->route('tenant.purchase-requests.show', $purchaseRequest->id)
+                ->with('success', "Purchase Request {$purchaseRequest->number} was already submitted.");
+        }
 
         $this->notifyApprovers($purchaseRequest);
 

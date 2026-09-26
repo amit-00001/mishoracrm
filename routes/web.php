@@ -682,13 +682,15 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         // (relevant to every tenant, not just service-based ones).
         Route::prefix('/tickets')->name('tickets.')->middleware('module:tickets')->group(function () {
             Route::controller(Tenant\TicketController::class)->group(function () {
-                Route::middleware('permission:tickets.view_all|tickets.view_own')->group(function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/{id}', 'show')->name('show');
-                });
+                // /create must be registered before /{id}, otherwise "create" is
+                // captured as a ticket id (404 on MySQL, SQL error on stricter DBs).
                 Route::middleware('permission:tickets.create')->group(function () {
                     Route::get('/create', 'create')->name('create');
                     Route::post('/', 'store')->name('store');
+                });
+                Route::middleware('permission:tickets.view_all|tickets.view_own')->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/{id}', 'show')->name('show')->whereNumber('id');
                 });
                 Route::middleware('permission:tickets.reply')->group(function () {
                     Route::post('/{id}/reply', 'reply')->name('reply');

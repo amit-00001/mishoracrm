@@ -57,4 +57,17 @@ trait SetsUpTenant
 
         return $user;
     }
+
+    /**
+     * A staff user on a custom role holding exactly $permissions (no extras from
+     * the seeded "staff" role) — for testing that server-side authorization
+     * denies actions the role does not grant.
+     */
+    protected function makeCustomRoleUser(Tenant $tenant, array $permissions, string $roleName = 'qa_auditor'): User
+    {
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+        $role->syncPermissions($permissions);
+
+        return $this->makeUser($tenant, $roleName);
+    }
 }

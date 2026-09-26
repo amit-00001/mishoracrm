@@ -8,6 +8,7 @@ use App\Models\LoyaltyTransaction;
 use App\Models\Tenant;
 use App\Models\WhatsappSetting;
 use App\Services\LoyaltyService;
+use App\Services\WhatsappChatbotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\SetsUpTenant;
@@ -88,6 +89,33 @@ class StampCardTest extends TestCase
 
         $this->assertNotNull($this->service()->awardStampForInvoice($this->invoice($tenant, $contact, 500, 'paid')));
         $this->assertSame(1, $contact->fresh()->stamp_count);
+    }
+
+    // ── Join QR is not a stamp QR ──────────────────────────────
+    // The shop's printed QR only JOINS (wa.me → JOIN). Stamps come from the
+    // customer's own wallet QR, scanned by staff — never from the join path.
+
+    public function test_joining_through_the_welcome_qr_never_gives_a_stamp(): void
+    {
+        Http::fake(['*' => Http::response(['messages' => [['id' => 'x']]], 200)]);
+        $tenant = $this->shop(['welcome_bonus_points' => 100, 'stamps_required' => 1]);
+        $wa     = WhatsappSetting::create(['tenant_id' => $tenant->id, 'phone_number_id' => '1', 'access_token' => 't', 'is_connected' => true]);
+
+        $this->assertTrue((new WhatsappChatbotService($wa))->handleLoyaltyWelcome('919812345678', 'JOIN', 'Ravi Sharma'));
+
+        $contact = Contact::where('tenant_id', $tenant->id)->where('phone', '919812345678')->first();
+        $this->assertNotNull($contact);
+
+        // A repeat JOIN from the same (now existing) member stamps nothing either.
+        $this->assertTrue((new WhatsappChatbotService($wa))->handleLoyaltyWelcome('919812345678', 'JOIN', 'Ravi Sharma'));
+
+        $contact = $contact->fresh();
+        $this->assertSame(0, (int) $contact->stamp_count);
+        $this->assertSame(0, (int) $contact->stamp_rewards_earned);
+        $this->assertSame(0, LoyaltyTransaction::withoutGlobalScopes()
+            ->where('contact_id', $contact->id)
+            ->whereIn('type', [LoyaltyTransaction::TYPE_STAMP, LoyaltyTransaction::TYPE_STAMP_REWARD])
+            ->count());
     }
 
     // ── Earning from invoices ──────────────────────────────────

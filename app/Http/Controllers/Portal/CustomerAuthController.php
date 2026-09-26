@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\CustomerOtp;
-use App\Models\EmailSetting;
 use App\Models\WhatsappSetting;
 use App\Services\CustomerLinkService;
-use App\Services\EmailService;
 use App\Services\WhatsappChatbotService;
 use App\Support\PortalTestLogin;
 use Illuminate\Http\RedirectResponse;
@@ -236,9 +234,9 @@ class CustomerAuthController extends Controller
             : redirect()->route('portal.pin.setup');
     }
 
-    // Prefer WhatsApp through any matched shop that has it connected, else
-    // email through a matched shop whose SMTP is connected. Null = no way to
-    // reach them (the visitor sees the same generic response regardless).
+    // WhatsApp only, sent through any matched shop that has it connected. Null =
+    // no way to reach them (the visitor sees the same generic response
+    // regardless). Email OTP is deliberately off for now.
     private function pickDelivery(Customer $customer, Collection $contacts): ?array
     {
         foreach ($contacts as $contact) {
@@ -248,24 +246,6 @@ class CustomerAuthController extends Controller
                     'channel'   => 'whatsapp',
                     'tenant_id' => $contact->tenant_id,
                     'target'    => preg_replace('/\D/', '', (string) $contact->phone),
-                    'name'      => $contact->name,
-                ];
-            }
-        }
-
-        foreach ($contacts as $contact) {
-            $email = $customer->email ?: $contact->email;
-            if (!$email) {
-                continue;
-            }
-
-            $settings = EmailSetting::where('tenant_id', $contact->tenant_id)->where('is_connected', true)->first();
-            if ($settings && $settings->smtp_host) {
-                return [
-                    'channel'   => 'email',
-                    'tenant_id' => $contact->tenant_id,
-                    'target'    => $email,
-                    'name'      => $contact->name,
                 ];
             }
         }
@@ -279,11 +259,7 @@ class CustomerAuthController extends Controller
         $text = "Your {$app} wallet login code is {$code}. It expires in " . CustomerOtp::TTL_MINUTES . ' minutes.';
 
         try {
-            if ($delivery['channel'] === 'whatsapp') {
-                WhatsappChatbotService::forTenant($delivery['tenant_id'])->sendMessage($delivery['target'], $text);
-            } else {
-                EmailService::send($delivery['tenant_id'], $delivery['target'], $delivery['name'], "{$app} login code", '<p>' . e($text) . '</p>');
-            }
+            WhatsappChatbotService::forTenant($delivery['tenant_id'])->sendMessage($delivery['target'], $text);
         } catch (\Throwable $e) {
             // Delivery failures are silent — the visitor just won't get a code.
         }

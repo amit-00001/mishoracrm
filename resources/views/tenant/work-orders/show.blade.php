@@ -305,7 +305,8 @@
 
                 @if($workOrder->isPending())
                 <form method="POST" action="{{ route('tenant.work-orders.start',$workOrder->id) }}"
-                      onsubmit="return confirm('Start production? Raw materials will be issued from stock now (WIP).')">
+                      data-submit-once data-confirm-danger="false" data-confirm-title="Start production?" data-confirm-ok="Start &amp; Issue"
+                      data-confirm="Start production? Raw materials will be issued from stock now (WIP).">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="background:var(--accent-dim);border-color:#B7D6F3;color:var(--accent)">
                         <div class="qs-act-icon" style="background:var(--accent-dim)"><i class="ti ti-player-play" style="font-size:15px;color:var(--accent)"></i></div>
@@ -316,7 +317,8 @@
 
                 @if($workOrder->isInProgress())
                 <form method="POST" action="{{ route('tenant.work-orders.complete',$workOrder->id) }}"
-                      onsubmit="return confirm('{{ $workOrder->materialsIssued() ? 'Complete this work order? Finished-good stock will be credited.' : 'Complete this work order? Raw materials will be consumed and finished-good stock credited.' }}')">
+                      data-submit-once data-confirm-danger="false" data-confirm-title="Complete work order?" data-confirm-ok="Complete"
+                      data-confirm="{{ $workOrder->materialsIssued() ? 'Complete this work order? Finished-good stock will be credited.' : 'Complete this work order? Raw materials will be consumed and finished-good stock credited.' }}">
                     @csrf
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
                         <div>
@@ -340,7 +342,8 @@
                 @endif
 
                 <form method="POST" action="{{ route('tenant.work-orders.cancel',$workOrder->id) }}" style="margin-top:7px"
-                      onsubmit="return confirm('Cancel this work order?')">
+                      data-submit-once data-confirm-title="Cancel work order?" data-confirm-ok="Cancel Work Order"
+                      data-confirm="Cancel this work order?">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="background:var(--red-dim);border-color:var(--red);color:var(--red)">
                         <div class="qs-act-icon" style="background:var(--red-dim)"><i class="ti ti-circle-x" style="font-size:15px;color:var(--red)"></i></div>
@@ -364,7 +367,8 @@
             <div class="ps-sc" style="border-color:var(--red)">
                 <div class="ps-sc-title" style="color:var(--red)">Danger Zone</div>
                 <form method="POST" action="{{ route('tenant.work-orders.destroy',$workOrder->id) }}"
-                      onsubmit="return confirm('Delete work order {{ $workOrder->number }}?')">
+                      data-submit-once data-confirm-title="Delete work order?" data-confirm-ok="Delete"
+                      data-confirm="Delete work order {{ $workOrder->number }}?">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                         <i class="ti ti-trash" style="font-size:14px"></i> Delete Work Order

@@ -5,6 +5,7 @@ namespace Tests\Feature\Portal;
 use App\Models\Contact;
 use App\Models\Customer;
 use App\Models\CustomerOtp;
+use App\Models\EmailSetting;
 use App\Models\Tenant;
 use App\Models\WhatsappSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -228,6 +229,29 @@ class CustomerAuthTest extends TestCase
     {
         Http::fake();
         $this->tenantWithContact();
+
+        $this->post(route('portal.login.request-otp'), ['phone' => self::PHONE])
+            ->assertOk()
+            ->assertSee('6-digit code is on its way');
+
+        $this->assertSame(0, CustomerOtp::count());
+        Http::assertNothingSent();
+    }
+
+    // Login codes go out on WhatsApp only — a shop that has email connected but
+    // no WhatsApp must not deliver one (email OTP is deliberately off for now).
+    public function test_a_shop_with_only_email_connected_delivers_no_code(): void
+    {
+        Http::fake();
+        [$tenant, $contact] = $this->tenantWithContact();
+        $contact->update(['email' => 'ravi@example.com']);
+        EmailSetting::create([
+            'tenant_id'    => $tenant->id,
+            'smtp_host'    => 'smtp.example.com',
+            'smtp_port'    => 587,
+            'from_address' => 'shop@example.com',
+            'is_connected' => true,
+        ]);
 
         $this->post(route('portal.login.request-otp'), ['phone' => self::PHONE])
             ->assertOk()

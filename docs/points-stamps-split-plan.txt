@@ -1,0 +1,534 @@
+POINTS vs STAMPS — ALAG PROGRAMS + STAMPZO REVIEW — PLANNING NOTES
+Discussed: 2026-09-26. Status: planning + kaam chalu — REAL STATUS ke liye
+neeche "PROGRESS TRACKER" dekho (yeh file har step ke baad update hoti hai).
+(Customer portal khud already BANA HUA hai — Section 1.)
+Jab implement karna ho ya kaam resume karna ho, yeh file share kar dena — sab
+context + kitna ho chuka / kitna baaki, isi mein hai.
+Related docs:
+  - docs/customer-loyalty.txt          (loyalty module: points/tiers/campaigns — bana hai)
+  - docs/customer-portal-loyalty.txt   (portal/wallet ka ORIGINAL plan, 2026-09-01.
+      Iska header "PLANNING ONLY — no code written yet" STALE hai: portal ab code
+      mein hai. Yeh nayi file usse aage ki baat karti hai; purani file ko edit
+      nahi kiya gaya.)
+
+============================================================
+PROGRESS TRACKER — RESUME YAHAN SE (har step ke baad UPDATE karo)
+============================================================
+Last updated: 2026-09-26
+
+RULES (future sessions ke liye):
+  1. Kaam shuru karne se pehle yeh section padho, phir `git status` + `git log`
+     se cross-check karo. Doc code se peeche reh sakta hai — code hi sach hai.
+  2. Har chhota step khatam hote hi: checkbox [x] karo, LOG mein entry daalo
+     (date, kya badla, files, tests), NEXT ACTION update karo.
+  3. Naya decision/finding mile toh Section 2 / 7 mein bhi likho.
+  4. Kaam beech mein rukna pade (token khatam etc.) toh [~] IN PROGRESS mein
+     EXACT likho: kahan ruke, kaun si file, kya baaki.
+
+LEGEND: [x] done   [~] in progress   [ ] not started   [?] owner ka jawab pending
+
+DECISIONS
+  [x] D1  points/stamps alag, ek shop = ek program           (owner, locked)
+  [x] D2  plan ya superadmin se gating                        (owner, locked)
+  [x] D3  OTP sirf WhatsApp                                   (owner, locked)
+  [?] R1-R5  recommended design (`both` hatao, stamp_card module, dependency,
+             program switch) — owner ne abhi CONFIRM nahi kiya
+  [?] Section 7 open Q1-Q7 — jawab pending (Q1-Q3 Step 2/3 se PEHLE chahiye)
+  [?] Section 10 revised recommendation (welcome stamp, nudge priority, tier
+      pricing coupling) — owner confirm pending
+
+WORK
+  [x] Stampzo review (6 pages)
+  [x] Code audit -> Section 1
+  [x] Yeh planning doc likha
+  [x] OTP WhatsApp-only (D3) — code done (CustomerAuthController)
+        [x] follow-up: test jo pin kare ki email-only shop ko code NAHI jaata
+            -> CustomerAuthTest::test_a_shop_with_only_email_connected_delivers_no_code
+        [ ] follow-up: portal ON par WhatsApp connected na ho toh tenant/
+            superadmin ko warning (Section 3.3, 5)
+  [x] STEP 1  audit (join QR stamp nahi deta) + counter pe naam prominent
+        DONE 2026-09-26. Details Section 4.1 / 4.2. Naya finding: Section 4.8
+        (join QR welcome_bonus_points pe atka) + open Q7.
+  [ ] STEP 2  `both` hatao + Tenant::activeLoyaltyProgram() helper + migration
+  [ ] STEP 3  `stamp_card` module + gating + downgrade + Program-type radio
+  [ ] STEP 4  polish: brand colour, stamps quick-setup, staff sheet PDF
+  [ ] STEP 5  later: almost-there nudge, inbound-WhatsApp login link
+
+TESTS
+  - BASELINE (OTP change ke baad, Step 1 se pehle), full `php artisan test`:
+    553 passed, 2 FAILED (555 total), ~273s. Pehle se-maujood failures,
+    mere kaam se unrelated:
+      * Tests\Feature\Tenant\SubscriptionGateTest::expired page shows yearly
+        only when monthly billing is off  (pricing page: expected
+        class="monthly-price" style="display:none"; isolation mein bhi fail)
+      * Tests\Feature\ExampleTest::the application returns a successful response
+        (Laravel ka default example test, `/` pe 200 expect karta hai)
+  - AFTER STEP 1 (naye tests ke saath), full run: 555 passed, 2 failed
+    (1773 assertions) — wahi 2 pehle-se-failing. Yaani Step 1 se koi
+    regression nahi. Agla step isi (555 pass / 2 known fail) se compare karo.
+  - Step 1 ke naye tests: StampCardTest + CounterRedemptionTest + CustomerAuthTest
+    = 99 passed (379 assertions).
+  - Kisi step ke baad regression check: full suite chalao aur failures ko
+    upar ki baseline se compare karo (sirf 2 pehle se fail hone chahiye).
+  - NOTE: tests shared MySQL DB (lrv_saas_crm_testing) use karte hain —
+    do test runs EK SAATH mat chalao, dono ka RefreshDatabase takrayega.
+
+GIT (2026-09-26): kuch COMMIT nahi hua. Uncommitted:
+  M app/Http/Controllers/Portal/CustomerAuthController.php   (OTP change)
+  M resources/views/tenant/loyalty/counter.blade.php          (naam bada)
+  M tests/Feature/Portal/StampCardTest.php                    (join-no-stamp test)
+  M tests/Feature/Portal/CustomerAuthTest.php                 (email-only test)
+  ?? docs/points-stamps-split-plan.txt                        (yeh file)
+  (M storage/logs/laravel.log, ?? mishoracrm/, ?? saascrm/ — pehle se the, is
+   kaam se related nahi.)
+
+NEXT ACTION: owner ka jawab chahiye — Section 7 Q1-Q3 (aur R1-R5 confirm) —
+  uske BAAD STEP 2 (`both` hatao). Step 2 owner-confirmation ke bina shuru
+  mat karo (behaviour change). Agar owner jawab de: doc ke Section 2/7 mein
+  likho, phir Step 2. Tab tak koi aur zero-risk kaam: WhatsApp-not-connected
+  warning (WORK section ka follow-up).
+
+LOG (naya entry neeche append karo)
+  2026-09-26  Stampzo (6 pages) review + code audit + is doc ka pehla version.
+  2026-09-26  OTP WhatsApp-only: Portal/CustomerAuthController.php — pickDelivery
+              se email fallback hata, deliver() sirf WhatsApp, unused imports
+              (EmailSetting, EmailService) hata. CustomerAuthTest 35 pass.
+  2026-09-26  Yeh PROGRESS TRACKER section add kiya.
+  2026-09-26  STEP 1 done: (a) join-path audit — join kabhi stamp nahi deta;
+              StampCardTest::test_joining_through_the_welcome_qr_never_gives_a_stamp
+              add. (b) resources/views/tenant/loyalty/counter.blade.php —
+              .ct-name 17->26px, .ct-stat .v 22->20px. (c) CustomerAuthTest::
+              test_a_shop_with_only_email_connected_delivers_no_code add.
+              Naya finding 4.8 + Q7 doc mein. Baseline 553 pass / 2 fail
+              (pehle se). 99 targeted tests pass.
+  2026-09-26  Real-world revisit research (endowed progress, goal-gradient) ->
+              Section 10 add. Revised: welcome stamp haan (pehle "nahi"),
+              near-complete nudge Step 5 -> Step 4, stamp_card/customer_portal
+              tier coupling flag. Sirf doc change, code nahi.
+
+============================================================
+0. YEH KYON — CONTEXT
+============================================================
+Owner ne stampzo.in ko reference diya customer loyalty + revisit ke liye
+(6 pages dekhe: /about, /qr-kit, /features, /cafes, aur 2 blog posts). Note:
+sirf marketing pages the — actual app ke screens nahi dekhe, isliye neeche
+sirf FLOW/philosophy li gayi hai, UI copy nahi.
+
+Stampzo ka core:
+  - DO ALAG QR: shop ka printed QR sirf JOIN karata hai (card phone mein aata
+    hai, koi app nahi). Stamp customer ke PHONE ke QR se lagta hai, jise staff
+    apne phone se scan karta hai. "Shop print = join. Phone card = stamps."
+    Staff kabhi shop poster scan karke stamp nahi lagata.
+  - Staff scan -> screen pe customer ka NAAM -> ek tap = stamp (~2 sec). Naam
+    isliye dikhta hai ki staff face se match kare (fraud check). Card login se
+    bandha hai, photocopy/marker se fake nahi hota.
+  - Ek simple offer: "Buy 4, get 5th free". Points/tiers nahi. Focus single-shop,
+    single-offer.
+  - Free item pehle diya jaata hai, phir card reset. Stamp payment ke BAAD.
+  - Notifications: reward ready + "reminder if they disappear" (revisit nudge).
+  - QR Kit: window poster, counter stand, board, table tent, flyer — shop naam,
+    brand colour, offer, visit count daalke print-ready PDF.
+  - Launch same-day: reward likho, A4 print, staff ko 5-step photo guide.
+    Pehla program free, phir flat monthly INR fee.
+  - Blog ka insight: "A 20% code trains people to wait. A digital stamp card
+    trains them to come back." (coupon = discount-hunter, stamp = habit.)
+
+OWNER KE DECISIONS (2026-09-26):
+  D1. Points aur stamps ALAG hone chahiye. Ek company/tenant dono ko ek saath
+      manage na kare (points bhi do, stamp bhi do — confusing). Sirf CUSTOMER ko
+      sab ek jagah (wallet mein) dikhna chahiye.
+  D2. Yeh Stampzo-jaise features tabhi tenant ko milein jab (a) plan mein
+      purchase hon, ya (b) superadmin allow kare. Baaki sab ke liye OFF.
+  D3. Customer login OTP abhi SIRF WhatsApp se (email OTP abhi nahi).
+      -> Code mein ho chuka hai (Section 5).
+
+============================================================
+1. CURRENT STATE — CODE MEIN ABHI KYA HAI (verified 2026-09-26)
+============================================================
+PORTAL BANA HUA HAI:
+  - Auth: app/Http/Controllers/Portal/CustomerAuthController.php (OTP + optional
+    PIN + lockout + rate limits), customer guard, customer_otps table.
+  - Wallet: Portal/WalletController, resources/views/portal/wallet/*,
+    components/portal/wallet-card.blade.php, public/js/wallet-qr.js.
+  - Linking: app/Services/CustomerLinkService.php, phone_normalized column.
+  - Counter (staff): routes/web.php ~L751 (`/loyalty/counter`, +stamp, redeem),
+    permission loyalty.stamp | loyalty.manage.
+  - QR Kit: Web/Tenant/LoyaltyQrKitController + QrKitTest (routes/web.php ~L741).
+  - Commands: loyalty:expire-stamps (daily 02:30), customers:prune.
+  - Superadmin Customers page, account deletion, test-login switch
+    (config/portal.php + App\Support\PortalTestLogin).
+  - Tests: tests/Feature/Portal/* (Auth, Linking, Wallet, StampCard,
+    CounterRedemption, QrKit, LoyaltyOverview, SuperAdminCustomers,
+    AccountDeletion, PhoneNormalization).
+
+MODULES / GATING:
+  - config/modules.php = premium module registry (plan feature + superadmin
+    toggle + `module:<key>` middleware + pricing page — sab yahin se). Abhi
+    `loyalty` aur `customer_portal` dono tier 'business'.
+  - Access = Tenant::hasModuleEnabled($key) tri-state (Tenant.php ~L108):
+    settings['modules'][key] true/false = superadmin override, absent = Plan.features.
+  - Superadmin toggle generic hai: SuperAdmin\TenantController::toggleModule /
+    clearModuleOverride — config/modules.php mein entry ho toh apne aap chalta hai.
+
+MODE (points | stamps | both) — YAHI REFACTOR KA CENTRE HAI:
+  - Default: Tenant::LOYALTY_DEFAULTS['mode'] = 'points' (Tenant.php ~L394) +
+    stamps_required, stamp_reward, stamp_per, stamp_amount, stamp_expiry_days.
+  - Settings validation: Web/Tenant/LoyaltyController.php ~L242 ('in:points,stamps,both');
+    stamp fields sirf portal-enabled shops ko form mein dikhte hain (~L250,
+    settings.blade.php ~L253). Select: settings.blade.php ~L272.
+  - LoyaltyService::snapshot() -> 'mode' (LoyaltyService.php ~L72-87).
+  - LoyaltyService::stampsEnabled() = loyalty ON AND mode in (stamps, both)
+    (~L702). NOTE: stamp ACCRUAL sirf `loyalty` + mode pe gated hai, customer_portal
+    pe nahi — portal OFF hone pe bhi stamps chupchap lagte rehte hain (comment
+    ~L696-700). Sirf counter UI + wallet visibility portal pe gated hain.
+  - Wallet card: components/portal/wallet-card.blade.php (~L34-36, 78, 95) —
+    'both' ka alag layout.
+  - Loyalty overview stats: LoyaltyController ~L87-92 (stamps 'stamps'|'both').
+  - QR Kit label: LoyaltyQrKitController ~L71 ('both' => "Earn points & collect stamps").
+  - Tests jo mode/both touch karte hain: WalletTest, StampCardTest,
+    CounterRedemptionTest, LoyaltyOverviewTest, QrKitTest.
+
+PORTAL GATE (loyalty AND customer_portal): WalletController ~L32 + ~L101,
+  Customer::walletContacts (Customer.php ~L86, ~L107), sidebar.blade.php ~L434,
+  invoices/show.blade.php ~L334 (portal-gated loyalty panel), loyalty settings/
+  index/contact-panel views.
+
+QR KIT: brand colour/logo ka handling abhi NAHI hai (controller mein koi
+  colour/logo reference nahi mila).
+
+============================================================
+2. DECISIONS — LOCKED vs RECOMMENDED vs OPEN
+============================================================
+LOCKED (owner ne bola): D1, D2, D3 (Section 0).
+
+RECOMMENDED (meri sifarish — owner confirm kare):
+  R1. `both` mode HATAO. Sirf `points` ya `stamps`. Ek shop = ek active program.
+      (Trade-off: jo business sach mein dono chahta hai wo supported nahi —
+      non-goal, Section 8.)
+  R2. Stamps ka alag module `stamp_card` (config/modules.php mein naya key),
+      taaki plan/superadmin se stamps ALAG bech/allow kar sako (D1 + D2).
+  R3. Teen module, teen kaam:
+        loyalty          = points engine (jaisa hai)
+        stamp_card (NEW) = stamp engine + counter stamp + stamps settings
+        customer_portal  = SIRF customer-side: global login, wallet, wallet QR
+  R4. Dependency: stamp_card ke saath customer_portal bhi ON hona chahiye
+      (staff wallet QR scan karta hai; QR wallet mein hai). Superadmin UI warn
+      kare agar stamp_card grant ho par portal OFF (jaisa loyalty/portal ke liye
+      already hai). Points shop ko portal OPTIONAL hai.
+  R5. Program switch: tenant ke paas dono modules ON hon toh settings mein ek
+      "Program type" radio se ek active chune. Switch pe purana data delete nahi,
+      sirf pause (Section 3.5).
+
+OPEN (owner ka jawab chahiye) — Section 7.
+
+============================================================
+3. TARGET DESIGN
+============================================================
+3.1 PROGRAM TYPE — EK SHOP, EK PROGRAM
+  - settings['loyalty']['mode'] ke valid values: 'points' | 'stamps' (no 'both').
+    (Storage jahan Tenant::loyaltySettings() padhta hai wahi rahega.)
+  - Effective program:
+      only loyalty ON          -> points
+      only stamp_card ON       -> stamps
+      both ON                  -> tenant ki `mode` choice (default 'points')
+      neither                  -> koi program nahi (loyalty pages hidden)
+  - Ek helper (e.g. Tenant::activeLoyaltyProgram(): 'points'|'stamps'|null) jo
+    upar ka table encode kare. Baaki code isi helper se poochhe, `mode` ko seedha
+    na padhe (abhi ~8 jagah seedha padha jaata hai — Section 1).
+
+3.2 GATING MATRIX (server-side — UI hide kaafi nahi)
+  Feature                                             | Gate
+  ----------------------------------------------------|---------------------------
+  Points earn/redeem, tiers, campaigns, birthday/     | loyalty  (+ program=points)
+    referral/win-back, reward catalog, expiry         |
+  Welcome QR / WhatsApp self-check / "check rewards"  | loyalty  (jaisa pehle)
+  Stamp earn/redeem, stamp settings, stamp expiry     | stamp_card (+ program=stamps)
+  /loyalty/counter (+1 stamp, redeem reward)          | stamp_card + customer_portal
+  Wallet card, global login, wallet QR                | customer_portal + (loyalty|stamp_card)
+  QR Kit poster / staff sheet                         | customer_portal
+  "Almost there" nudge                                | stamp_card
+  Wallet QR se invoice [Scan Customer] (points shops) | loyalty + customer_portal
+  - Routes pe `module:<key>` middleware; services mein hasModuleEnabled check
+    (awardStampForInvoice, nudge command, expire-stamps); settings save mein
+    module OFF ho toh stamp fields ignore. Tenant URL seedha khole toh 403/404.
+  - Plan mein kaunsa module: config/modules.php ka `tier` (PlanSeeder isi se
+    plan->module mapping banata hai). stamp_card ka tier = pricing decision
+    (Section 7).
+
+3.3 SUPERADMIN
+  - config/modules.php: 'stamp_card' entry (label "Stamp Card / Visit Rewards",
+    desc, blurb, icon, tier). Superadmin tenants/show + plan editor + pricing
+    page apne aap pick karte hain (registry se).
+  - Warn: stamp_card grant ho par customer_portal OFF; ya customer_portal ON par
+    koi program module OFF (portal bekaar).
+  - Warn: portal ON par tenant ka WhatsApp connected nahi (Section 5).
+
+3.4 CUSTOMER WALLET (D1: customer ko sab ek jagah)
+  - Wallet unchanged: har shop ka card apne program type mein — points card
+    (bada number + tier + redeemable) ya stamp grid (● ● ○ ○ + "N more for
+    {reward}"). `both` wala hybrid layout hat jaayega -> wallet-card simple.
+  - Card tabhi dikhe jab shop ka customer_portal ON AND uska active program
+    module ON. Data isolation waisa hi — har shop ka data alag, sirf customer
+    ko ek jagah.
+
+3.5 DOWNGRADE / FORCE-OFF / PROGRAM SWITCH
+  Situation: tenant stamps pe tha, plan expire ya superadmin ne stamp_card OFF
+  kiya (ya tenant ne points pe switch kiya).
+  Recommend:
+    - Naye stamps lagna band; wallet stamp card + counter + poster hide.
+    - Purana stamp data (contacts.stamp_count, stamp_rewards_earned, ledger
+      rows) DELETE nahi — dobara ON hone pe wapas.
+    - Unclaimed rewards (stamp_rewards_earned > 0) ka kya? -> Section 7 (open).
+    - Tenant ko note: "Stamp Card is off — stamp cards are paused".
+    - Points side normal chalta rahe agar loyalty ON hai.
+  NOTE: abhi stamp accrual portal OFF hone pe bhi chalta hai (Section 1). R2 ke
+  baad accrual `stamp_card` pe gated hoga (portal pe nahi) — behaviour badalta
+  hai, isliye StampCardTest update karna padega.
+
+3.6 EXISTING `both` TENANTS KI MIGRATION
+  - Command/migration jo saare tenants ke loyaltySettings mode=='both' dhoonde.
+  - Recommend default map: both -> 'points' (points ledger purana/main hai),
+    stamps data preserved+paused. Affected tenants ki list log/superadmin ko
+    dikhao review ke liye.
+  - PEHLE check karo ki real tenant kaun `both` use karta hai — sambhavtah
+    sirf test/demo data (PortalTestData / test customer). Agar koi real tenant
+    hai toh owner se poochho ki wo kaunsa rakhe.
+
+============================================================
+4. STAMPZO LEARNINGS — KYA ADD KARNA (sab customer_portal / stamp_card gate ke andar)
+============================================================
+4.1 JOIN QR != STAMP QR (RULE + VERIFY)
+    Poster/welcome token se kabhi stamp/redeem nahi — sirf join. Wallet ka
+    signed QR hi stamp/redeem/scan ke liye. ACTION: code audit — welcome/join
+    path stamp ya reward na de; test likho ("poster scan cannot stamp").
+    AUDIT RESULT (2026-09-26): join path = wa.me/<no>?text=JOIN ->
+    WhatsappChatbotService::handleLoyaltyWelcome -> enrolFromWhatsapp ->
+    LoyaltyService::manualAdjust (sirf welcome POINTS). Koi route/service isse
+    awardStamp / addStamps / redeemStampReward tak nahi pahunchata. Stamp sirf
+    2 raaston se lagta hai: (a) awardStampForInvoice — paid invoice pe
+    (InvoiceController ~L685, ~L828, LoyaltyCounterController::checkout ~L215);
+    (b) awardStamp — LoyaltyCounterController::stamp (staff auth + module:
+    customer_portal + permission loyalty.stamp|manage, route ~L751). Rule ab
+    test se pinned: StampCardTest::test_joining_through_the_welcome_qr_never_gives_a_stamp.
+    Counter ke baaki security tests pehle se hain (signed QR, once-only,
+    expiry, tenant isolation, permission) — CounterRedemptionTest.
+4.2 COUNTER PE NAAM BADA
+    /loyalty/counter aur [Scan Customer] result mein customer ka naam sabse
+    prominent element (fraud-check isi pe tika hai). UI change, no schema.
+    DONE 2026-09-26: counter.blade.php mein .ct-name 17px -> 26px, .ct-stat .v
+    22px -> 20px (naam ab stats se bada). Invoice [Scan Customer] (invoice-scan.js)
+    pehle se naam <strong> mein dikhata hai + bill ke customer se mismatch pe
+    error deta hai — wahan kuch nahi badla.
+4.3 BRAND COLOUR + LOGO
+    Tenant setting (brand colour) -> wallet card + QR Kit poster pe. Abhi QR Kit
+    mein colour/logo handling nahi hai (Section 1). Card mein tenant.logo already
+    aata hai; colour add karna hai (CSS variable).
+4.4 STAMPS-ONLY QUICK SETUP
+    program=stamps chunne pe settings mein sirf 3 fields: stamps_required,
+    stamp_reward, brand colour (+ advanced collapsed: stamp_per, stamp_amount,
+    stamp_expiry_days). Points/tier fields chhupe. "Same-day launch" feel.
+4.5 "ALMOST THERE" NUDGE (LATER)
+    Partial card wale customer ko nudge ("1 stamp aur bacha — free coffee").
+    Win-back se alag: stamp-specific. LoyaltyNotifier reuse. stamp_card gate.
+    Stamp expiry se pehle warning bhi isi mein. Step 5 mein, abhi nahi.
+4.6 STAFF ONBOARDING SHEET
+    QR Kit ke saath ek A4 page: "stamp kaise lagana hai" (scan -> naam dekho ->
+    tap; stamp payment ke BAAD; poster kabhi scan mat karo; free item pehle,
+    phir reset). dompdf already installed.
+4.8 JOIN QR STAMPS-SHOP KE LIYE (NAYA FINDING, 2026-09-26 audit se)
+    Join (WhatsApp "JOIN" capture) abhi welcome_bonus_points > 0 pe ATKA hai:
+      - WhatsappChatbotService::handleLoyaltyWelcome ~L49: bonus <= 0 -> return false
+      - Tenant::loyaltyWelcomeUrl ~L325: bonus <= 0 -> null (QR Kit mein Join
+        poster hi nahi banta)
+      - welcome_message / "already a member" reply points-centric hain
+        ("{{points}} points").
+    Matlab stamps-only shop jo points nahi deta, uske paas Stampzo-jaisa
+    "poster = join" ban hi nahi sakta. FIX (Step 3/4): join ko welcome_bonus
+    se decouple karo —
+      - join enable = welcome_wa_number set + koi program ON (bonus optional).
+      - stamps program mein welcome bonus points NA de (points stamps shop ke
+        wallet mein dikhte hi nahi). Welcome STAMP: pehle "NAHI" likha tha;
+        REVISED (Section 10-C) -> ek baar 1 welcome stamp (endowed progress).
+      - stamps shop ke liye alag default welcome_message (stamp/reward
+        wording, {{stamp_reward}} / {{stamps_required}}).
+      - "already a member" reply mein stamps shop ko "N/M stamps" dikhao.
+    Settings mein welcome-bonus field sirf program=points pe (4.4 quick-setup).
+4.7 REVISIT MESSAGING (product note)
+    Stamp shop ke liye coupon campaigns default off (campaigns loyalty ka
+    hissa hain, R1 ke baad stamps shop ko points engine nahi milta). Yeh
+    Stampzo ki philosophy se match karta hai.
+
+============================================================
+5. OTP — SIRF WHATSAPP (D3) — DONE
+============================================================
+CODE (2026-09-26): CustomerAuthController::pickDelivery ab sirf WhatsApp —
+  customer ke matched Contacts mein se pehla shop jiska WhatsApp connected
+  (WhatsappSetting::forTenant(...)->is_connected) usi ke number se code jaata hai.
+  Email fallback aur uske imports hata diye. 35 portal-auth tests pass.
+BEHAVIOUR:
+  - Kisi matched shop ka WhatsApp connected nahi -> response generic hi rehta
+    hai ("6-digit code is on its way") par code nahi jaata -> customer login
+    nahi kar sakta. (Pehle email-only shops ke customers login kar lete the.)
+  - Rate limits unchanged: per-phone 3/hour + 60s resend, per-IP throttle.
+  - customer_otps.channel column rakha hai (future channel ke liye).
+  - Email linking key (customers.email_verified_at) — koi code use set nahi
+    karta, effectively dormant; chheda nahi.
+RISK: kirana jaise shops (stamps ke main users) aksar WhatsApp connect nahi
+  karte -> unke customers login nahi kar payenge. Isliye:
+  - Portal/stamp_card ON hote waqt tenant ko warn karo agar WhatsApp connected
+    nahi (Section 3.3).
+FUTURE OPTIONS (abhi nahi):
+  - Customer shop ke WhatsApp number ko message kare (welcome-QR jaisa
+    inbound flow) -> message hi phone ownership ka proof -> bot wallet login
+    link bheje. Customer-initiated hone se 24h window mein template ki zaroorat
+    nahi. Phir bhi shop ka WhatsApp connected chahiye.
+  - Email OTP wapas (shop SMTP se) ya SMS — tab `pickDelivery` mein channel add.
+Test login: superadmin ka test-login switch (config/portal.php) real WhatsApp
+  ke bina dev/testing ke liye chalta rahega.
+
+============================================================
+6. PHASING — CHHOTE STEPS (har step ke baad php artisan test full + view:cache)
+============================================================
+STEP 1 — Audit + zero-risk rules (Section 4.1, 4.2):
+  - join/welcome path stamp nahi deta — verify + test.
+  - counter/scan result mein naam prominent.
+STEP 2 — `both` hatao (R1):
+  - Validation 'in:points,stamps' (LoyaltyController ~L242), settings select
+    (settings.blade ~L272) sirf 2 options.
+  - LoyaltyService: snapshot mode normalise; stampsEnabled = mode==='stamps'.
+  - wallet-card component: 'both' branch hatao. LoyaltyController overview
+    (~L92), QR Kit label (~L71) update.
+  - Migration/command for existing `both` tenants (Section 3.6).
+  - Tests update: WalletTest, StampCardTest, CounterRedemptionTest,
+    LoyaltyOverviewTest, QrKitTest (+ naya: `both` reject / migrate).
+  - Helper Tenant::activeLoyaltyProgram() introduce, saare direct `mode` reads
+    isi pe shift.
+STEP 3 — `stamp_card` module (R2-R5):
+  - config/modules.php entry (tier = owner decide).
+  - stampsEnabled + awardStampForInvoice + expire-stamps + nudge -> stamp_card
+    gate. Counter route + settings stamp section + wallet stamp card gating.
+  - Superadmin warnings (Section 3.3). Downgrade behaviour (Section 3.5).
+  - "Program type" radio jab dono modules ON.
+  - Tests: tri-state (plan/override on/off), module OFF -> no stamps/404,
+    data preserved on OFF->ON, dependency warning, program switch.
+STEP 4 — Stampzo polish (4.3, 4.4, 4.6): brand colour, stamps quick-setup,
+  staff sheet PDF.
+STEP 5 — Later (4.5, Section 5 future): almost-there nudge, inbound-WhatsApp
+  login link.
+
+============================================================
+7. OPEN QUESTIONS — OWNER KA JAWAB CHAHIYE (sath mein meri sifarish)
+============================================================
+  1. stamp_card alag module (R2) ya stamps customer_portal ke andar hi rahein
+     (sirf mode exclusive)? -> Sifarish: alag module (D1+D2 ke hisaab se).
+     Minimal option: Step 2 hi karke ruk jao, module baad mein.
+  2. stamp_card ka plan tier (config/modules.php `tier`): loyalty/portal ki tarah
+     'business' ya sasta ('pro'/'starter') taaki kirana afford kare? -> Yeh
+     pricing ka faisla hai — owner.
+  3. Existing `both` tenants -> points ya stamps? -> Sifarish: pehle dekho real
+     tenant koi hai ya nahi; default points.
+  4. Program switch/downgrade pe unclaimed stamp rewards (stamp_rewards_earned>0)
+     ka kya? -> Sifarish: preserve, paused; wapas ON hone pe redeem ho sake.
+  5. Dono modules ON hone pe tenant program badal sakta hai? -> Sifarish: haan,
+     ek radio, AuditLog entry ke saath.
+  6. Superadmin ko "dono modules ek saath grant mat karo" restriction chahiye,
+     ya tenant chune? -> Sifarish: koi restriction nahi, tenant chune.
+  7. Join QR ko welcome_bonus_points se decouple karein (Section 4.8) taaki
+     stamps-only shop ke paas bhi join poster ho? -> Sifarish: haan. Stamps
+     shop join pe points nahi deta. REVISED (Section 10): join pe 1 WELCOME
+     STAMP (ek baar, per phone per shop) — endowed-progress evidence.
+
+============================================================
+8. GUARDRAILS / RISKS
+============================================================
+  - TENANT ISOLATION: kuch nahi badalta — customers table + wallet queries
+    explicit tenant_id + withoutGlobalScopes (customer-portal-loyalty.txt §12).
+  - GATING SERVER-SIDE: har route/service/command pe check; sirf UI hide nahi.
+  - DATA KABHI DELETE NAHI program switch/module OFF pe. Sirf pause.
+  - EXISTING TENANTS: points pe rahenge, koi asar nahi (sirf `both` wale migrate).
+  - OTP DEPENDENCY: WhatsApp connected na ho toh login nahi (Section 5).
+  - BEHAVIOUR CHANGE: stamp accrual ka gate loyalty -> stamp_card (Step 3);
+    StampCardTest badlega, dhyan se.
+  - `mode` ke ~8 direct reads -> ek helper (Step 2) warna kuch chhoot jaayega.
+
+============================================================
+9. NON-GOALS
+============================================================
+  - Ek hi shop mein points + stamps saath (hybrid) — R1 ke baad supported nahi.
+  - Cross-shop shared points / coalition loyalty.
+  - Email OTP / SMS abhi (Section 5 future).
+  - Native app, web-push, tier-based auto discount.
+  - Stampzo ki poori feature-parity (unka scope chhota hai; hum CRM ka hissa
+    hain — points/tiers/campaigns rakhte hain points-program shops ke liye).
+
+============================================================
+10. REAL-WORLD REVISIT — EVIDENCE + REVISED RECOMMENDATION (2026-09-26)
+============================================================
+STATUS: sifarish hai — owner ne confirm NAHI kiya.
+
+EVIDENCE (kya mila, kitna bharosa):
+  - Endowed progress (Nunes & Dreze 2006, Journal of Consumer Research): car
+    wash, 300 cards, dono mein same 8 purchases chahiye. Card A = 10 spaces, 2
+    pehle se stamped; Card B = 8 khali. 9 mahine mein 34% ne reward liya (A)
+    vs 19% (B).
+  - Goal-gradient (Kivetz, Urminsky, Zheng 2006, Journal of Marketing
+    Research): cafe "buy 10 get 1 free" — reward ke jitna kareeb, utni jaldi-
+    jaldi visit. Pehla reward milne ke baad engagement GIRTI hai, doosre
+    reward ke paas phir badhti hai. 12-stamp card (2 bonus stamps) ne 10
+    purchases regular 10-stamp card se tezi se poori karwayi.
+  - Stamp vs points: vendor blogs (BonusQR, StampMe, LoyaltyPass...) — stamps
+    fixed-ticket + frequent-visit shops ke liye, points variable-spend ke
+    liye. Yeh MARKETING content hai, data nahi — sirf direction.
+  CAVEATS: dono studies US (car wash / cafe), chhota sample. India kirana/
+  salon ka data nahi mila. Stampzo ke pages mein bhi koi revisit statistic
+  nahi. Isliye har cheez SETTING rakho (on/off) aur measure karo (loyalty
+  overview mein active cards / rewards unlocked pehle se hai).
+  SOURCES:
+    https://journals.sagepub.com/doi/abs/10.1509/jmkr.43.1.39
+    https://siliconcanals.com/t-car-wash-loyalty-cards-endowed-progress/
+    https://www.stampme.com/blog/stamps-vs-points-loyalty-programs
+
+REAL-WORLD SE NIKLE FAISLE:
+  A. Program shop-type se: fixed ticket + frequent (chai, cafe, salon haircut,
+     kirana daily) -> STAMPS. Variable spend (garments, electronics, pharmacy,
+     restaurant bills) -> POINTS. Isliye ek shop = ek program (R1) sahi hai;
+     dono chalane se staff (2-sec counter) aur customer dono confuse.
+  B. CARD CHHOTA: 5-6 stamps (Stampzo "buy 4 get 5th free" bhi). Pehla reward
+     2-3 hafte mein milna chahiye, warna interest mar jaata hai.
+  C. WELCOME STAMP (endowed progress): join pe 1 stamp ek baar (per phone per
+     shop) — card 6 ka, 1 pehle se bhara, 5 visit baaki. Yeh Section 4.1/4.8 ke
+     purane "join kabhi stamp nahi deta" ko REVISE karta hai. Fraud-safe:
+     sirf phone-verified WhatsApp join se, ek baar per contact, repeat JOIN
+     pe kuch nahi; poster scan se repeat-stamping phir bhi impossible.
+     Setting `welcome_stamps` (stamps shop default 1, 0 = off). Tab test
+     StampCardTest::test_joining_through_the_welcome_qr_never_gives_a_stamp
+     badlega -> "join sirf configured welcome stamps ek baar deta hai, repeat
+     JOIN kuch nahi".
+  D. REWARD KE BAAD RESTART: pehla reward milne ke baad engagement girti hai.
+     Naya card 1 stamp bhara shuru ho (optional `restart_stamps`), aur redeem
+     hote hi customer ko WhatsApp: "new card started, 1/6".
+  E. NEAR-COMPLETE NUDGE ka priority BADHAO (goal-gradient ka seedha fayda).
+     Section 4.5 Step 5 se Step 4 mein. Trigger: card >= 80% bhara / 1 stamp
+     bacha AND N din se visit nahi.
+  F. CHANNEL: customer din mein kai baar WhatsApp kholta hai — card/nudge
+     wahin ho toh revisit reminder sasta + asardaar. WhatsApp-only OTP isliye
+     constraint hi nahi, fit bhi hai. Par shop ka WhatsApp connected hona
+     zaroori (Section 5 risk) — warning follow-up priority pe.
+
+REVISIT KE LIYE KAUN SI CHEEZ KITNA MATTER KARTI HAI (ranking):
+  1. Card customer ke phone/WhatsApp mein + 2-sec stamping        [BANA HAI]
+  2. Chhota card + welcome stamp (B, C)                            [Step 3/4]
+  3. Near-complete nudge (E)                                       [Step 4]
+  4. Reward ke baad naya card + message (D)                        [Step 4]
+  5. Brand colour, poster, staff sheet                             [Step 4, nice-to-have]
+  6. Tiers / points-hoarding features — stamps shop ko chahiye hi nahi
+
+STEP 4 KA REVISED ORDER: welcome stamp -> near-complete nudge -> post-reward
+  restart -> brand colour -> stamps quick-setup -> staff sheet.
+
+PRICING NOTE (Q2): stamps ke main users sabse chhote shops (kirana/chai/salon).
+  stamp_card ko tier 'business' pe rakhna adoption maar dega. Upar se
+  stamp_card ko customer_portal chahiye (R4) aur customer_portal abhi 'business'
+  tier hai — toh stamp_card sasta rakh ke bhi asal price business ho jaayega.
+  Dono ka tier SAATH decide karo (sifarish: dono 'pro' ya neeche). Pricing
+  owner ka faisla.

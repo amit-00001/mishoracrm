@@ -170,19 +170,20 @@
             <div class="ps-sc">
                 <div class="ps-sc-title">Approval</div>
                 <form method="POST" action="{{ route('tenant.purchase-requests.approve',$purchaseRequest->id) }}"
-                      onsubmit="return confirm('Approve this request? A draft Purchase Order will be created automatically.')">
+                      data-submit-once data-confirm-danger="false" data-confirm-title="Approve request?" data-confirm-ok="Approve"
+                      data-confirm="Approve this request? A draft Purchase Order will be created automatically.">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="background:var(--green-dim);border-color:var(--green);color:var(--green)">
                         <div class="qs-act-icon" style="background:var(--green-dim)"><i class="ti ti-circle-check" style="font-size:15px;color:var(--green)"></i></div>
                         Approve Request
                     </button>
                 </form>
-                <form method="POST" action="{{ route('tenant.purchase-requests.reject',$purchaseRequest->id) }}" style="margin-top:10px" id="rejectForm">
+                <form method="POST" action="{{ route('tenant.purchase-requests.reject',$purchaseRequest->id) }}" style="margin-top:10px" id="rejectForm"
+                      data-submit-once data-confirm-title="Reject request?" data-confirm-ok="Reject" data-confirm="Reject this request?">
                     @csrf
                     <textarea name="rejection_reason" class="pf-input" rows="2" placeholder="Rejection reason (optional)"
                               style="width:100%;padding:8px 10px;border:1.5px solid var(--border-default);border-radius:7px;background:var(--bg-input);color:var(--text-100);font-family:'DM Sans',var(--font),sans-serif;font-size:12.5px;margin-bottom:8px"></textarea>
-                    <button type="submit" class="qs-action-btn" style="background:var(--red-dim);border-color:var(--red);color:var(--red)"
-                            onclick="return confirm('Reject this request?')">
+                    <button type="submit" class="qs-action-btn" style="background:var(--red-dim);border-color:var(--red);color:var(--red)">
                         <div class="qs-act-icon" style="background:var(--red-dim)"><i class="ti ti-circle-x" style="font-size:15px;color:var(--red)"></i></div>
                         Reject Request
                     </button>
@@ -208,7 +209,8 @@
             <div class="ps-sc" style="border-color:var(--red)">
                 <div class="ps-sc-title" style="color:var(--red)">Danger Zone</div>
                 <form method="POST" action="{{ route('tenant.purchase-requests.destroy',$purchaseRequest->id) }}"
-                      onsubmit="return confirm('Delete purchase request {{ $purchaseRequest->number }}?')">
+                      data-submit-once data-confirm-title="Delete request?" data-confirm-ok="Delete"
+                      data-confirm="Delete purchase request {{ $purchaseRequest->number }}?">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                         <i class="ti ti-trash" style="font-size:14px"></i> Delete Request

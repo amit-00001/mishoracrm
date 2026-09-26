@@ -15,11 +15,13 @@
 .ct-msg.ok { color:var(--green); font-weight:600; }
 .ct-msg.err { color:var(--red); font-weight:600; }
 .ct-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; }
-.ct-name { font-size:17px; font-weight:800; color:var(--text-100); }
+/* The customer's name is the fraud check (staff match it to the face), so it
+   must be the biggest thing on the card — larger than any stat below. */
+.ct-name { font-size:26px; font-weight:800; line-height:1.15; color:var(--text-100); overflow-wrap:anywhere; }
 .ct-sub { font-size:12.5px; color:var(--text-400); margin-top:2px; }
 .ct-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:14px; }
 .ct-stat { background:var(--bg-elevated); border-radius:var(--r-md); padding:11px 12px; text-align:center; }
-.ct-stat .v { font-size:22px; font-weight:800; color:var(--text-100); line-height:1.1; }
+.ct-stat .v { font-size:20px; font-weight:800; color:var(--text-100); line-height:1.1; }
 .ct-stat .l { font-size:11px; color:var(--text-400); text-transform:uppercase; letter-spacing:.4px; margin-top:3px; }
 .ct-actions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
 .ct-actions .btn { padding:11px 16px; }

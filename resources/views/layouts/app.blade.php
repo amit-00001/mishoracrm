@@ -124,7 +124,7 @@
     {{-- ── Confirm modal (global) ──────────────────────────────────────── --}}
     <div class="modal-backdrop" id="confirmBackdrop" style="display:none" onclick="closeConfirm()">
         <div class="modal-box" onclick="event.stopPropagation()" role="dialog" aria-modal="true">
-            <div class="modal-icon modal-icon-danger">
+            <div class="modal-icon modal-icon-danger" id="confirmIcon">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -288,11 +288,14 @@
             const okBtn = document.getElementById('confirmOkBtn');
             okBtn.textContent = opts.ok ?? 'Confirm';
             okBtn.className = 'btn ' + (opts.danger !== false ? 'btn-danger' : 'btn-primary');
+            document.getElementById('confirmIcon').className =
+                'modal-icon ' + (opts.danger !== false ? 'modal-icon-danger' : 'modal-icon-info');
             _confirmCallback = opts.onConfirm ?? null;
             okBtn.onclick = () => { closeConfirm(); if (_confirmCallback) _confirmCallback(); };
             const bd = document.getElementById('confirmBackdrop');
             bd.style.display = 'flex';
             requestAnimationFrame(() => bd.classList.add('open'));
+            okBtn.focus();
         }
         function closeConfirm() {
             const bd = document.getElementById('confirmBackdrop');
@@ -300,6 +303,58 @@
             setTimeout(() => bd.style.display = 'none', 200);
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeConfirm(); });
+
+        /* ──────────────────────────────────────────────
+           Declarative form confirmation + double-submit guard
+
+           <form data-confirm="Message" data-confirm-title="Title" data-confirm-ok="Label"
+                 data-confirm-danger="false"> ... </form>
+
+           Replaces onsubmit="return confirm(...)": the native dialog is modal to the
+           whole tab, so it freezes the page and cannot be answered by browser
+           automation. This uses the in-page confirmAction() modal instead.
+
+           <form data-submit-once> disables its submit buttons after the first
+           submit so a second click can't post the same request twice.
+        ────────────────────────────────────────────── */
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement) || !form.dataset.confirm) return;
+            if (form.dataset.confirmed === '1') { delete form.dataset.confirmed; return; }
+
+            e.preventDefault();
+            const submitter = e.submitter || null;
+            confirmAction({
+                title:   form.dataset.confirmTitle,
+                message: form.dataset.confirm,
+                ok:      form.dataset.confirmOk,
+                danger:  form.dataset.confirmDanger !== 'false',
+                onConfirm: () => {
+                    form.dataset.confirmed = '1';
+                    form.requestSubmit(submitter);
+                },
+            });
+        });
+
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (e.defaultPrevented || !(form instanceof HTMLFormElement) || !('submitOnce' in form.dataset)) return;
+
+            if (form.dataset.submitting === '1') { e.preventDefault(); return; }
+            form.dataset.submitting = '1';
+            // Disable after the browser has built the form data, so the clicked
+            // button's own name/value is still submitted.
+            setTimeout(() => form.querySelectorAll('[type="submit"]').forEach(b => b.disabled = true), 0);
+        });
+
+        // Restore submit buttons when the page is shown again from the back/forward cache.
+        window.addEventListener('pageshow', function (e) {
+            if (!e.persisted) return;
+            document.querySelectorAll('form[data-submit-once]').forEach(f => {
+                delete f.dataset.submitting;
+                f.querySelectorAll('[type="submit"]').forEach(b => b.disabled = false);
+            });
+        });
 
         /* ──────────────────────────────────────────────
            Tooltip

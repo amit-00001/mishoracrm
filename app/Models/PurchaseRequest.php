@@ -18,6 +18,7 @@ class PurchaseRequest extends Model
         'tenant_id',
         'department_id',
         'number',
+        'submission_token',
         'requested_by',
         'date',
         'items',
