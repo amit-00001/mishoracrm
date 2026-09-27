@@ -72,7 +72,7 @@ input:checked + .toggle-slider:before { transform:translateX(16px); }
                     </label>
                     <button class="btn btn-ghost btn-sm" onclick="openEditModal({{ $flow->id }})">Edit</button>
                     <form method="POST" action="{{ route('tenant.instagram.chatbot.destroy', $flow->id) }}"
-                        onsubmit="return confirm('Delete this flow?')">
+                        data-confirm="Delete this flow?" data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">Del</button>
                     </form>

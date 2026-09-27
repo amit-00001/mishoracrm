@@ -165,7 +165,7 @@
                             @if($po->status === 'draft')
                             @can('delete', $po)
                             <form method="POST" action="{{ route('tenant.purchase-orders.destroy', $po->id) }}"
-                                  onsubmit="return confirm('Delete {{ $po->number }}?')">
+                                  data-confirm="Delete {{ $po->number }}?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon" style="color:var(--red)" title="Delete">
                                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

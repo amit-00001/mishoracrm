@@ -184,7 +184,7 @@
                     </span>
                     <span class="th-badge">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icons['calendar'] }}"/></svg>
-                        Joined {{ $tenant->created_at->format('d M Y') }}
+                        Joined {{ $tenant->created_at?->format('d M Y') ?? '—' }}
                     </span>
                 </div>
             </div>
@@ -269,7 +269,7 @@
                     <div class="dkv-row"><span class="dkv-k">Subdomain</span><span class="dkv-v mono">{{ $tenant->subdomain }}</span></div>
                     <div class="dkv-row"><span class="dkv-k">Timezone</span><span class="dkv-v">{{ $tenant->timezone }}</span></div>
                     <div class="dkv-row"><span class="dkv-k">Currency</span><span class="dkv-v">{{ $tenant->currency }}</span></div>
-                    <div class="dkv-row"><span class="dkv-k">Joined</span><span class="dkv-v">{{ $tenant->created_at->format('d M Y, h:i A') }}</span></div>
+                    <div class="dkv-row"><span class="dkv-k">Joined</span><span class="dkv-v">{{ $tenant->created_at?->format('d M Y, h:i A') ?? '—' }}</span></div>
                 </div>
             </div>
         </div>
@@ -362,7 +362,7 @@
             </div>
         </div>
         <div class="dcard-b">
-            <form method="POST" action="{{ route('superadmin.tenants.update-subscription', $tenant) }}" style="display:flex;flex-direction:column;gap:13px;max-width:760px">
+            <form data-confirm="Update this tenant's subscription?" data-confirm-ok="Update" data-confirm-danger="false" method="POST" action="{{ route('superadmin.tenants.update-subscription', $tenant) }}" style="display:flex;flex-direction:column;gap:13px;max-width:760px">
                 @csrf
                 <label class="dfield">
                     <span>Plan</span>
@@ -405,8 +405,7 @@
                     <span>Note (optional — saved to the audit log)</span>
                     <input type="text" name="note" maxlength="255" placeholder="e.g. Comped Pro for 3 months — partnership deal" class="dinput">
                 </label>
-                <button type="submit" class="dbtn dbtn-accent" style="align-self:flex-start"
-                        onclick="return confirm('Update this tenant\'s subscription?')">
+                <button type="submit" class="dbtn dbtn-accent" style="align-self:flex-start">
                     Save Subscription
                 </button>
             </form>
@@ -573,7 +572,7 @@
                         Invoice
                     </a>
                     <form action="{{ route('superadmin.tenants.invoice-resend', [$tenant, $payment]) }}" method="POST"
-                          onsubmit="return confirm('Re-send invoice {{ $payment->invoice_number ?? '(new)' }} to {{ $tenant->name }} by email/WhatsApp?')">
+                          data-confirm="Re-send invoice {{ $payment->invoice_number ?? '(new)' }} to {{ $tenant->name }} by email/WhatsApp?" data-confirm-ok="Send" data-confirm-danger="false">
                         @csrf
                         <button type="submit" class="inv-btn" title="Re-send invoice to tenant admins">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>

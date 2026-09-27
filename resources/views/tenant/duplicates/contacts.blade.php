@@ -75,7 +75,7 @@ window.confirmMerge = function(form){
     const losers  = form.querySelectorAll('input[name="loser_ids[]"]:checked');
     if (!primary) { showToast('Pick a record to keep first.', 'error'); return false; }
     if (!losers.length) { showToast('Select at least one duplicate to merge in.', 'error'); return false; }
-    return confirm('Merge ' + losers.length + ' record(s) into the selected one? This cannot be undone from the UI.');
+    return requireConfirm(form, 'Merge ' + losers.length + ' record(s) into the selected one? This cannot be undone from the UI.', {ok: 'Merge'});
 };
 
 document.querySelectorAll('.dup-group').forEach(function(form){

@@ -516,7 +516,7 @@
                         Delete karne ke baad yeh quotation permanently remove ho jayega.
                     </div>
                     <form method="POST" action="{{ route('tenant.quotations.destroy',$quotation->id) }}"
-                          onsubmit="return confirm('Delete quotation {{ $quotation->number }}?')">
+                          data-confirm="Delete quotation {{ $quotation->number }}?" data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                             <i class="ti ti-trash" style="font-size:14px"></i> Delete Quotation

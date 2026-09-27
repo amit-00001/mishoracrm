@@ -59,13 +59,13 @@
     </div>
     @if($testLogin['on'])
     <form method="POST" action="{{ route('superadmin.customers.test-login.disable') }}"
-          onsubmit="return confirm('Turn test login OFF? The test customer and its test contacts will be removed.')">
+          data-confirm="Turn test login OFF? The test customer and its test contacts will be removed.">
         @csrf
         <button type="submit" class="btn btn-secondary">Turn OFF</button>
     </form>
     @else
     <form method="POST" action="{{ route('superadmin.customers.test-login.enable') }}"
-          onsubmit="return confirm('Turn test login ON? This adds a fake Test Customer to the first 5 tenants.')">
+          data-confirm="Turn test login ON? This adds a fake Test Customer to the first 5 tenants." data-confirm-danger="false">
         @csrf
         <button type="submit" class="btn btn-primary">Turn ON</button>
     </form>
@@ -133,7 +133,7 @@
                 </form>
                 @else
                 <form method="POST" action="{{ route('superadmin.customers.block', $c->id) }}" style="display:inline"
-                      onsubmit="return confirm('Block this customer? They will be signed out and unable to log in.')">
+                      data-confirm="Block this customer? They will be signed out and unable to log in." data-confirm-danger="false">
                     @csrf
                     <button type="submit" class="btn btn-secondary btn-sm">Block</button>
                 </form>

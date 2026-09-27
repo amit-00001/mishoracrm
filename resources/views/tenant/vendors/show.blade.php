@@ -212,7 +212,7 @@
             <div class="vs-sc" style="border-color:var(--red)">
                 <div class="vs-sc-title" style="color:var(--red)">Danger Zone</div>
                 <form method="POST" action="{{ route('tenant.vendors.destroy',$vendor->id) }}"
-                      onsubmit="return confirm('Delete vendor {{ $vendor->name }}?')">
+                      data-confirm="Delete vendor {{ $vendor->name }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                         <i class="ti ti-trash" style="font-size:14px"></i> Delete Vendor

@@ -108,7 +108,7 @@
             </div>
             <form method="POST"
                   action="{{ route('tenant.screenshots.destroy', ['tenant' => $tenantSlug, 'screenshot' => $shot->id]) }}"
-                  onsubmit="return confirm('Delete karna chahte ho?')">
+                  data-confirm="Delete karna chahte ho?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                         style="color:var(--red)">

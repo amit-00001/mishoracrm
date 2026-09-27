@@ -114,7 +114,7 @@
                     <a href="{{ route('tenant.roles.show', $role->id) }}" class="btn btn-secondary btn-sm">View</a>
                 @else
                     <form method="POST" action="{{ route('tenant.roles.system.customise', $role->base) }}"
-                          onsubmit="return confirm('This creates your workspace\'s own editable copy of the {{ $role->label }} role. Current {{ $role->label }} members move to it automatically. Continue?')">
+                          data-confirm="This creates your workspace's own editable copy of the {{ $role->label }} role. Current {{ $role->label }} members move to it automatically. Continue?" data-confirm-danger="false">
                         @csrf
                         <button type="submit" class="btn btn-secondary btn-sm">Customise</button>
                     </form>
@@ -179,7 +179,7 @@
                        class="btn btn-secondary btn-sm" style="color:var(--red);margin-left:auto">Delete…</a>
                 @else
                     <form method="POST" action="{{ route('tenant.roles.destroy', $role->id) }}"
-                          onsubmit="return confirm('Delete role \'{{ addslashes($displayName) }}\'?')"
+                          data-confirm="Delete role '{{ $displayName }}'?" data-confirm-ok="Delete"
                           style="margin-left:auto">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>

@@ -260,7 +260,7 @@
                 Delete this role
             </div>
             <form method="POST" action="{{ route('tenant.roles.destroy', $role->id) }}"
-                  onsubmit="return confirm('Delete \'{{ addslashes($roleDisplayName) }}\'? This cannot be undone.')">
+                  data-confirm="Delete '{{ $roleDisplayName }}'? This cannot be undone." data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 @if($users->isNotEmpty())
                 <div style="font-size:12.5px;color:var(--text-300);margin-bottom:10px">

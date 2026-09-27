@@ -178,6 +178,14 @@ class AttendanceController extends Controller
             ->get()
             ->keyBy('staff_id');
 
+        // Overnight shift: a row opened yesterday and not yet clocked out is still "today's"
+        // active one for that person, so the page offers Clock Out instead of a fresh Clock In.
+        Attendance::forDate(today()->subDay())
+            ->whereNotNull('clock_in')->whereNull('clock_out')
+            ->with('staff')
+            ->get()
+            ->each(fn (Attendance $open) => $today->has($open->staff_id) ? null : $today->put($open->staff_id, $open));
+
         return view('tenant.attendances.clock', compact('staffList', 'today'));
     }
 
@@ -202,9 +210,26 @@ class AttendanceController extends Controller
         return $staff;
     }
 
+    // The staff member's un-closed attendance from today or yesterday (overnight shifts clock
+    // out on the day after they clocked in). Older open rows are stale and never auto-closed.
+    private function openAttendance(Staff $staff): ?Attendance
+    {
+        return Attendance::forStaff($staff->id)
+            ->whereNotNull('clock_in')
+            ->whereNull('clock_out')
+            ->whereDate('date', '>=', today()->subDay()->toDateString())
+            ->latest('date')
+            ->first();
+    }
+
     public function clockIn(Request $request)
     {
         $staff = $this->actingStaff($request);
+
+        $open = $this->openAttendance($staff);
+        if ($open && ! $open->date->isToday()) {
+            return back()->with('error', 'Pichla clock in abhi khula hai — pehle clock out karo.');
+        }
 
         // createOrFirst: (staff_id, date) is unique, so two simultaneous
         // requests resolve to the same row instead of one of them 500ing.
@@ -236,12 +261,12 @@ class AttendanceController extends Controller
     {
         $staff = $this->actingStaff($request);
 
-        $attendance = Attendance::forDate(today())
-            ->forStaff($staff->id)
-            ->first();
+        $attendance = $this->openAttendance($staff);
 
-        if (! $attendance?->clock_in) {
-            return back()->with('error', 'Pehle clock in karo!');
+        if (! $attendance) {
+            $todays = Attendance::forDate(today())->forStaff($staff->id)->first();
+
+            return back()->with('error', $todays?->clock_in ? 'Already clock out ho chuka hai!' : 'Pehle clock in karo!');
         }
 
         $clockedOut = Attendance::whereKey($attendance->id)

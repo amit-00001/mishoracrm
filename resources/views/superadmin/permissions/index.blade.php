@@ -106,7 +106,7 @@
                 <div class="action-btns">
                     <a href="{{ route('superadmin.permissions.edit', $perm) }}" class="btn btn-secondary btn-sm">Edit</a>
                     <form action="{{ route('superadmin.permissions.destroy', $perm) }}" method="POST" style="display:inline"
-                          onsubmit="return confirm('Delete permission {{ $perm->name }}?{{ $perm->roles_count > 0 ? ' It is used by ' . $perm->roles_count . ' role(s) and will be removed from them.' : '' }}')">
+                          data-confirm="Delete permission {{ $perm->name }}?{{ $perm->roles_count > 0 ? ' It is used by ' . $perm->roles_count . ' role(s) and will be removed from them.' : '' }}" data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>
                     </form>

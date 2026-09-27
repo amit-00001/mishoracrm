@@ -203,7 +203,7 @@
                 </a>
                 <form method="POST"
                       action="{{ route('tenant.custom-fields.destroy', $field->id) }}"
-                      onsubmit="return confirm('Delete field permanently? All saved data will be lost.')">
+                      data-confirm="Delete field permanently? All saved data will be lost." data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                             style="color:var(--red)" title="Delete">

@@ -254,7 +254,7 @@
                 </form>
 
                 <form method="POST" action="{{ route('tenant.slack.destroy') }}"
-                      onsubmit="return confirm('Remove Slack webhook? CRM will stop sending Slack notifications.')">
+                      data-confirm="Remove Slack webhook? CRM will stop sending Slack notifications." data-confirm-ok="Remove">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn-sm btn-danger">

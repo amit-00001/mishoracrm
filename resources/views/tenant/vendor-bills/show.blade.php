@@ -201,7 +201,7 @@
         @can('modify', $bill)
         <div class="vb-sc">
             <div class="vb-sc-title">Actions</div>
-            <form method="POST" action="{{ route('tenant.vendor-bills.cancel', $bill->id) }}" onsubmit="return confirm('Cancel this bill? It will drop out of AP totals.')">
+            <form method="POST" action="{{ route('tenant.vendor-bills.cancel', $bill->id) }}" data-confirm="Cancel this bill? It will drop out of AP totals.">
                 @csrf
                 <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center;color:var(--amber)">Cancel Bill</button>
             </form>
@@ -212,7 +212,7 @@
         @can('delete', $bill)
         <div class="vb-sc" style="border-color:var(--red)">
             <div class="vb-sc-title" style="color:var(--red)">Danger Zone</div>
-            <form method="POST" action="{{ route('tenant.vendor-bills.destroy', $bill->id) }}" onsubmit="return confirm('Delete {{ $bill->number }}?')">
+            <form method="POST" action="{{ route('tenant.vendor-bills.destroy', $bill->id) }}" data-confirm="Delete {{ $bill->number }}?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red)">Delete Bill</button>
             </form>

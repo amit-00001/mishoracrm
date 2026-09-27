@@ -729,7 +729,7 @@ $allTotal = $stageSummary->sum('total');
                 <div class="row-actions">
                     <a href="{{ route('tenant.deals.show',$deal->id) }}" class="act-btn" title="View"><i class="ti ti-eye" style="font-size:13px"></i></a>
                     <a href="{{ route('tenant.deals.edit',$deal->id) }}" class="act-btn" title="Edit"><i class="ti ti-edit" style="font-size:13px"></i></a>
-                    <form method="POST" action="{{ route('tenant.deals.destroy',$deal->id) }}" style="display:inline" onsubmit="return confirm('Delete this deal?')">
+                    <form method="POST" action="{{ route('tenant.deals.destroy',$deal->id) }}" style="display:inline" data-confirm="Delete this deal?" data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="act-btn del" title="Delete"><i class="ti ti-trash" style="font-size:13px"></i></button>
                     </form>
@@ -796,7 +796,7 @@ $allTotal = $stageSummary->sum('total');
             <div class="dm-acts" onclick="event.stopPropagation()">
                 <a href="{{ route('tenant.deals.show',$deal->id) }}" class="act-btn" title="View"><i class="ti ti-eye" style="font-size:13px"></i></a>
                 <a href="{{ route('tenant.deals.edit',$deal->id) }}" class="act-btn" title="Edit"><i class="ti ti-edit" style="font-size:13px"></i></a>
-                <form method="POST" action="{{ route('tenant.deals.destroy',$deal->id) }}" style="display:inline" onsubmit="return confirm('Delete this deal?')">
+                <form method="POST" action="{{ route('tenant.deals.destroy',$deal->id) }}" style="display:inline" data-confirm="Delete this deal?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="act-btn del" title="Delete"><i class="ti ti-trash" style="font-size:13px"></i></button>
                 </form>

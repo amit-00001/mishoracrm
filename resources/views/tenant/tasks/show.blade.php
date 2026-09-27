@@ -928,7 +928,7 @@
                             <input type="checkbox" onchange="this.form.submit()" {{ $item->is_done ? 'checked' : '' }}>
                         </form>
                         <span class="chk-title {{ $item->is_done ? 'done' : '' }}">{{ $item->title }}</span>
-                        <form method="POST" action="{{ route('tenant.tasks.checklist.destroy', [$task->id, $item->id]) }}" onsubmit="return confirm('Remove this item?')">
+                        <form method="POST" action="{{ route('tenant.tasks.checklist.destroy', [$task->id, $item->id]) }}" data-confirm="Remove this item?" data-confirm-ok="Remove">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="chk-del"><i class="ti ti-x"></i></button>
@@ -1033,7 +1033,7 @@
                             <a href="{{ $file->url }}" target="_blank" class="att-name">{{ $file->original_name }}</a>
                             <div class="att-meta">{{ $file->file_size_human }} · {{ $file->uploadedBy?->name ?? 'Unknown' }}</div>
                         </div>
-                        <form method="POST" action="{{ route('tenant.tasks.attachments.destroy', [$task->id, $file->id]) }}" onsubmit="return confirm('Delete this attachment?')">
+                        <form method="POST" action="{{ route('tenant.tasks.attachments.destroy', [$task->id, $file->id]) }}" data-confirm="Delete this attachment?" data-confirm-ok="Delete">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="chk-del"><i class="ti ti-trash"></i></button>
@@ -1072,7 +1072,7 @@
                             <div style="display:flex;align-items:center;gap:8px">
                                 <span class="cm-time">{{ $comment->created_at->diffForHumans() }}</span>
                                 @if($comment->user_id === auth()->id())
-                                <form method="POST" action="{{ route('tenant.tasks.comments.destroy', [$task->id, $comment->id]) }}" onsubmit="return confirm('Delete this comment?')">
+                                <form method="POST" action="{{ route('tenant.tasks.comments.destroy', [$task->id, $comment->id]) }}" data-confirm="Delete this comment?" data-confirm-ok="Delete">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="chk-del"><i class="ti ti-trash"></i></button>
@@ -1203,7 +1203,7 @@
 
                         <form method="POST"
                               action="{{ route('tenant.tasks.destroy', $task->id) }}"
-                              onsubmit="return confirm('Delete this task?')">
+                              data-confirm="Delete this task?" data-confirm-ok="Delete">
 
                             @csrf
                             @method('DELETE')

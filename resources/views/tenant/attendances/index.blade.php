@@ -324,7 +324,7 @@
                             </a>
                             <form method="POST"
                                   action="{{ route('tenant.attendances.destroy', ['tenant' => $tenantSlug, 'attendance' => $att->id]) }}"
-                                  onsubmit="return confirm('Delete karna chahte ho?')">
+                                  data-confirm="Delete karna chahte ho?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                                         style="color:var(--red)">
@@ -393,7 +393,7 @@
             </a>
             <form method="POST"
                   action="{{ route('tenant.attendances.destroy', ['tenant' => $tenantSlug, 'attendance' => $att->id]) }}"
-                  onsubmit="return confirm('Delete karna chahte ho?')">
+                  data-confirm="Delete karna chahte ho?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                         style="color:var(--red)">

@@ -411,7 +411,7 @@
                 </a>
                 <form method="POST"
                       action="{{ route('tenant.contacts.destroy', ['tenant' => $tenantSlug, 'id' => $contact->id]) }}"
-                      onsubmit="return confirm('Delete {{ $contact->name }}?')">
+                      data-confirm="Delete {{ $contact->name }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="cc-btn danger">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -507,7 +507,7 @@
                             </a>
                             <form method="POST"
                                   action="{{ route('tenant.contacts.destroy', ['tenant' => $tenantSlug, 'id' => $contact->id]) }}"
-                                  onsubmit="return confirm('Delete this contact?')">
+                                  data-confirm="Delete this contact?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                                         style="color:var(--red)">
@@ -559,7 +559,7 @@
                 </a>
                 <form method="POST"
                       action="{{ route('tenant.contacts.destroy', ['tenant' => $tenantSlug, 'id' => $contact->id]) }}"
-                      onsubmit="return confirm('Delete {{ addslashes($contact->name) }}?')">
+                      data-confirm="Delete {{ $contact->name }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                             style="color:var(--red)">

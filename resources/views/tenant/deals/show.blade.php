@@ -241,7 +241,7 @@ $assignInit = $deal->assignedTo
             <i class="ti ti-edit" style="font-size:14px"></i> Edit
         </a>
         <form method="POST" action="{{ route('tenant.deals.destroy', $deal->id) }}"
-              onsubmit="return confirm('Delete deal \'{{ addslashes($deal->title) }}\'?')">
+              data-confirm="Delete deal '{{ $deal->title }}'?" data-confirm-ok="Delete">
             @csrf @method('DELETE')
             <button type="submit" class="btn btn-secondary"
                     style="border-color:var(--red);color:var(--red)">
@@ -681,11 +681,10 @@ $assignInit = $deal->assignedTo
             @endif
 
             @if($isWon || $isLost)
-            <form method="POST" action="{{ route('tenant.deals.update_stage', $deal->id) }}">
+            <form data-confirm="Reopen this deal?" data-confirm-ok="Reopen" data-confirm-danger="false" method="POST" action="{{ route('tenant.deals.update_stage', $deal->id) }}">
                 @csrf @method('PATCH')
                 <input type="hidden" name="stage" value="new">
-                <button type="submit" class="ds-qa-btn"
-                        onclick="return confirm('Reopen this deal?')">
+                <button type="submit" class="ds-qa-btn">
                     <div class="ds-qa-icon" style="background:var(--accent-dim)"><i class="ti ti-refresh" style="font-size:14px;color:var(--accent)"></i></div>
                     Reopen Deal
                 </button>
@@ -748,7 +747,7 @@ $assignInit = $deal->assignedTo
                 Deal permanently remove ho jayega.
             </div>
             <form method="POST" action="{{ route('tenant.deals.destroy', $deal->id) }}"
-                  onsubmit="return confirm('Delete deal \'{{ addslashes($deal->title) }}\'? This cannot be undone.')">
+                  data-confirm="Delete deal '{{ $deal->title }}'? This cannot be undone." data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn"
                         style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">

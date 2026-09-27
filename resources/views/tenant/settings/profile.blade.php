@@ -459,7 +459,7 @@
                 <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
                     {{-- Reset --}}
                     <form method="POST" action="{{ route('tenant.api-keys.regenerate', $key->id) }}"
-                          onsubmit="return confirm('Regenerate this key? The old key will stop working immediately.')">
+                          data-confirm="Regenerate this key? The old key will stop working immediately." data-confirm-ok="Regenerate">
                         @csrf
                         <button type="submit" class="ak-icon-btn" style="width:100%">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -471,7 +471,7 @@
 
                     {{-- Remove --}}
                     <form method="POST" action="{{ route('tenant.api-keys.destroy', $key->id) }}"
-                          onsubmit="return confirm('Remove this API key permanently? Any integration using it will break.')">
+                          data-confirm="Remove this API key permanently? Any integration using it will break." data-confirm-ok="Remove">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="ak-icon-btn danger" style="width:100%">

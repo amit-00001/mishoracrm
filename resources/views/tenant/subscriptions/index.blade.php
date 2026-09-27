@@ -225,7 +225,7 @@ updatePreview();
             <td style="display:flex;gap:6px;flex-wrap:wrap">
                 @if($s->status === 'active')
                 <form method="POST" action="{{ route('tenant.subscriptions.send-reminder', $s->id) }}"
-                      onsubmit="return confirm('Send a reminder to {{ addslashes($s->contact?->name ?? 'this customer') }} now via Email/WhatsApp?')">
+                      data-confirm="Send a reminder to {{ $s->contact?->name ?? 'this customer' }} now via Email/WhatsApp?" data-confirm-ok="Send" data-confirm-danger="false">
                     @csrf
                     <button class="btn btn-secondary btn-sm" type="submit" title="Email/WhatsApp this customer now">Send Reminder</button>
                 </form>
@@ -236,11 +236,11 @@ updatePreview();
                 </form>
                 @endif
                 <form method="POST" action="{{ route('tenant.subscriptions.renew', $s->id) }}"
-                      onsubmit="return confirm('Renew this subscription and create a draft invoice for {{ addslashes($s->contact?->name ?? 'this customer') }}?')">
+                      data-confirm="Renew this subscription and create a draft invoice for {{ $s->contact?->name ?? 'this customer' }}?" data-confirm-ok="Renew" data-confirm-danger="false">
                     @csrf
                     <button class="btn btn-secondary btn-sm" type="submit">Renew</button>
                 </form>
-                <form method="POST" action="{{ route('tenant.subscriptions.cancel', $s->id) }}" onsubmit="return confirm('Cancel this subscription?')">
+                <form method="POST" action="{{ route('tenant.subscriptions.cancel', $s->id) }}" data-confirm="Cancel this subscription?">
                     @csrf
                     <button class="btn btn-sm" type="submit" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">Cancel</button>
                 </form>
@@ -298,20 +298,26 @@ const BULK_URLS = {
 function submitBulk(action, confirmMsg){
     const ids = checkedIds();
     if(!ids.length) return;
-    if(!confirm(confirmMsg)) return;
 
-    const form = document.getElementById('bulkForm');
-    const container = document.getElementById('bulkIdsContainer');
-    container.innerHTML = '';
-    ids.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'ids[]';
-        input.value = id;
-        container.appendChild(input);
+    confirmAction({
+        message: confirmMsg,
+        ok: action === 'bulk-cancel' ? 'Cancel subscriptions' : 'Renew',
+        danger: action === 'bulk-cancel',
+        onConfirm: () => {
+            const form = document.getElementById('bulkForm');
+            const container = document.getElementById('bulkIdsContainer');
+            container.innerHTML = '';
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                container.appendChild(input);
+            });
+            form.action = BULK_URLS[action];
+            form.submit();
+        },
     });
-    form.action = BULK_URLS[action];
-    form.submit();
 }
 </script>
 

@@ -167,12 +167,12 @@
                         <div style="display:flex;gap:8px;align-items:center">
                             <span style="font-size:16px;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace">₹{{ number_format($quote->total, 2) }}</span>
                             <form method="POST" action="{{ route('tenant.purchase-orders.vendor-quotes.select', [$purchaseOrder->id, $quote->id]) }}"
-                                  onsubmit="return confirm('Select {{ addslashes($quote->vendor->name) }}? Their rates will be applied to this Purchase Order.')">
+                                  data-confirm="Select {{ $quote->vendor->name }}? Their rates will be applied to this Purchase Order." data-confirm-ok="Select" data-confirm-danger="false">
                                 @csrf
                                 <button type="submit" class="btn btn-primary btn-sm">Select</button>
                             </form>
                             <form method="POST" action="{{ route('tenant.purchase-orders.vendor-quotes.destroy', [$purchaseOrder->id, $quote->id]) }}"
-                                  onsubmit="return confirm('Remove this quote?')">
+                                  data-confirm="Remove this quote?" data-confirm-ok="Remove">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm">Remove</button>
                             </form>
@@ -457,7 +457,7 @@
                 @endif
                 @if(!in_array($purchaseOrder->status, ['cancelled','received']))
                 <form method="POST" action="{{ route('tenant.purchase-orders.update_status',$purchaseOrder->id) }}" style="margin-top:6px"
-                      onsubmit="return confirm('Cancel this purchase order?')">
+                      data-confirm="Cancel this purchase order?">
                     @csrf <input type="hidden" name="status" value="cancelled">
                     <button type="button" class="qs-status-opt" style="color:var(--red)" onclick="this.closest('form').submit()">Cancel Order</button>
                 </form>
@@ -473,7 +473,7 @@
                 </a>
                 @if($purchaseOrder->vendor?->email)
                 <form method="POST" action="{{ route('tenant.purchase-orders.send',$purchaseOrder->id) }}"
-                      onsubmit="return confirm('Send this purchase order to {{ addslashes($purchaseOrder->vendor->email) }}?')">
+                      data-confirm="Send this purchase order to {{ $purchaseOrder->vendor->email }}?" data-confirm-ok="Send" data-confirm-danger="false">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="margin-top:7px">
                         <div class="qs-act-icon" style="background:var(--accent-dim)"><i class="ti ti-send" style="font-size:15px;color:var(--accent)"></i></div>
@@ -527,7 +527,7 @@
             <div class="qs-sc" style="border-color:var(--red)">
                 <div class="qs-sc-title" style="color:var(--red)">Danger Zone</div>
                 <form method="POST" action="{{ route('tenant.purchase-orders.destroy',$purchaseOrder->id) }}"
-                      onsubmit="return confirm('Delete purchase order {{ $purchaseOrder->number }}?')">
+                      data-confirm="Delete purchase order {{ $purchaseOrder->number }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                         <i class="ti ti-trash" style="font-size:14px"></i> Delete Purchase Order

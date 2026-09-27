@@ -446,7 +446,7 @@ select.di-fi {
         @foreach($savedFilters as $sf)
         <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;border-radius:999px;background:var(--bg-elevated);border:1px solid var(--border-subtle);font-size:12px">
             <a href="{{ route('tenant.tasks.index', $sf->filters) }}" style="text-decoration:none;color:var(--text-100)">{{ $sf->name }}</a>
-            <form method="POST" action="{{ route('tenant.tasks.saved_filters.destroy', $sf->id) }}" onsubmit="return confirm('Remove this saved filter?')" style="display:inline">
+            <form method="POST" action="{{ route('tenant.tasks.saved_filters.destroy', $sf->id) }}" data-confirm="Remove this saved filter?" data-confirm-ok="Remove" style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--text-400);font-size:11px;padding:0;display:flex"><i class="ti ti-x"></i></button>
             </form>
@@ -771,7 +771,7 @@ select.di-fi {
                                     <i class="ti ti-edit"></i>
                                 </a>
                                 <form method="POST" action="{{ route('tenant.tasks.destroy', $task->id) }}"
-                                      style="display:inline" onsubmit="return confirm('Delete this task?')">
+                                      style="display:inline" data-confirm="Delete this task?" data-confirm-ok="Delete">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="act-btn del">
                                         <i class="ti ti-trash"></i>
@@ -832,7 +832,7 @@ select.di-fi {
                         <i class="ti ti-edit"></i>
                     </a>
                     <form method="POST" action="{{ route('tenant.tasks.destroy', $task->id) }}"
-                          style="display:inline" onsubmit="return confirm('Delete this task?')">
+                          style="display:inline" data-confirm="Delete this task?" data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="act-btn del">
                             <i class="ti ti-trash"></i>
@@ -1101,24 +1101,33 @@ select.di-fi {
         const ids = checkboxes().filter(cb => cb.checked).map(cb => cb.value);
         if (!ids.length) return;
 
-        if (action === 'delete' && !confirm('Delete ' + ids.length + ' task(s)? This cannot be undone.')) {
+        const run = () => {
+            const form      = document.getElementById('bulkActionForm');
+            const container = document.getElementById('bulkIdsContainer');
+            container.innerHTML = '';
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = 'ids[]';
+                input.value = id;
+                container.appendChild(input);
+            });
+
+            document.getElementById('bulkActionInput').value = action;
+            document.getElementById('bulkValueInput').value  = value ?? '';
+            form.submit();
+        };
+
+        if (action === 'delete') {
+            confirmAction({
+                message: 'Delete ' + ids.length + ' task(s)? This cannot be undone.',
+                ok: 'Delete',
+                onConfirm: run,
+            });
             return;
         }
 
-        const form      = document.getElementById('bulkActionForm');
-        const container = document.getElementById('bulkIdsContainer');
-        container.innerHTML = '';
-        ids.forEach(id => {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = 'ids[]';
-            input.value = id;
-            container.appendChild(input);
-        });
-
-        document.getElementById('bulkActionInput').value = action;
-        document.getElementById('bulkValueInput').value  = value ?? '';
-        form.submit();
+        run();
     };
 
     statusSel?.addEventListener('change', function () {

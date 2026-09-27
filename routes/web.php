@@ -583,14 +583,19 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/products')->name('products.')->group(function () {
             Route::controller(Tenant\ProductController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
+                // No products.* permission is defined, so catalog changes are workspace-admin only.
+                Route::middleware('tenant.admin')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                });
                 Route::get('/search', 'search')->name('search');
                 Route::get('/low-stock', 'lowStock')->name('low-stock');
                 Route::get('/{id}/batches', 'batches')->name('batches')->middleware('module:manufacturing');
-                Route::get('/{id}/edit', 'edit')->name('edit');
-                Route::put('/{id}', 'update')->name('update');
-                Route::delete('/{id}', 'destroy')->name('destroy');
+                Route::middleware('tenant.admin')->group(function () {
+                    Route::get('/{id}/edit', 'edit')->name('edit');
+                    Route::put('/{id}', 'update')->name('update');
+                    Route::delete('/{id}', 'destroy')->name('destroy');
+                });
             });
         });
 
@@ -598,11 +603,14 @@ Route::middleware(['tenant', 'auth', 'subscription'])
         Route::prefix('/services')->name('services.')->middleware('module:service')->group(function () {
             Route::controller(Tenant\ServiceController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
-                Route::get('/{id}/edit', 'edit')->name('edit');
-                Route::put('/{id}', 'update')->name('update');
-                Route::delete('/{id}', 'destroy')->name('destroy');
+                // No services.* permission is defined, so catalog changes are workspace-admin only.
+                Route::middleware('tenant.admin')->group(function () {
+                    Route::get('/create', 'create')->name('create');
+                    Route::post('/', 'store')->name('store');
+                    Route::get('/{id}/edit', 'edit')->name('edit');
+                    Route::put('/{id}', 'update')->name('update');
+                    Route::delete('/{id}', 'destroy')->name('destroy');
+                });
             });
         });
 

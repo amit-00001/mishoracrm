@@ -296,8 +296,8 @@ function updateSummary(){
 
 function confirmSend(){
     const count = document.querySelectorAll('.rec-check:checked').length;
-    if(count === 0){ alert('Please select at least one recipient.'); return false; }
-    return confirm(`Send WhatsApp message to ${count} recipients?`);
+    if(count === 0){ showToast('Please select at least one recipient.', 'error'); return false; }
+    return requireConfirm(document.getElementById('bulkForm'), `Send WhatsApp message to ${count} recipients?`, {ok: 'Send', danger: false});
 }
 </script>
 @endpush

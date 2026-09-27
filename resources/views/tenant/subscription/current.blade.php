@@ -330,7 +330,7 @@
         <a href="{{ route('tenant.subscription.plans') }}" class="btn-action primary">Upgrade Plan</a>
         @if($subscription->isActive() && !$subscription->isTrial() && !$subscription->isFree())
         <form action="{{ route('tenant.subscription.cancel') }}" method="POST"
-              onsubmit="return confirm('Are you sure you want to cancel? You can still use until {{ $subscription->ends_at?->format('d M Y') }}')">
+              data-confirm="Are you sure you want to cancel? You can still use until {{ $subscription->ends_at?->format('d M Y') }}">
             @csrf
             <button type="submit" class="btn-action danger">Cancel Subscription</button>
         </form>

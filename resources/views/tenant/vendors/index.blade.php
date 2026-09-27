@@ -118,7 +118,7 @@
                             @endcan
                             @can('delete', $v)
                             <form method="POST" action="{{ route('tenant.vendors.destroy', $v->id) }}"
-                                  onsubmit="return confirm('Delete {{ $v->name }}?')">
+                                  data-confirm="Delete {{ $v->name }}?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon" style="color:var(--red)" title="Delete">
                                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

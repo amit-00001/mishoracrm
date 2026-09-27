@@ -39,7 +39,7 @@
             @endphp
             @if($sendToEmail)
             <form method="POST" action="{{ route('tenant.invoices.send', $invoice->id) }}"
-                  onsubmit="return confirm('Send this invoice to {{ addslashes($sendToEmail) }}{{ $sendCcCount ? ' (cc: '.$sendCcCount.')' : '' }}?')">
+                  data-confirm="Send this invoice to {{ $sendToEmail }}{{ $sendCcCount ? ' (cc: '.$sendCcCount.')' : '' }}?" data-confirm-ok="Send" data-confirm-danger="false">
                 @csrf
                 <button type="submit" class="btn btn-success">
                     Send Invoice{{ $sendCcCount ? ' (cc: '.$sendCcCount.')' : '' }}
@@ -53,7 +53,7 @@
 
             @if($invoice->contact?->phone)
             <form method="POST" action="{{ route('tenant.invoices.send_whatsapp', $invoice->id) }}"
-                  onsubmit="return confirm('Send this invoice to {{ addslashes($invoice->contact->phone) }} via WhatsApp?')">
+                  data-confirm="Send this invoice to {{ $invoice->contact->phone }} via WhatsApp?" data-confirm-ok="Send" data-confirm-danger="false">
                 @csrf
                 <button type="submit" class="btn btn-success">
                     Send via WhatsApp
@@ -369,7 +369,7 @@
                         <strong>₹{{ number_format($invoice->loyalty_discount, 2) }}</strong>.
                     </p>
                     <form method="POST" action="{{ route('tenant.invoices.unredeem_loyalty', $invoice->id) }}"
-                          onsubmit="return confirm('Remove this redemption and return the points to the customer?')">
+                          data-confirm="Remove this redemption and return the points to the customer?" data-confirm-ok="Remove">
                         @csrf
                         <button type="submit" class="btn btn-secondary">Remove Redemption</button>
                     </form>

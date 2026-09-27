@@ -283,7 +283,7 @@
         <span style="font-size:12px;color:var(--text-400)">Permanently delete this field. All saved data will be lost.</span>
     </div>
     <form method="POST" action="{{ route('tenant.custom-fields.destroy', $field->id) }}"
-          onsubmit="return confirm('Delete \'{{ $field->label }}\' permanently? All saved data will be lost.')">
+          data-confirm="Delete '{{ $field->label }}' permanently? All saved data will be lost." data-confirm-ok="Delete">
         @csrf @method('DELETE')
         <button type="submit"
                 style="padding:8px 16px;border-radius:var(--r-sm);border:1.5px solid rgba(255,82,87,.3);background:var(--red-dim);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">

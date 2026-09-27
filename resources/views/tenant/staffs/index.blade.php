@@ -285,7 +285,7 @@ document.querySelector('input[name="search"]')?.addEventListener('keydown', e =>
     document.getElementById('bulkForm').addEventListener('submit', e => {
         const n = checks().filter(c => c.checked).length;
         if (n === 0 || !role.value) { e.preventDefault(); return; }
-        if (!confirm(`Change role to "${role.options[role.selectedIndex].text}" for ${n} staff member(s)?`)) e.preventDefault();
+        requireConfirm(e.target, `Change role to "${role.options[role.selectedIndex].text}" for ${n} staff member(s)?`, {ok: 'Change role', danger: false});
     });
 })();
 </script>

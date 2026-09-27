@@ -66,6 +66,17 @@ class ErrorLog extends Model
         return $this->exception_class ? class_basename($this->exception_class) : 'Exception';
     }
 
+    private static function truncateStrings(array $data): array
+    {
+        array_walk_recursive($data, function (&$value) {
+            if (is_string($value)) {
+                $value = mb_substr($value, 0, 500);
+            }
+        });
+
+        return $data;
+    }
+
     public static function capture(\Throwable $e, $request = null): void
     {
         try {
@@ -77,9 +88,12 @@ class ErrorLog extends Model
 
             $safeInput = [];
             if ($request) {
-                $safeInput = collect($request->except(['password', 'password_confirmation', 'token', '_token']))
-                    ->map(fn($v) => is_string($v) ? mb_substr($v, 0, 500) : $v)
-                    ->toArray();
+                // Truncate at every depth: a nested base64 blob (e.g. a screenshot inside an
+                // array field) would otherwise blow past max_allowed_packet and the insert —
+                // and with it the record of the original error — would be lost.
+                $safeInput = static::truncateStrings(
+                    $request->except(['password', 'password_confirmation', 'token', '_token'])
+                );
             }
 
             static::create([

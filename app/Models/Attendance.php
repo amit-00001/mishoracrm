@@ -69,7 +69,7 @@ class Attendance extends Model
     public function getWorkedHoursAttribute(): ?string
     {
         if ($this->clock_in && $this->clock_out) {
-            $minutes = $this->clock_in->diffInMinutes($this->clock_out);
+            $minutes = (int) floor($this->clock_in->diffInMinutes($this->clock_out));
             return sprintf('%02d:%02d', intdiv($minutes, 60), $minutes % 60);
         }
         return null;

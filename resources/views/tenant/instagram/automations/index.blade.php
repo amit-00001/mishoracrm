@@ -82,7 +82,7 @@ input:checked + .toggle-slider:before { transform:translateX(16px); }
                 </label>
                 <a href="{{ route('tenant.instagram.automations.edit', $automation->id) }}" class="btn btn-ghost btn-sm">Edit</a>
                 <form method="POST" action="{{ route('tenant.instagram.automations.destroy', $automation->id) }}"
-                    onsubmit="return confirm('Delete this automation?')">
+                    data-confirm="Delete this automation?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">Delete</button>
                 </form>

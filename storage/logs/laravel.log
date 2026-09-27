@@ -3185,3 +3185,372 @@
 [2026-09-26 02:23:54] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 548  
 [2026-09-26 02:29:56] testing.WARNING: Meta webhook: invalid signature for tenant 549  
 [2026-09-26 02:29:56] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 550  
+[2026-09-26 17:57:21] testing.ERROR: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null (Connection: mysql, SQL: update `leads` set `name` = Only Name, `email` = ?, `company` = ?, `source` = ?, `designation` = ?, `city` = ?, `state` = ?, `status` = ?, `priority` = ?, `expected_close_date` = ?, `notes` = ?, `assigned_to` = ?, `lead_value` = ?, `leads`.`updated_at` = 2026-09-26 17:57:21 where `id` = 2) {"userId":2,"exception":"[object] (Illuminate\\Database\\QueryException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null (Connection: mysql, SQL: update `leads` set `name` = Only Name, `email` = ?, `company` = ?, `source` = ?, `designation` = ?, `city` = ?, `state` = ?, `status` = ?, `priority` = ?, `expected_close_date` = ?, `notes` = ?, `assigned_to` = ?, `lead_value` = ?, `leads`.`updated_at` = 2026-09-26 17:57:21 where `id` = 2) at C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php:825)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('update `leads` ...', Array, Object(Closure))
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(584): Illuminate/Database/Connection->run('update `leads` ...', Array, Object(Closure))
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(536): Illuminate/Database/Connection->affectingStatement('update `leads` ...', Array)
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3830): Illuminate/Database/Connection->update('update `leads` ...', Array)
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1175): Illuminate/Database/Query/Builder->update(Object(Illuminate/Support/Collection))
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1239): Illuminate/Database/Eloquent/Builder->update(Array)
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1156): Illuminate/Database/Eloquent/Model->performUpdate(Object(Illuminate/Database/Eloquent/Builder))
+#7 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1014): Illuminate/Database/Eloquent/Model->save(Array)
+#8 C:/Users/91812/Herd/MishoraCRM/app/Http/Controllers/Web/Tenant/LeadController.php(227): Illuminate/Database/Eloquent/Model->update(Array)
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(47): App/Http/Controllers/Web/Tenant/LeadController->update(Object(App/Http/Requests/LeadRequest), '2')
+#10 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(266): Illuminate/Routing/ControllerDispatcher->dispatch(Object(Illuminate/Routing/Route), Object(App/Http/Controllers/Web/Tenant/LeadController), 'update')
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(212): Illuminate/Routing/Route->runController()
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate/Routing/Route->run()
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#14 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#15 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#16 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#17 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#18 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#23 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#25 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(427): Illuminate/Foundation/Testing/TestCase->call('PUT', 'https://saas-cr...', Array, Array, Array, Array)
+#61 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Tenant/LeadPartialUpdateTest.php(81): Illuminate/Foundation/Testing/TestCase->put('https://saas-cr...', Array)
+#62 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Tenant/LeadPartialUpdateTest->test_omitting_status_priority_and_source_keeps_the_stored_values()
+#63 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Tenant/LeadPartialUpdateTest))
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#70 {main}
+
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null at C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php:596)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(596): PDOStatement->execute()
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(812): Illuminate/Database/Connection->Illuminate/Database/{closure}('update `leads` ...', Array)
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('update `leads` ...', Array, Object(Closure))
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(584): Illuminate/Database/Connection->run('update `leads` ...', Array, Object(Closure))
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(536): Illuminate/Database/Connection->affectingStatement('update `leads` ...', Array)
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3830): Illuminate/Database/Connection->update('update `leads` ...', Array)
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1175): Illuminate/Database/Query/Builder->update(Object(Illuminate/Support/Collection))
+#7 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1239): Illuminate/Database/Eloquent/Builder->update(Array)
+#8 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1156): Illuminate/Database/Eloquent/Model->performUpdate(Object(Illuminate/Database/Eloquent/Builder))
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1014): Illuminate/Database/Eloquent/Model->save(Array)
+#10 C:/Users/91812/Herd/MishoraCRM/app/Http/Controllers/Web/Tenant/LeadController.php(227): Illuminate/Database/Eloquent/Model->update(Array)
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(47): App/Http/Controllers/Web/Tenant/LeadController->update(Object(App/Http/Requests/LeadRequest), '2')
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(266): Illuminate/Routing/ControllerDispatcher->dispatch(Object(Illuminate/Routing/Route), Object(App/Http/Controllers/Web/Tenant/LeadController), 'update')
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(212): Illuminate/Routing/Route->runController()
+#14 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate/Routing/Route->run()
+#15 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#16 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#17 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#18 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#23 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#25 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#61 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#62 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(427): Illuminate/Foundation/Testing/TestCase->call('PUT', 'https://saas-cr...', Array, Array, Array, Array)
+#63 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Tenant/LeadPartialUpdateTest.php(81): Illuminate/Foundation/Testing/TestCase->put('https://saas-cr...', Array)
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Tenant/LeadPartialUpdateTest->test_omitting_status_priority_and_source_keeps_the_stored_values()
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Tenant/LeadPartialUpdateTest))
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#70 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#71 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#72 {main}
+"} 
+[2026-09-26 17:57:24] testing.ERROR: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null (Connection: mysql, SQL: update `leads` set `name` = Renamed, `email` = ?, `company` = ?, `source` = ?, `designation` = ?, `city` = ?, `state` = ?, `status` = ?, `priority` = ?, `expected_close_date` = ?, `notes` = ?, `assigned_to` = ?, `lead_value` = ?, `leads`.`updated_at` = 2026-09-26 17:57:24 where `id` = 6) {"userId":7,"exception":"[object] (Illuminate\\Database\\QueryException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null (Connection: mysql, SQL: update `leads` set `name` = Renamed, `email` = ?, `company` = ?, `source` = ?, `designation` = ?, `city` = ?, `state` = ?, `status` = ?, `priority` = ?, `expected_close_date` = ?, `notes` = ?, `assigned_to` = ?, `lead_value` = ?, `leads`.`updated_at` = 2026-09-26 17:57:24 where `id` = 6) at C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php:825)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('update `leads` ...', Array, Object(Closure))
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(584): Illuminate/Database/Connection->run('update `leads` ...', Array, Object(Closure))
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(536): Illuminate/Database/Connection->affectingStatement('update `leads` ...', Array)
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3830): Illuminate/Database/Connection->update('update `leads` ...', Array)
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1175): Illuminate/Database/Query/Builder->update(Object(Illuminate/Support/Collection))
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1239): Illuminate/Database/Eloquent/Builder->update(Array)
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1156): Illuminate/Database/Eloquent/Model->performUpdate(Object(Illuminate/Database/Eloquent/Builder))
+#7 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1014): Illuminate/Database/Eloquent/Model->save(Array)
+#8 C:/Users/91812/Herd/MishoraCRM/app/Http/Controllers/Web/Tenant/LeadController.php(227): Illuminate/Database/Eloquent/Model->update(Array)
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(47): App/Http/Controllers/Web/Tenant/LeadController->update(Object(App/Http/Requests/LeadRequest), '6')
+#10 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(266): Illuminate/Routing/ControllerDispatcher->dispatch(Object(Illuminate/Routing/Route), Object(App/Http/Controllers/Web/Tenant/LeadController), 'update')
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(212): Illuminate/Routing/Route->runController()
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate/Routing/Route->run()
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#14 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#15 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#16 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#17 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#18 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#23 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#25 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(427): Illuminate/Foundation/Testing/TestCase->call('PUT', 'https://saas-cr...', Array, Array, Array, Array)
+#61 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Tenant/LeadPartialUpdateTest.php(155): Illuminate/Foundation/Testing/TestCase->put('https://saas-cr...', Array)
+#62 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Tenant/LeadPartialUpdateTest->test_omitting_assigned_to_keeps_the_current_assignee()
+#63 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Tenant/LeadPartialUpdateTest))
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#70 {main}
+
+[previous exception] [object] (PDOException(code: 23000): SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'status' cannot be null at C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php:596)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(596): PDOStatement->execute()
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(812): Illuminate/Database/Connection->Illuminate/Database/{closure}('update `leads` ...', Array)
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(779): Illuminate/Database/Connection->runQueryCallback('update `leads` ...', Array, Object(Closure))
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(584): Illuminate/Database/Connection->run('update `leads` ...', Array, Object(Closure))
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Connection.php(536): Illuminate/Database/Connection->affectingStatement('update `leads` ...', Array)
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(3830): Illuminate/Database/Connection->update('update `leads` ...', Array)
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1175): Illuminate/Database/Query/Builder->update(Object(Illuminate/Support/Collection))
+#7 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1239): Illuminate/Database/Eloquent/Builder->update(Array)
+#8 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1156): Illuminate/Database/Eloquent/Model->performUpdate(Object(Illuminate/Database/Eloquent/Builder))
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1014): Illuminate/Database/Eloquent/Model->save(Array)
+#10 C:/Users/91812/Herd/MishoraCRM/app/Http/Controllers/Web/Tenant/LeadController.php(227): Illuminate/Database/Eloquent/Model->update(Array)
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(47): App/Http/Controllers/Web/Tenant/LeadController->update(Object(App/Http/Requests/LeadRequest), '6')
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(266): Illuminate/Routing/ControllerDispatcher->dispatch(Object(Illuminate/Routing/Route), Object(App/Http/Controllers/Web/Tenant/LeadController), 'update')
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Route.php(212): Illuminate/Routing/Route->runController()
+#14 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(808): Illuminate/Routing/Route->run()
+#15 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#16 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#17 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#18 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#23 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#25 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#61 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#62 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(427): Illuminate/Foundation/Testing/TestCase->call('PUT', 'https://saas-cr...', Array, Array, Array, Array)
+#63 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Tenant/LeadPartialUpdateTest.php(155): Illuminate/Foundation/Testing/TestCase->put('https://saas-cr...', Array)
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Tenant/LeadPartialUpdateTest->test_omitting_assigned_to_keeps_the_current_assignee()
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Tenant/LeadPartialUpdateTest))
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#70 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#71 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#72 {main}
+"} 
+[2026-09-26 18:29:32] testing.WARNING: Meta webhook: invalid signature for tenant 787  
+[2026-09-26 18:29:32] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 788  
+[2026-09-26 18:44:05] testing.WARNING: Meta webhook: invalid signature for tenant 818  
+[2026-09-26 18:44:05] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 819  
+[2026-09-26 23:41:45] local.DEBUG: From: Mishora CRM <hello@example.com>
+To: Amit Kashyap <amit@gmail.com>
+Subject: Invoice Paid
+MIME-Version: 1.0
+Date: Sat, 26 Sep 2026 23:41:45 +0530
+Message-ID: <a78e791ccdbfb713bd97384447d13946@example.com>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<div style="max-width:500px;margin:0 auto;font-family:Arial,sans-serif;color:#1a1a2e">
+  <div style="background:#6378ff;padding:20px 24px;border-radius:8px 8px 0 0">
+    <h2 style="color:#fff;margin:0;font-size:18px">Invoice Paid</h2>
+  </div>
+  <div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+    <p style="color:#4b5563;line-height:1.7;margin:0">💰 Invoice INV-20260926-0002 paid — ₹56,050.00 received</p>
+    <a href='http://127.0.0.1:8000/invoices/2' style='display:inline-block;background:#6378ff;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;margin-top:16px'>View Details →</a>
+    <p style="color:#9ca3af;font-size:12px;margin-top:20px;border-top:1px solid #f1f5f9;padding-top:16px">
+      This is an automated notification from your CRM system.
+    </p>
+  </div>
+</div>  
+[2026-09-26 23:42:46] testing.WARNING: Meta webhook: invalid signature for tenant 823  
+[2026-09-26 23:42:46] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 824  
+[2026-09-26 23:51:36] local.DEBUG: From: Mishora CRM <hello@example.com>
+To: Amit Kashyap <amit@gmail.com>
+Subject: Invoice Paid
+MIME-Version: 1.0
+Date: Sat, 26 Sep 2026 23:51:36 +0530
+Message-ID: <f9e1cf0dc2fcd714635db108f2bbe0af@example.com>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<div style="max-width:500px;margin:0 auto;font-family:Arial,sans-serif;color:#1a1a2e">
+  <div style="background:#6378ff;padding:20px 24px;border-radius:8px 8px 0 0">
+    <h2 style="color:#fff;margin:0;font-size:18px">Invoice Paid</h2>
+  </div>
+  <div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+    <p style="color:#4b5563;line-height:1.7;margin:0">💰 Invoice INV-20260926-0003 paid — ₹20,650.00 received</p>
+    <a href='http://127.0.0.1:8000/invoices/3' style='display:inline-block;background:#6378ff;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;margin-top:16px'>View Details →</a>
+    <p style="color:#9ca3af;font-size:12px;margin-top:20px;border-top:1px solid #f1f5f9;padding-top:16px">
+      This is an automated notification from your CRM system.
+    </p>
+  </div>
+</div>  
+[2026-09-26 23:56:12] local.DEBUG: From: Mishora CRM <hello@example.com>
+To: Amit Kashyap <amit@gmail.com>
+Subject: New Support Ticket
+MIME-Version: 1.0
+Date: Sat, 26 Sep 2026 23:56:12 +0530
+Message-ID: <9f5c83df9615d63b59b5b5b8224e3026@example.com>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<div style="max-width:500px;margin:0 auto;font-family:Arial,sans-serif;color:#1a1a2e">
+  <div style="background:#6378ff;padding:20px 24px;border-radius:8px 8px 0 0">
+    <h2 style="color:#fff;margin:0;font-size:18px">New Support Ticket</h2>
+  </div>
+  <div style="background:#fff;padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+    <p style="color:#4b5563;line-height:1.7;margin:0">New ticket from amit: Website is Very Slow</p>
+    <a href='http://127.0.0.1:8000/tickets/1' style='display:inline-block;background:#6378ff;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;margin-top:16px'>View Details →</a>
+    <p style="color:#9ca3af;font-size:12px;margin-top:20px;border-top:1px solid #f1f5f9;padding-top:16px">
+      This is an automated notification from your CRM system.
+    </p>
+  </div>
+</div>  

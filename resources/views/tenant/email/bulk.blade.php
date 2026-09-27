@@ -245,12 +245,12 @@ function loadTemplate(sel){
 
 function confirmSend(){
     const html = quillBulkBody.root.innerHTML;
-    if (!html || html === '<p><br></p>') { alert('Email body is required.'); return false; }
+    if (!html || html === '<p><br></p>') { showToast('Email body is required.', 'error'); return false; }
     document.getElementById('bulkBody').value = html;
 
     const count = document.querySelectorAll('.rec-check:checked').length;
-    if(count === 0){ alert('Please select at least one recipient.'); return false; }
-    return confirm(`Send email to ${count} recipients?`);
+    if(count === 0){ showToast('Please select at least one recipient.', 'error'); return false; }
+    return requireConfirm(document.getElementById('bulkForm'), `Send email to ${count} recipients?`, {ok: 'Send', danger: false});
 }
 </script>
 @endpush

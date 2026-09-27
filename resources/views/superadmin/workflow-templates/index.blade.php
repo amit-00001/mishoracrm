@@ -68,7 +68,7 @@
                                 </button>
                             </form>
                             <form method="POST" action="{{ route('superadmin.workflow-templates.destroy', $tmpl) }}"
-                                  onsubmit="return confirm('Delete this template?')">
+                                  data-confirm="Delete this template?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>

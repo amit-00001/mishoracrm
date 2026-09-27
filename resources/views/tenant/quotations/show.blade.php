@@ -565,7 +565,7 @@
                 @endphp
                 @if($sendToEmail)
                 <form method="POST" action="{{ route('tenant.quotations.send',$quotation->id) }}"
-                      onsubmit="return confirm('Send this quotation to {{ addslashes($sendToEmail) }}{{ $sendCcCount ? ' (cc: '.$sendCcCount.')' : '' }}?')">
+                      data-confirm="Send this quotation to {{ $sendToEmail }}{{ $sendCcCount ? ' (cc: '.$sendCcCount.')' : '' }}?" data-confirm-ok="Send" data-confirm-danger="false">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="margin-top:7px">
                         <div class="qs-act-icon" style="background:var(--accent-dim)">
@@ -578,7 +578,7 @@
 
                 @if($quotation->contact?->phone)
                 <form method="POST" action="{{ route('tenant.quotations.send_whatsapp',$quotation->id) }}"
-                      onsubmit="return confirm('Send this quotation to {{ addslashes($quotation->contact->phone) }} via WhatsApp?')">
+                      data-confirm="Send this quotation to {{ $quotation->contact->phone }} via WhatsApp?" data-confirm-ok="Send" data-confirm-danger="false">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="margin-top:7px">
                         <div class="qs-act-icon" style="background:var(--green-dim)">
@@ -612,7 +612,7 @@
 
                 @can('quotations.create')
                 <form method="POST" action="{{ route('tenant.quotations.new_version',$quotation->id) }}"
-                      onsubmit="return confirm('Create a new draft version cloned from {{ $quotation->number }}?')">
+                      data-confirm="Create a new draft version cloned from {{ $quotation->number }}?" data-confirm-danger="false">
                     @csrf
                     <button type="submit" class="qs-action-btn" style="margin-top:7px">
                         <div class="qs-act-icon" style="background:#FDECEA">
@@ -677,7 +677,7 @@
             <div class="qs-sc" style="border-color:var(--red)">
                 <div class="qs-sc-title" style="color:var(--red)">Danger Zone</div>
                 <form method="POST" action="{{ route('tenant.quotations.destroy',$quotation->id) }}"
-                      onsubmit="return confirm('Delete quotation {{ $quotation->number }}?')">
+                      data-confirm="Delete quotation {{ $quotation->number }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                         <i class="ti ti-trash" style="font-size:14px"></i> Delete Quotation

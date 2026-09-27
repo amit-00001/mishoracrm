@@ -212,7 +212,7 @@
             <span style="font-size:12px;color:var(--text-400)">Permanently delete this product. This cannot be undone.</span>
         </div>
         <form method="POST" action="{{ route('tenant.products.destroy', $product->id) }}"
-              onsubmit="return confirm('Delete this product?')">
+              data-confirm="Delete this product?" data-confirm-ok="Delete">
             @csrf @method('DELETE')
             <button type="submit"
                     style="padding:8px 14px;border-radius:var(--r-sm);border:1.5px solid rgba(255,82,87,.3);background:var(--red-dim);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">

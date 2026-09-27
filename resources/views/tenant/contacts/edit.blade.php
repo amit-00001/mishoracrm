@@ -149,7 +149,7 @@
             @foreach($contact->attachments as $att)
             <form id="del-contact-attach-{{ $att->id }}" method="POST"
                   action="{{ route('tenant.contacts.attachments.destroy', ['tenant'=>$tenantSlug,'id'=>$contact->id,'attachment'=>$att->id]) }}"
-                  onsubmit="return confirm('Delete this attachment?')" style="display:none">
+                  data-confirm="Delete this attachment?" data-confirm-ok="Delete" style="display:none">
                 @csrf @method('DELETE')
             </form>
             @endforeach
@@ -157,7 +157,7 @@
                 @foreach($employee->attachments as $att)
                 <form id="del-emp-attach-{{ $att->id }}" method="POST"
                       action="{{ route('tenant.contacts.employees.attachments.destroy', ['tenant'=>$tenantSlug,'employee'=>$employee->id,'attachment'=>$att->id]) }}"
-                      onsubmit="return confirm('Delete this file?')" style="display:none">
+                      data-confirm="Delete this file?" data-confirm-ok="Delete" style="display:none">
                     @csrf @method('DELETE')
                 </form>
                 @endforeach
@@ -201,7 +201,7 @@
                     </div>
                     <form method="POST"
                           action="{{ route('tenant.contacts.destroy', ['tenant'=>$tenantSlug,'id'=>$contact->id]) }}"
-                          onsubmit="return confirm('Delete contact \'{{ addslashes($contact->name) }}\'? This cannot be undone.')">
+                          data-confirm="Delete contact '{{ $contact->name }}'? This cannot be undone." data-confirm-ok="Delete">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn" style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">
                             <i class="ti ti-trash" style="font-size:14px" aria-hidden="true"></i>

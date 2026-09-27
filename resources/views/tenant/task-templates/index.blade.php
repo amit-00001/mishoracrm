@@ -85,7 +85,7 @@
                     <td>
                         <div class="tt-acts">
                             <a href="{{ route('tenant.task-templates.edit', $template->id) }}" class="act-btn"><i class="ti ti-edit"></i></a>
-                            <form method="POST" action="{{ route('tenant.task-templates.destroy', $template->id) }}" onsubmit="return confirm('Delete this template?')">
+                            <form method="POST" action="{{ route('tenant.task-templates.destroy', $template->id) }}" data-confirm="Delete this template?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="act-btn del"><i class="ti ti-trash"></i></button>
                             </form>

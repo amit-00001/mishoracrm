@@ -147,7 +147,7 @@
             <td style="display:flex;gap:6px">
                 @if(!$e->is_invoiced)
                 <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit({{ $e->id }})">Edit</button>
-                <form method="POST" action="{{ route('tenant.time-entries.destroy', $e->id) }}" onsubmit="return confirm('Delete this time entry?')">
+                <form method="POST" action="{{ route('tenant.time-entries.destroy', $e->id) }}" data-confirm="Delete this time entry?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button class="btn btn-sm" type="submit" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">Del</button>
                 </form>
@@ -209,18 +209,24 @@ function onCheckChange(){
 function convertSelected(){
     const ids = checkedIds();
     if(!ids.length) return;
-    if(!confirm('Create a draft invoice from ' + ids.length + ' time entries?')) return;
 
-    const container = document.getElementById('convertIdsContainer');
-    container.innerHTML = '';
-    ids.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'ids[]';
-        input.value = id;
-        container.appendChild(input);
+    confirmAction({
+        message: 'Create a draft invoice from ' + ids.length + ' time entries?',
+        ok: 'Create invoice',
+        danger: false,
+        onConfirm: () => {
+            const container = document.getElementById('convertIdsContainer');
+            container.innerHTML = '';
+            ids.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = id;
+                container.appendChild(input);
+            });
+            document.getElementById('convertForm').submit();
+        },
     });
-    document.getElementById('convertForm').submit();
 }
 </script>
 

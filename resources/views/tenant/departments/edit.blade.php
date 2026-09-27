@@ -82,7 +82,7 @@
     <div style="margin-top:14px;padding:14px 16px;background:var(--bg-surface);border:1px solid rgba(255,82,87,.3);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:space-between;gap:12px">
         <span style="font-size:12px;color:var(--text-400)">Delete this department. This cannot be undone.</span>
         <form method="POST" action="{{ route('tenant.departments.destroy', $department->id) }}"
-              onsubmit="return confirm('Delete {{ $department->name }}? This cannot be undone.')">
+              data-confirm="Delete {{ $department->name }}? This cannot be undone." data-confirm-ok="Delete">
             @csrf @method('DELETE')
             <button type="submit"
                     style="padding:8px 14px;background:var(--red-dim);color:var(--red);border:1.5px solid rgba(255,82,87,.3);border-radius:var(--r-sm);font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font)">

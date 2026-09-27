@@ -237,4 +237,76 @@ class ContactDealPartialUpdateTest extends TestCase
 
         $this->assertSame(45, $deal->fresh()->probability);
     }
+
+    /**
+     * Serialise a rendered <form> the way a browser would submit it (successful controls only).
+     * Lets a test round-trip the REAL edit page instead of hand-crafting a payload.
+     */
+    private function formPayload(string $html, string $formId): array
+    {
+        $doc = new \DOMDocument();
+        @$doc->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        $form = $doc->getElementById($formId);
+        $this->assertNotNull($form, "form #{$formId} not found");
+        $xp   = new \DOMXPath($doc);
+        $data = [];
+
+        foreach ($xp->query('.//input|.//select|.//textarea', $form) as $el) {
+            $name = $el->getAttribute('name');
+            if ($name === '' || $el->hasAttribute('disabled')) {
+                continue;
+            }
+            $tag  = $el->nodeName;
+            $type = strtolower($el->getAttribute('type'));
+
+            if ($tag === 'input' && in_array($type, ['file', 'submit', 'button', 'image', 'reset'], true)) {
+                continue;
+            }
+            if ($tag === 'input' && in_array($type, ['checkbox', 'radio'], true) && ! $el->hasAttribute('checked')) {
+                continue;
+            }
+
+            if ($tag === 'select') {
+                $value = null;
+                foreach ($xp->query('.//option', $el) as $i => $opt) {
+                    if ($i === 0) {
+                        $value = $opt->getAttribute('value');
+                    }
+                    if ($opt->hasAttribute('selected')) {
+                        $value = $opt->getAttribute('value');
+                    }
+                }
+            } else {
+                $value = $tag === 'textarea' ? $el->textContent : $el->getAttribute('value');
+            }
+
+            parse_str(urlencode($name) . '=' . urlencode((string) $value), $parsed);
+            $data = array_replace_recursive($data, $parsed);
+        }
+
+        return $data;
+    }
+
+    public function test_round_tripping_the_real_contact_edit_form_links_the_selected_lead(): void
+    {
+        $tenant  = $this->setUpTenant();
+        $admin   = $this->makeUser($tenant, 'tenant_admin');
+        $lead    = Lead::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Linkable Lead']);
+        $contact = Contact::create(['tenant_id' => $tenant->id, 'name' => 'QA Contact', 'phone' => '9000000004', 'email' => 'qa@example.com', 'company' => 'Acme']);
+
+        $html    = $this->actingAs($admin)->get(route('tenant.contacts.edit', $contact->id))->assertOk()->getContent();
+        $payload = $this->formPayload($html, 'contactForm');
+
+        $this->assertArrayHasKey('lead_id', $payload, 'edit form must render a lead_id control');
+        $payload['lead_id'] = (string) $lead->id;   // the only thing the user changes
+
+        $response = $this->actingAs($admin)->post(route('tenant.contacts.update', $contact->id), $payload);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertSame($lead->id, $contact->fresh()->lead_id);
+        $this->assertSame('Acme', $contact->fresh()->company);
+
+        $this->actingAs($admin)->get(route('tenant.contacts.show', $contact->id))
+            ->assertSee('Linkable Lead');
+    }
 }

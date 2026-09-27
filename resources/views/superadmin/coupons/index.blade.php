@@ -117,7 +117,7 @@
                                 </button>
                             </form>
                             <form action="{{ route('superadmin.coupons.destroy', $coupon) }}" method="POST" style="display:inline"
-                                  onsubmit="return confirm('Delete coupon {{ $coupon->code }}?')">
+                                  data-confirm="Delete coupon {{ $coupon->code }}?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>
                             </form>

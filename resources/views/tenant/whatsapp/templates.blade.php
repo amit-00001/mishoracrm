@@ -101,7 +101,7 @@
                 Edit
             </button>
             <form method="POST" action="{{ route('tenant.whatsapp.templates.delete', $tpl->id) }}"
-                  onsubmit="return confirm('Delete this template?')">
+                  data-confirm="Delete this template?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>
             </form>

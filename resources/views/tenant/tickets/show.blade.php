@@ -137,7 +137,7 @@
             @if($ticket->service)<div style="font-size:12px;color:var(--text-400);margin-top:6px">Service: {{ $ticket->service->name }}</div>@endif
         </div>
 
-        <form method="POST" action="{{ route('tenant.tickets.destroy', $ticket->id) }}" onsubmit="return confirm('Delete this ticket?')">
+        <form method="POST" action="{{ route('tenant.tickets.destroy', $ticket->id) }}" data-confirm="Delete this ticket?" data-confirm-ok="Delete">
             @csrf @method('DELETE')
             <button class="btn btn-sm" type="submit" style="width:100%;background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">Delete Ticket</button>
         </form>

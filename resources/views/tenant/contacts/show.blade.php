@@ -151,7 +151,7 @@
             </a>
             <form method="POST"
                   action="{{ route('tenant.contacts.destroy', ['tenant'=>$tenantSlug,'id'=>$contact->id]) }}"
-                  onsubmit="return confirm('Delete contact \'{{ addslashes($contact->name) }}\'?')"
+                  data-confirm="Delete contact '{{ $contact->name }}'?" data-confirm-ok="Delete"
                   style="display:inline">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn" style="background:var(--red-dim);border-color:var(--red);color:var(--red)">

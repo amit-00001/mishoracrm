@@ -144,7 +144,7 @@
                             </form>
                             @endif
                             <form action="{{ route('superadmin.contact-enquiries.destroy', $enquiry) }}" method="POST"
-                                  onsubmit="return confirm('Delete this enquiry? This cannot be undone.')">
+                                  data-confirm="Delete this enquiry? This cannot be undone." data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>
                             </form>

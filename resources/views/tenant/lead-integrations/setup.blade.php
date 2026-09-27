@@ -75,7 +75,7 @@ input:checked+.slider:before{transform:translateX(21px)}
             <button class="btn-copy" onclick="copyUrl()">Copy</button>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px">
-            <form method="POST" action="{{ route('tenant.lead-integrations.regenerate', $platform) }}" onsubmit="return confirm('This will invalidate your old webhook URL. You will need to update it in {{ $info['label'] }}. Continue?')">
+            <form method="POST" action="{{ route('tenant.lead-integrations.regenerate', $platform) }}" data-confirm="This will invalidate your old webhook URL. You will need to update it in {{ $info['label'] }}. Continue?">
                 @csrf
                 <button class="btn btn-sm btn-outline-secondary">Regenerate URL</button>
             </form>

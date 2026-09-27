@@ -366,7 +366,7 @@
 
                             {{-- Delete --}}
                             <form method="POST" action="{{ route('tenant.api-keys.destroy', $key->id) }}"
-                                  onsubmit="return confirm('Revoke and permanently delete this API key? Any integration using it will stop working.')">
+                                  data-confirm="Revoke and permanently delete this API key? Any integration using it will stop working." data-confirm-ok="Revoke">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-sm btn-danger">
@@ -439,7 +439,7 @@
 
                         {{-- Delete --}}
                         <form method="POST" action="{{ route('tenant.api-keys.destroy', $key->id) }}"
-                              onsubmit="return confirm('Revoke and permanently delete this API key? Any integration using it will stop working.')">
+                              data-confirm="Revoke and permanently delete this API key? Any integration using it will stop working." data-confirm-ok="Revoke">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn-sm btn-danger">

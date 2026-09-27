@@ -28,12 +28,12 @@
     </div>
     <div style="display:flex;gap:8px">
         @if($campaign->status === 'draft')
-        <form method="POST" action="{{ route('tenant.loyalty.campaigns.launch', $campaign->id) }}" onsubmit="return confirm('Launch this campaign now? Recipients and codes will be created.')">@csrf<button class="btn btn-primary">Launch</button></form>
-        <form method="POST" action="{{ route('tenant.loyalty.campaigns.destroy', $campaign->id) }}" onsubmit="return confirm('Delete this draft?')">@csrf @method('DELETE')<button class="btn btn-secondary">Delete</button></form>
+        <form method="POST" action="{{ route('tenant.loyalty.campaigns.launch', $campaign->id) }}" data-confirm="Launch this campaign now? Recipients and codes will be created." data-confirm-ok="Launch" data-confirm-danger="false">@csrf<button class="btn btn-primary">Launch</button></form>
+        <form method="POST" action="{{ route('tenant.loyalty.campaigns.destroy', $campaign->id) }}" data-confirm="Delete this draft?" data-confirm-ok="Delete">@csrf @method('DELETE')<button class="btn btn-secondary">Delete</button></form>
         @elseif($campaign->status === 'active')
-        <form method="POST" action="{{ route('tenant.loyalty.campaigns.end', $campaign->id) }}" onsubmit="return confirm('End this campaign? Codes stop working.')">@csrf<button class="btn btn-secondary">End Campaign</button></form>
+        <form method="POST" action="{{ route('tenant.loyalty.campaigns.end', $campaign->id) }}" data-confirm="End this campaign? Codes stop working." data-confirm-ok="End">@csrf<button class="btn btn-secondary">End Campaign</button></form>
         @else
-        <form method="POST" action="{{ route('tenant.loyalty.campaigns.destroy', $campaign->id) }}" onsubmit="return confirm('Delete this campaign and its recipient records?')">@csrf @method('DELETE')<button class="btn btn-secondary">Delete</button></form>
+        <form method="POST" action="{{ route('tenant.loyalty.campaigns.destroy', $campaign->id) }}" data-confirm="Delete this campaign and its recipient records?" data-confirm-ok="Delete">@csrf @method('DELETE')<button class="btn btn-secondary">Delete</button></form>
         @endif
     </div>
 </div>

@@ -313,7 +313,7 @@
     @foreach($followup->attachments as $attachment)
         <form id="del-attach-{{ $attachment->id }}" method="POST"
               action="{{ route('tenant.followups.attachments.destroy', [$followup, $attachment]) }}"
-              onsubmit="return confirm('Delete this attachment?')" style="display:none">
+              data-confirm="Delete this attachment?" data-confirm-ok="Delete" style="display:none">
             @csrf @method('DELETE')
         </form>
     @endforeach

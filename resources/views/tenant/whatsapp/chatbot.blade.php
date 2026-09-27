@@ -146,7 +146,7 @@ input:checked + .toggle-slider:before { transform:translateX(16px); }
                         </label>
                         <button type="button" class="wa-node-icon-btn wa-node-noDrag" title="Edit" onclick="openDrawer('edit', {{ $flow->id }})">✎</button>
                         <form method="POST" action="{{ route('tenant.whatsapp.chatbot.destroy', $flow->id) }}"
-                            class="wa-node-noDrag" style="display:inline;" onsubmit="return confirm('Delete this flow?')">
+                            class="wa-node-noDrag" style="display:inline;" data-confirm="Delete this flow?" data-confirm-ok="Delete">
                             @csrf @method('DELETE')
                             <button type="submit" class="wa-node-icon-btn danger wa-node-noDrag" title="Delete">🗑</button>
                         </form>

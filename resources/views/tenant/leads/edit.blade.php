@@ -276,7 +276,7 @@
         <div class="form-actions">
             {{-- Danger zone --}}
             {{-- <form method="POST" action="{{ route('tenant.leads.destroy', $lead->id) }}"
-                  onsubmit="return confirm('Delete this lead permanently?')">
+                  data-confirm="Delete this lead permanently?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="delete"
                         style="padding:8px 14px;border-radius:var(--r-sm);border:1.5px solid rgba(255,82,87,.3);background:var(--red-dim);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">

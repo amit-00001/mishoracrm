@@ -204,10 +204,9 @@
                 </a>
 
                 @if($staff->user->is_active)
-                <form method="POST" action="{{ route('tenant.staffs.deactivate', $staff->id) }}">
+                <form data-confirm="Deactivate {{ $staff->user->name }}?" data-confirm-ok="Deactivate" method="POST" action="{{ route('tenant.staffs.deactivate', $staff->id) }}">
                     @csrf
-                    <button type="submit" class="qa-btn danger"
-                            onclick="return confirm('Deactivate {{ $staff->user->name }}?')">
+                    <button type="submit" class="qa-btn danger">
                         <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                         </svg>
@@ -227,7 +226,7 @@
                 @endif
 
                 <form method="POST" action="{{ route('tenant.staffs.destroy', $staff->id) }}"
-                      onsubmit="return confirm('Remove {{ $staff->user->name }} from staff? This cannot be undone.')">
+                      data-confirm="Remove {{ $staff->user->name }} from staff? This cannot be undone." data-confirm-ok="Remove">
                     @csrf @method('DELETE')
                     <button type="submit" class="qa-btn danger">
                         <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">

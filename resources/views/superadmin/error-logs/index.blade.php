@@ -31,13 +31,12 @@
         <div class="page-sub">Real-time errors captured from all tenant users</div>
     </div>
     <div style="display:flex;gap:8px;">
-        <form method="POST" action="{{ route('superadmin.error-logs.resolve-all') }}">
+        <form data-confirm="Mark all unresolved errors as resolved?" data-confirm-ok="Mark" data-confirm-danger="false" method="POST" action="{{ route('superadmin.error-logs.resolve-all') }}">
             @csrf
             @if(request('tenant_id'))
                 <input type="hidden" name="tenant_id" value="{{ request('tenant_id') }}">
             @endif
-            <button type="submit" class="btn btn-secondary btn-sm"
-                onclick="return confirm('Mark all unresolved errors as resolved?')">
+            <button type="submit" class="btn btn-secondary btn-sm">
                 Mark All Resolved
             </button>
         </form>
@@ -178,7 +177,7 @@
                             @endif
 
                             <form method="POST" action="{{ route('superadmin.error-logs.destroy', $error) }}"
-                                  onsubmit="return confirm('Delete this error log?')">
+                                  data-confirm="Delete this error log?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-sm"
                                     style="font-size:11px;padding:3px 8px;background:var(--red-dim);color:var(--red);border:none;border-radius:var(--r-sm);cursor:pointer;">

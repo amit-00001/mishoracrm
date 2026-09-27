@@ -243,7 +243,7 @@
 
                             @if($plan->active_subs_count == 0)
                             <form action="{{ route('superadmin.plans.destroy', $plan) }}" method="POST" style="display:inline"
-                                  onsubmit="return confirm('Delete plan \'{{ $plan->name }}\'? This cannot be undone.')">
+                                  data-confirm="Delete plan '{{ $plan->name }}'? This cannot be undone." data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--red)">Delete</button>
                             </form>

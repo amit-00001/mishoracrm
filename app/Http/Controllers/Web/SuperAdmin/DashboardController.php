@@ -94,8 +94,9 @@ class DashboardController extends Controller
                 'status'     => $t->status,
                 'plan'       => $t->subscription?->plan?->name ?? 'No plan',
                 'sub_status' => $t->subscription?->status ?? '—',
-                'joined'     => $t->created_at->format('d M Y'),
-                'joined_ago' => $t->created_at->diffForHumans(),
+                // created_at is nullable — tenants made by seeders / raw inserts have none.
+                'joined'     => $t->created_at?->format('d M Y') ?? '—',
+                'joined_ago' => $t->created_at?->diffForHumans() ?? '',
             ])->toArray();
 
         // ── Expiring subscriptions ────────────────────────────────

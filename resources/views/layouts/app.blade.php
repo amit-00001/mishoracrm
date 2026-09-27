@@ -336,6 +336,16 @@
             });
         });
 
+        // For submit handlers that only know at submit time whether / what to confirm
+        // (e.g. "Send to N recipients?"): set the message, return true, and the handler
+        // above shows the in-page modal.   onclick="return confirmSend()" → requireConfirm(form, msg)
+        function requireConfirm(form, message, opts = {}) {
+            form.dataset.confirm = message;
+            if (opts.ok) form.dataset.confirmOk = opts.ok;
+            form.dataset.confirmDanger = opts.danger === false ? 'false' : 'true';
+            return true;
+        }
+
         document.addEventListener('submit', function (e) {
             const form = e.target;
             if (e.defaultPrevented || !(form instanceof HTMLFormElement) || !('submitOnce' in form.dataset)) return;
@@ -397,6 +407,21 @@
                 body: JSON.stringify(data),
             });
             return res.json();
+        };
+
+        /* ──────────────────────────────────────────────
+           Non-blocking alert()
+           A native alert() is modal to the whole tab (it freezes the page and cannot be
+           answered by browser automation), so route it to a toast. The text is escaped
+           because showToast() writes HTML and alert() callers pass plain text — often
+           server / third-party error messages.
+        ────────────────────────────────────────────── */
+        window.alert = function (message) {
+            const raw  = String(message ?? '');
+            const text = raw
+                .replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]))
+                .replace(/\n/g, '<br>');
+            showToast(text, /^(connected|success|saved)/i.test(raw) ? 'success' : 'error');
         };
 
         /* ──────────────────────────────────────────────

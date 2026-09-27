@@ -99,7 +99,7 @@
                     <input type="hidden" name="status" value="no_show"/>
                     <button class="btn btn-secondary btn-sm" type="submit">No-show</button>
                 </form>
-                <form method="POST" action="{{ route('tenant.appointments.status', $a->id) }}" onsubmit="return confirm('Cancel this appointment?')">
+                <form method="POST" action="{{ route('tenant.appointments.status', $a->id) }}" data-confirm="Cancel this appointment?">
                     @csrf
                     <input type="hidden" name="status" value="cancelled"/>
                     <button class="btn btn-sm" type="submit" style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">Cancel</button>

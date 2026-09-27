@@ -68,6 +68,7 @@ class AttendanceClockTest extends TestCase
 
     public function test_duplicate_clock_in_is_rejected_and_keeps_the_first_time(): void
     {
+        $this->travelTo(now()->setTime(9, 0)); // fixed clock: independent of when the suite runs
         $tenant = $this->setUpTenant();
         [$user, $staff] = $this->staffProfile($tenant);
 
@@ -99,6 +100,7 @@ class AttendanceClockTest extends TestCase
 
     public function test_clock_out_records_the_time_after_clocking_in(): void
     {
+        $this->travelTo(now()->setTime(9, 0)); // fixed clock: independent of when the suite runs
         $tenant = $this->setUpTenant();
         [$user, $staff] = $this->staffProfile($tenant);
 
@@ -131,6 +133,7 @@ class AttendanceClockTest extends TestCase
 
     public function test_second_clock_out_is_rejected_and_keeps_the_first_time(): void
     {
+        $this->travelTo(now()->setTime(9, 0)); // fixed clock: independent of when the suite runs
         $tenant = $this->setUpTenant();
         [$user, $staff] = $this->staffProfile($tenant);
 
@@ -331,5 +334,84 @@ class AttendanceClockTest extends TestCase
             ->assertForbidden();
 
         $this->assertSame(0, Attendance::count());
+    }
+
+    // ── Overnight shifts ────────────────────────────────────────────
+
+    public function test_an_overnight_shift_can_clock_out_after_midnight_on_the_original_record(): void
+    {
+        $tenant = $this->setUpTenant();
+        [$user, $staff] = $this->staffProfile($tenant);
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-10 22:00:00'));
+        $this->actingAs($user)->post(route('tenant.attendances.clock.in'))->assertSessionHas('success');
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-11 06:00:00'));   // next calendar day
+        $this->actingAs($user)
+            ->post(route('tenant.attendances.clock.out'))
+            ->assertSessionHas('success')
+            ->assertSessionHas('clocked_out', true);
+
+        $this->assertSame(1, Attendance::where('staff_id', $staff->id)->count());
+        $attendance = Attendance::where('staff_id', $staff->id)->first();
+        $this->assertSame('2026-03-10', $attendance->date->toDateString());   // stays on the day it started
+        $this->assertSame('08:00', $attendance->worked_hours);
+    }
+
+    public function test_the_clock_page_offers_clock_out_for_a_shift_left_open_from_yesterday(): void
+    {
+        $tenant = $this->setUpTenant();
+        [$user, $staff] = $this->staffProfile($tenant);
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-10 22:00:00'));
+        $this->actingAs($user)->post(route('tenant.attendances.clock.in'));
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-11 01:00:00'));
+        $html = $this->actingAs($user)->get(route('tenant.attendances.clock'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('startClockOut(' . $staff->id . ',', $html);
+        $this->assertStringNotContainsString('startClockIn(' . $staff->id . ',', $html);
+    }
+
+    public function test_a_new_clock_in_is_blocked_while_yesterdays_shift_is_still_open(): void
+    {
+        $tenant = $this->setUpTenant();
+        [$user, $staff] = $this->staffProfile($tenant);
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-10 22:00:00'));
+        $this->actingAs($user)->post(route('tenant.attendances.clock.in'));
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-11 07:00:00'));
+        $this->actingAs($user)
+            ->post(route('tenant.attendances.clock.in'))
+            ->assertSessionHas('error', 'Pichla clock in abhi khula hai — pehle clock out karo.');
+
+        $this->assertSame(1, Attendance::where('staff_id', $staff->id)->count());
+    }
+
+    public function test_a_stale_open_record_from_days_ago_is_not_silently_closed(): void
+    {
+        $tenant = $this->setUpTenant();
+        [$user, $staff] = $this->staffProfile($tenant);
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-03-11 09:00:00'));
+        $stale = Attendance::create([
+            'tenant_id' => $tenant->id, 'staff_id' => $staff->id, 'date' => '2026-03-05',
+            'status' => 'present', 'clock_in' => '2026-03-05 09:00:00',
+        ]);
+
+        $this->actingAs($user)->post(route('tenant.attendances.clock.out'))
+            ->assertSessionHas('error', 'Pehle clock in karo!');
+
+        $this->assertNull($stale->fresh()->clock_out);   // a week-long "shift" is a forgotten row, not real hours
+    }
+
+    public function test_worked_hours_uses_whole_minutes(): void
+    {
+        $attendance = new Attendance([
+            'clock_in'  => '2026-03-10 09:00:00',
+            'clock_out' => '2026-03-10 10:29:59',
+        ]);
+
+        $this->assertSame('01:29', $attendance->worked_hours);
     }
 }

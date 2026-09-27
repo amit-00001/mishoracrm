@@ -178,7 +178,7 @@
                         </form>
                     </td>
                     <td class="td-mono" style="font-size:11.5px;color:var(--text-400)" data-label="Joined">
-                        {{ $tenant->created_at->format('d M Y') }}
+                        {{ $tenant->created_at?->format('d M Y') ?? '—' }}
                     </td>
                     <td>
                         <a href="{{ route('superadmin.tenants.show', $tenant) }}"

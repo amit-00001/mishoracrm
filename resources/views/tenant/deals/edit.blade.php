@@ -272,7 +272,7 @@
             Deal delete karne ke baad permanently remove ho jayega.
         </div>
         <form method="POST" action="{{ route('tenant.deals.destroy', $deal->id) }}"
-              onsubmit="return confirm('Delete deal \'{{ addslashes($deal->title) }}\'?')">
+              data-confirm="Delete deal '{{ $deal->title }}'?" data-confirm-ok="Delete">
             @csrf @method('DELETE')
             <button type="submit" class="btn"
                     style="width:100%;justify-content:center;background:var(--red-dim);border-color:var(--red);color:var(--red);font-size:12.5px">

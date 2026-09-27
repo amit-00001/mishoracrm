@@ -108,9 +108,28 @@ class RoutePermissionMatrixTest extends TestCase
             ['DELETE', '/whatsapp/chatbot/999999'],
             ['POST',   '/whatsapp/api-settings'],
             ['DELETE', '/screenshots/{screenshot}'],
+
+            // Catalog — no products.* / services.* permission exists, so admin-only.
+            ['GET',    '/products/create'],
+            ['POST',   '/products'],
+            ['GET',    '/products/999999/edit'],
+            ['PUT',    '/products/999999'],
+            ['DELETE', '/products/999999'],
+            ['GET',    '/services/create'],
+            ['POST',   '/services'],
+            ['GET',    '/services/999999/edit'],
+            ['PUT',    '/services/999999'],
+            ['DELETE', '/services/999999'],
         ];
 
         return array_combine(array_map(fn ($r) => "$r[0] $r[1]", $rows), $rows);
+    }
+
+    private function withServiceModule(Tenant $tenant): void
+    {
+        $settings = $tenant->settings ?? [];
+        $settings['modules']['service'] = true;
+        $tenant->update(['settings' => $settings]);
     }
 
     private function asUser($user, string $method, string $uri)
@@ -170,6 +189,7 @@ class RoutePermissionMatrixTest extends TestCase
     public function test_admin_only_routes_reject_staff_even_with_broad_permissions(string $method, string $uri): void
     {
         $tenant = $this->setUpTenant();
+        $this->withServiceModule($tenant);
         // Every permission the seeded "staff" role has, plus more — still not an admin.
         $staff = $this->makeUser($tenant, 'staff', ['leads.create', 'contacts.create', 'whatsapp.send', 'settings.custom_fields']);
 
@@ -180,6 +200,7 @@ class RoutePermissionMatrixTest extends TestCase
     public function test_admin_only_routes_admit_the_tenant_admin(string $method, string $uri): void
     {
         $tenant = $this->setUpTenant();
+        $this->withServiceModule($tenant);
         $admin  = $this->makeUser($tenant, 'tenant_admin');
 
         $this->assertNotSame(403, $this->asUser($admin, $method, $this->fixtureUri($tenant, $uri))->getStatusCode());

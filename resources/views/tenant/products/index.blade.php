@@ -146,7 +146,7 @@
                 @endif
                 <a href="{{ route('tenant.products.edit', $p->id) }}" class="btn btn-secondary btn-sm">Edit</a>
                 <form method="POST" action="{{ route('tenant.products.destroy', $p->id) }}"
-                      onsubmit="return confirm('Delete this product?')">
+                      data-confirm="Delete this product?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button class="btn btn-sm" type="submit"
                             style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">
@@ -224,7 +224,7 @@
         <div class="pr-acts">
             <a href="{{ route('tenant.products.edit', $p->id) }}" class="btn btn-secondary btn-sm">Edit</a>
             <form method="POST" action="{{ route('tenant.products.destroy', $p->id) }}"
-                  onsubmit="return confirm('Delete this product?')">
+                  data-confirm="Delete this product?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button class="btn btn-sm" type="submit"
                         style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">

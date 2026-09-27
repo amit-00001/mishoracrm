@@ -164,7 +164,7 @@ $canManage = auth()->user()->user_type === 'tenant_admin' || $appointment->assig
             <a href="{{ $att->url }}" target="_blank"><img src="{{ $att->url }}" alt="{{ $att->original_name }}"/></a>
             @if($att->stage)<span class="stage-tag">{{ ucfirst($att->stage) }}</span>@endif
             @if($canManage)
-            <form method="POST" action="{{ route('tenant.appointments.attachments.destroy', [$appointment->id, $att->id]) }}" class="del-btn" onsubmit="return confirm('Delete this photo?')">
+            <form method="POST" action="{{ route('tenant.appointments.attachments.destroy', [$appointment->id, $att->id]) }}" class="del-btn" data-confirm="Delete this photo?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" style="background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:4px;padding:1px 6px;font-size:11px;cursor:pointer">✕</button>
             </form>

@@ -57,7 +57,7 @@ textarea.qtt-input { resize:vertical; min-height:80px; }
                         <a href="{{ route('tenant.quotation-terms-templates.edit', $t->id) }}" class="btn btn-secondary btn-sm">Edit</a>
                         @can('quotations.edit')
                         <form method="POST" action="{{ route('tenant.quotation-terms-templates.destroy', $t->id) }}"
-                              onsubmit="return confirm('Delete this template?')">
+                              data-confirm="Delete this template?" data-confirm-ok="Delete">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm" type="submit"
                                     style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">Del</button>

@@ -204,12 +204,11 @@
 
                 {{-- Remove --}}
                 @if(!$isSystem)
-                <form method="POST" action="{{ route('tenant.tenant-fields.remove', $assignment->id) }}">
+                <form data-confirm="Remove this field from module?" data-confirm-ok="Remove" method="POST" action="{{ route('tenant.tenant-fields.remove', $assignment->id) }}">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                             style="color:var(--red);flex-shrink:0"
-                            title="Remove from module"
-                            onclick="return confirm('Remove this field from module?')">
+                            title="Remove from module">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:13px;height:13px">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>

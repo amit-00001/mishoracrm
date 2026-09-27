@@ -126,7 +126,7 @@
         <div class="dept-actions">
             <a href="{{ route('tenant.departments.edit', $dept->id) }}" class="dept-btn">Edit</a>
             <form method="POST" action="{{ route('tenant.departments.destroy', $dept->id) }}"
-                  onsubmit="return confirm('Delete {{ $dept->name }}?')">
+                  data-confirm="Delete {{ $dept->name }}?" data-confirm-ok="Delete">
                 @csrf @method('DELETE')
                 <button type="submit" class="dept-btn danger">Delete</button>
             </form>

@@ -269,12 +269,11 @@
 
                             {{-- Convert to Invoice --}}
                             @if($q->status === 'accepted' && !$q->invoice)
-                            <form method="POST" action="{{ route('tenant.quotations.convert', $q->id) }}">
+                            <form data-confirm="Convert to Invoice?" data-confirm-ok="Convert" data-confirm-danger="false" method="POST" action="{{ route('tenant.quotations.convert', $q->id) }}">
                                 @csrf
                                 <button type="submit" class="btn btn-secondary btn-sm"
                                         style="color:var(--green);font-size:12px"
-                                        title="Convert to Invoice"
-                                        onclick="return confirm('Convert to Invoice?')">
+                                        title="Convert to Invoice">
                                     → Invoice
                                 </button>
                             </form>
@@ -283,7 +282,7 @@
                             {{-- Delete --}}
                             @if($q->status === 'draft')
                             <form method="POST" action="{{ route('tenant.quotations.destroy', $q->id) }}"
-                                  onsubmit="return confirm('Delete {{ $q->number }}?')">
+                                  data-confirm="Delete {{ $q->number }}?" data-confirm-ok="Delete">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                                         style="color:var(--red)" title="Delete">
@@ -378,12 +377,11 @@
 
                 {{-- Convert to Invoice --}}
                 @if($q->status === 'accepted' && !$q->invoice)
-                <form method="POST" action="{{ route('tenant.quotations.convert', $q->id) }}">
+                <form data-confirm="Convert to Invoice?" data-confirm-ok="Convert" data-confirm-danger="false" method="POST" action="{{ route('tenant.quotations.convert', $q->id) }}">
                     @csrf
                     <button type="submit" class="btn btn-secondary btn-sm"
                             style="color:var(--green);font-size:12px"
-                            title="Convert to Invoice"
-                            onclick="return confirm('Convert to Invoice?')">
+                            title="Convert to Invoice">
                         → Invoice
                     </button>
                 </form>
@@ -392,7 +390,7 @@
                 {{-- Delete --}}
                 @if($q->status === 'draft')
                 <form method="POST" action="{{ route('tenant.quotations.destroy', $q->id) }}"
-                      onsubmit="return confirm('Delete {{ $q->number }}?')">
+                      data-confirm="Delete {{ $q->number }}?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-secondary btn-sm btn-icon"
                             style="color:var(--red)" title="Delete">

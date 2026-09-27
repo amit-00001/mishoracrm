@@ -102,7 +102,7 @@
             <td style="display:flex;gap:6px">
                 <a href="{{ route('tenant.services.edit', $s->id) }}" class="btn btn-secondary btn-sm">Edit</a>
                 <form method="POST" action="{{ route('tenant.services.destroy', $s->id) }}"
-                      onsubmit="return confirm('Delete this service?')">
+                      data-confirm="Delete this service?" data-confirm-ok="Delete">
                     @csrf @method('DELETE')
                     <button class="btn btn-sm" type="submit"
                             style="background:var(--red-dim);color:var(--red);border:1px solid rgba(255,82,87,.25)">

@@ -35,20 +35,6 @@ class RouteGuardAuditTest extends TestCase
         'tenant.leads.view'            => 'personal saved list view',
         'tenant.leads.check-duplicate' => 'read-only duplicate lookup used by the lead form',
         'tenant.automation.request'    => 'support request to the platform team; writes only a request row for the user',
-
-        // KNOWN GAP — no permission exists in RolesAndPermissionsSeeder for these
-        // modules, so there is nothing to enforce yet. Needs a product decision
-        // (define products.* / services.* permissions, or restrict to admins).
-        'tenant.products.create'  => 'TODO: no products.* permission defined',
-        'tenant.products.store'   => 'TODO: no products.* permission defined',
-        'tenant.products.edit'    => 'TODO: no products.* permission defined',
-        'tenant.products.update'  => 'TODO: no products.* permission defined',
-        'tenant.products.destroy' => 'TODO: no products.* permission defined',
-        'tenant.services.create'  => 'TODO: no services.* permission defined',
-        'tenant.services.store'   => 'TODO: no services.* permission defined',
-        'tenant.services.edit'    => 'TODO: no services.* permission defined',
-        'tenant.services.update'  => 'TODO: no services.* permission defined',
-        'tenant.services.destroy' => 'TODO: no services.* permission defined',
     ];
 
     private const BODY_GUARD = '/(authorize\(|Gate::|->can\(|->cannot\(|abort_unless\(|abort_if\(|hasRole|user_type)/';

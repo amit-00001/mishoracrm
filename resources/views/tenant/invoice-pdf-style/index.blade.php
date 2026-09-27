@@ -424,8 +424,20 @@ function insertVar(token) {
 }
 
 function loadStarterTemplate() {
-    if (quillInvoice.getLength() > 1 && !confirm('Ye current design ko replace kar dega. Continue?')) return;
+    if (quillInvoice.getLength() > 1) {
+        confirmAction({
+            message: 'Ye current design ko replace kar dega. Continue?',
+            ok: 'Replace',
+            danger: false,
+            onConfirm: applyStarterTemplate,
+        });
+        return;
+    }
 
+    applyStarterTemplate();
+}
+
+function applyStarterTemplate() {
     @verbatim
     quillInvoice.root.innerHTML =
         '<h2>{{company_name}}</h2>' +
