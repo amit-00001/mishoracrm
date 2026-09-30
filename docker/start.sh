@@ -1,8 +1,6 @@
 #!/bin/sh
-# Container entrypoint (Voroa / Render).
-#
-# Only nginx may listen on a TCP port. php-fpm is on a unix socket (see Dockerfile), because
-# Voroa refuses to guess which port serves traffic when a container listens on more than one.
+# Container entrypoint (Voroa / Render): prepare storage, migrate, then php-fpm + nginx.
+# Everything goes to stdout/stderr so it shows up in the platform's runtime logs.
 
 echo "[boot] $(date -u +%T) starting"
 
@@ -38,5 +36,6 @@ chmod -R ug+rwX storage bootstrap/cache
 
 php-fpm -D
 echo "[boot] $(date -u +%T) php-fpm started, starting nginx"
+netstat -ltn | sed 's/^/[boot] /'
 
 exec nginx -g 'daemon off;'

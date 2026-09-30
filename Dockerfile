@@ -127,11 +127,10 @@ RUN { echo 'user www-data;'; grep -v '^user ' /etc/nginx/nginx.conf; } > /tmp/ng
 ##
 ## PHP-FPM configuration
 ##
-## Listen on a unix socket, not TCP. The base image's zz-docker.conf sets "listen = 9000" (all
-## interfaces) and is read after www.conf, so editing www.conf has no effect. A second open TCP
-## port makes Voroa refuse to guess which one is the web port.
-RUN sed -i 's|^listen = .*|listen = /run/php-fpm.sock|' /usr/local/etc/php-fpm.d/zz-docker.conf \
-    && printf 'listen.owner = www-data\nlisten.group = www-data\nlisten.mode = 0666\n' >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+## NOTE: the base image's zz-docker.conf is read after www.conf and sets "listen = 9000", so in
+## practice php-fpm listens on :::9000 and this sed has no effect. nginx reaches it on 127.0.0.1:9000.
+## (A unix-socket setup was tried on 2026-09-30 and the socket was never created -> 502s; reverted.)
+RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's|^;clear_env = no|clear_env = no|' /usr/local/etc/php-fpm.d/www.conf
 
 
