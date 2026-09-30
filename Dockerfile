@@ -119,7 +119,11 @@ COPY nginx.conf /etc/nginx/http.d/default.conf
 ##
 ## PHP-FPM configuration
 ##
-RUN sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf \
+## Listen on a unix socket, not TCP. The base image's zz-docker.conf sets "listen = 9000" (all
+## interfaces) and is read after www.conf, so editing www.conf has no effect. A second open TCP
+## port makes Voroa refuse to guess which one is the web port.
+RUN sed -i 's|^listen = .*|listen = /run/php-fpm.sock|' /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && printf 'listen.owner = www-data\nlisten.group = www-data\nlisten.mode = 0666\n' >> /usr/local/etc/php-fpm.d/zz-docker.conf \
     && sed -i 's|^;clear_env = no|clear_env = no|' /usr/local/etc/php-fpm.d/www.conf
 
 
@@ -143,9 +147,9 @@ RUN chown -R www-data:www-data /var/www/html
 
 
 ##
-## Render provides PORT at runtime
+## The platform provides PORT at runtime (Voroa: always 3000, Render: 10000)
 ##
-EXPOSE 8000
+EXPOSE 3000
 
 
 ##
@@ -166,11 +170,7 @@ EXPOSE 8000
 #     php artisan storage:link || true; \
 #     php-fpm -D && nginx -g 'daemon off;'
 
-CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
-    sed -i "s/__*PORT__*/${P}/g" /etc/nginx/http.d/default.conf; \
-    php artisan migrate --force || echo 'migrate failed'; \
-    php artisan db:seed --class=PortalTestCustomerSeeder --force || echo 'test customer seed failed'; \
-    php artisan storage:link || true; \
-    chown -R www-data:www-data storage bootstrap/cache; \
-    chmod -R ug+rwX storage bootstrap/cache; \
-    php-fpm -D && nginx -g 'daemon off;'
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
+
+CMD ["/usr/local/bin/start.sh"]
