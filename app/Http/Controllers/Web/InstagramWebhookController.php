@@ -286,7 +286,10 @@ class InstagramWebhookController extends Controller
             $service = new InstagramService($setting);
 
             if ($automation->action_type === 'send_dm' && $automation->dm_message) {
-                $result = $service->sendDmDetailed($userId, $automation->dm_message);
+                // Comment-triggered → Private Reply (by comment_id); DM-triggered → normal DM.
+                $result = $commentId
+                    ? $service->sendPrivateReplyDetailed($commentId, $automation->dm_message)
+                    : $service->sendDmDetailed($userId, $automation->dm_message);
                 $log->update([
                     'outgoing_text' => $automation->dm_message,
                     'status'        => $result['success'] ? 'success' : 'failed',

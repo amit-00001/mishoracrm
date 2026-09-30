@@ -56,6 +56,32 @@ class InstagramService
         ];
     }
 
+    // Private Reply: the only way to DM someone who commented but has not
+    // messaged us in the last 24h. Addressed by comment_id, not user id.
+    // Allowed once per comment, within 7 days of the comment.
+    public function sendPrivateReplyDetailed(string $commentId, string $message): array
+    {
+        $response = Http::post(self::GRAPH_URL . '/me/messages', [
+            'recipient'    => ['comment_id' => $commentId],
+            'message'      => ['text' => $message],
+            'access_token' => $this->settings->access_token,
+        ]);
+
+        if ($response->failed()) {
+            Log::error('Instagram private reply failed', [
+                'tenant_id'  => $this->settings->tenant_id,
+                'comment_id' => $commentId,
+                'error'      => $response->json(),
+            ]);
+        }
+
+        return [
+            'success' => $response->successful(),
+            'status'  => $response->status(),
+            'body'    => $response->json(),
+        ];
+    }
+
     // Reply to a comment on a post
     public function replyToComment(string $commentId, string $message): bool
     {
