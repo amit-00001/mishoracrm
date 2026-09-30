@@ -18,6 +18,14 @@ mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessi
 # Same as `php artisan storage:link`, without booting Laravel again (slow on a 0.1 vCPU instance).
 ln -sfn /var/www/html/storage/app/public public/storage
 
+# Belt and braces for the "stat() ... Permission denied" 404s: let any user walk into the app root
+# and read the (public, small) web root, whatever modes the build context arrived with.
+chmod a+x /var/www/html
+chmod -R a+rX public
+
+echo "[boot] $(grep -m1 '^user ' /etc/nginx/nginx.conf)"
+ls -ld /var/www /var/www/html /var/www/html/public /var/www/html/public/index.php | sed 's/^/[boot] /'
+
 php artisan migrate --force || echo 'migrate failed'
 echo "[boot] $(date -u +%T) migrate step done"
 

@@ -115,6 +115,14 @@ RUN mkdir -p /run/nginx
 
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
+## Run the nginx workers as www-data. Alpine's default worker user is "nginx", but everything under
+## /var/www/html is owned by www-data and, depending on the modes the build context arrives with,
+## "nginx" gets `stat() ... (13: Permission denied)` -> every page is a 404 (and "/" a 403).
+## The temp dirs must belong to the same user or large request bodies / uploads fail.
+RUN { echo 'user www-data;'; grep -v '^user ' /etc/nginx/nginx.conf; } > /tmp/nginx.conf \
+    && mv /tmp/nginx.conf /etc/nginx/nginx.conf \
+    && chown -R www-data:www-data /var/lib/nginx
+
 
 ##
 ## PHP-FPM configuration
@@ -174,3 +182,4 @@ COPY docker/start.sh /usr/local/bin/start.sh
 RUN sed -i 's/\r$//' /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 
 CMD ["/usr/local/bin/start.sh"]
+
