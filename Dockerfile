@@ -171,6 +171,7 @@ CMD P=$(printf '%s' "${PORT:-3000}" | tr -cd '0-9'); \
     php artisan migrate --force || echo 'migrate failed'; \
     php artisan db:seed --class=PortalTestCustomerSeeder --force || echo 'test customer seed failed'; \
     php artisan storage:link || true; \
+    php artisan cache:clear || true; \
     chown -R www-data:www-data storage bootstrap/cache; \
     chmod -R ug+rwX storage bootstrap/cache; \
     php-fpm -D && nginx -g 'daemon off;'

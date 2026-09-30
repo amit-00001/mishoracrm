@@ -20,7 +20,12 @@
 .st-failed { color:#dc2626; font-weight:600; }
 .st-skipped { color:#9ca3af; font-weight:600; }
 .msg-cell { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.detail-btn { cursor:pointer; background:none; border:none; color:var(--accent); font-size:11px; text-decoration:underline; padding:0; margin-left:6px; }
+.err-cell { display:flex; align-items:center; gap:8px; max-width:260px; }
+.err-text { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.detail-btn { cursor:pointer; background:none; border:none; color:var(--accent); font-size:11px; text-decoration:underline; padding:0; flex-shrink:0; }
+.log-modal-body h4 { font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text-300); margin:0 0 6px; }
+.log-modal-body section + section { margin-top:16px; }
+.log-modal-body pre.err { color:var(--danger); }
 .log-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; align-items:center; justify-content:center; padding:20px; }
 .log-modal-backdrop.open { display:flex; }
 .log-modal { background:var(--bg-surface); border-radius:12px; max-width:640px; width:100%; max-height:80vh; display:flex; flex-direction:column; }
@@ -93,11 +98,13 @@
                     <td class="msg-cell" title="{{ $log->incoming_text }}" data-label="Incoming">{{ $log->incoming_text ?? '—' }}</td>
                     <td class="msg-cell" title="{{ $log->outgoing_text }}" data-label="Outgoing">{{ $log->outgoing_text ?? '—' }}</td>
                     <td data-label="Status"><span class="st-{{ $log->status }}">{{ ucfirst($log->status) }}</span></td>
-                    <td class="msg-cell" style="color:var(--danger);" title="{{ $log->error_message }}" data-label="Error">
-                        {{ $log->error_message ? Str::limit($log->error_message, 40) : '—' }}
-                        @if($log->raw_payload || $log->error_message)
-                            <button type="button" class="detail-btn" onclick='showLogDetail(@json($log->error_message), @json($log->raw_payload))'>view</button>
-                        @endif
+                    <td style="color:var(--danger);" data-label="Error">
+                        <div class="err-cell">
+                            <span class="err-text" title="{{ $log->error_message }}">{{ $log->error_message ? Str::limit($log->error_message, 40) : '—' }}</span>
+                            @if($log->raw_payload || $log->error_message)
+                                <button type="button" class="detail-btn" onclick='showLogDetail(@json($log->error_message), @json($log->raw_payload))'>view</button>
+                            @endif
+                        </div>
                     </td>
                     <td style="white-space:nowrap;color:var(--text-300);font-size:12px;" data-label="Time">{{ $log->created_at->format('d M H:i') }}</td>
                 </tr>
@@ -118,15 +125,28 @@
             <button type="button" class="btn btn-ghost btn-sm" onclick="closeLogDetail()">Close</button>
         </div>
         <div class="log-modal-body">
-            <pre id="logModalBody"></pre>
+            <section id="logModalErrorWrap">
+                <h4>Error</h4>
+                <pre class="err" id="logModalError"></pre>
+            </section>
+            <section id="logModalPayloadWrap">
+                <h4>Raw payload</h4>
+                <pre id="logModalBody"></pre>
+            </section>
         </div>
     </div>
 </div>
 
 <script>
 function showLogDetail(message, payload) {
-    document.getElementById('logModalTitle').textContent = message || 'Details';
-    document.getElementById('logModalBody').textContent = JSON.stringify(payload, null, 2);
+    var errText = message || '';
+    try { errText = JSON.stringify(JSON.parse(errText), null, 2); } catch (e) {}
+
+    document.getElementById('logModalTitle').textContent = message ? 'Error details' : 'Details';
+    document.getElementById('logModalError').textContent = errText;
+    document.getElementById('logModalErrorWrap').style.display = message ? '' : 'none';
+    document.getElementById('logModalBody').textContent = payload ? JSON.stringify(payload, null, 2) : '';
+    document.getElementById('logModalPayloadWrap').style.display = payload ? '' : 'none';
     document.getElementById('logModalBackdrop').classList.add('open');
 }
 function closeLogDetail() {
