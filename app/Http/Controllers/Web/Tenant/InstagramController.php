@@ -575,17 +575,27 @@ class InstagramController extends Controller
 
             $shortToken = $shortJson['access_token'];
             $igUserId   = (string) ($shortJson['user_id'] ?? '');
+            // Keeps user_id + granted permissions (tokens are stripped) so a failed
+            // connect can be diagnosed from the Logs page.
+            $debugContext['short_token_exchange'] = $this->redactTokens($shortJson);
 
             // 2) Short-lived → long-lived (~60 day) token
-            $longJson = Http::get('https://graph.instagram.com/access_token', [
+            $longRes = Http::get('https://graph.instagram.com/access_token', [
                 'grant_type'    => 'ig_exchange_token',
                 'client_secret' => $appSecret,
                 'access_token'  => $shortToken,
-            ])->json();
-
-            $longToken = $longJson['access_token'] ?? $shortToken;
-            $expiresIn = $longJson['expires_in'] ?? null;
+            ]);
+            $longJson = $longRes->json();
             $debugContext['long_token_exchange'] = $this->redactTokens($longJson);
+
+            // Don't silently fall back to the short-lived token — if Instagram
+            // refuses the exchange, every later call would fail the same way.
+            if (!$longRes->successful() || empty($longJson['access_token'])) {
+                throw new \Exception($this->friendlyInstagramError($longJson['error']['message'] ?? null, $longRes->status()));
+            }
+
+            $longToken = $longJson['access_token'];
+            $expiresIn = $longJson['expires_in'] ?? null;
 
             // 3) Load the authorized Instagram Professional account.
             //    Instagram Login exposes two IDs: user_id (IGSID, used as the
@@ -604,7 +614,7 @@ class InstagramController extends Controller
             $igAppId   = (string) ($accountJson['id'] ?? '');
 
             if (!$accountRes->successful() || $igUserId === '') {
-                throw new \Exception($accountJson['error']['message'] ?? ('Failed to load Instagram account details (HTTP ' . $accountRes->status() . ').'));
+                throw new \Exception($this->friendlyInstagramError($accountJson['error']['message'] ?? null, $accountRes->status()));
             }
 
             $subscription = $this->persistInstagramConnection($data['tenant_id'], [
@@ -638,6 +648,21 @@ class InstagramController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    // ── Turn Instagram's opaque "Unsupported request" (code 100) into
+    //    something the tenant can act on. Instagram returns this for every
+    //    call made with a token whose account isn't a usable Professional
+    //    account for this app. ─────────────────────────────────────────
+    private function friendlyInstagramError(?string $apiMessage, int $status): string
+    {
+        if ($apiMessage && stripos($apiMessage, 'Unsupported request') !== false) {
+            return 'Instagram rejected this account. Make sure it is an Instagram Professional (Business or Creator) account — '
+                . 'in the Instagram app go to Settings → Account type and tools → Switch to professional account — then try again. '
+                . 'If the account is already professional, ask your administrator to confirm it is added as an Instagram Tester on the Meta app.';
+        }
+
+        return $apiMessage ?: ('Failed to load Instagram account details (HTTP ' . $status . ').');
     }
 
     // ── OAuth — persist the connected Instagram Professional account ──
