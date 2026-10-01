@@ -8,6 +8,7 @@ use App\Models\WhatsappChatbotFlow;
 use App\Models\WhatsappChatbotSession;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
+use App\Services\WhatsappGatewayClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,9 +25,35 @@ class WhatsappChatbotController extends Controller
     }
 
     // ── Settings — show ───────────────────────────────────────────
-    public function settings(): View
+    public function settings(Request $request): View
     {
         $settings = WhatsappSetting::forTenant($this->tenantId());
+
+        // WhatsApp Gateway switched on (and this tenant isn't connected straight
+        // to Meta) → the gateway connect screen; otherwise the original screen.
+        if (WhatsappGatewayClient::appliesTo($settings)) {
+            $notice = null;
+
+            // Back from the gateway's hosted connect page: don't wait for the
+            // account.connected webhook, read the real state now.
+            if ($request->filled('status') && $settings->gateway_workspace_id) {
+                $result = WhatsappGatewayClient::refresh($settings);
+
+                if ($request->query('status') === 'failed') {
+                    $reason = Str::limit(strip_tags((string) $request->query('message')), 200);
+                    $notice = ['error', 'WhatsApp connection failed' . ($reason ? ": {$reason}" : '.')];
+                } elseif (!$result['ok']) {
+                    $notice = ['error', $result['error']];
+                } elseif ($settings->is_connected) {
+                    $notice = ['success', 'WhatsApp connected successfully.'];
+                } else {
+                    $notice = ['error', 'The connection is still being finalised — click "Refresh status" in a moment.'];
+                }
+            }
+
+            return view('tenant.whatsapp.gateway-settings', compact('settings', 'notice'));
+        }
+
         return view('tenant.whatsapp.chatbot-settings', compact('settings'));
     }
 
@@ -201,6 +228,7 @@ class WhatsappChatbotController extends Controller
             // Save to DB
             $settings = WhatsappSetting::firstOrNew(['tenant_id' => $data['tenant_id']]);
             $settings->tenant_id      = $data['tenant_id'];
+            $settings->connection_mode = 'direct'; // a direct Meta connection replaces any earlier gateway link
             $settings->access_token   = $longToken;
             $settings->waba_id        = $wabaId;
             $settings->phone_number_id= $phoneNumberId;

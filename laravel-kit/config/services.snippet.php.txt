@@ -1,0 +1,12 @@
+<?php
+// ───────────── add to the array in config/services.php ─────────────
+    'milan_wa' => [
+        'url'    => env('MILAN_WA_URL'),      // e.g. https://crm.milancrm.com
+        'key'    => env('MILAN_WA_KEY'),      // gw_...   (API key)
+        'secret' => env('MILAN_WA_SECRET'),   // whsec_... (webhook secret)
+    ],
+
+// ───────────── add to .env ─────────────
+// MILAN_WA_URL=https://crm.milancrm.com
+// MILAN_WA_KEY=gw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+// MILAN_WA_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

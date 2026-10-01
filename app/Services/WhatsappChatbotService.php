@@ -23,6 +23,12 @@ class WhatsappChatbotService
     // instead of a generic "rejected" string. Null after a successful send.
     public ?string $lastError = null;
 
+    // WhatsApp message id (wamid) of the last message sent through the
+    // WhatsApp Gateway — lets callers store it on their log row so the
+    // gateway's later delivered / read / failed receipts can be matched back.
+    // Stays null for direct-Meta sends and after any failed send.
+    public ?string $lastMessageId = null;
+
     public function __construct(WhatsappSetting $settings)
     {
         $this->settings = $settings;
@@ -319,13 +325,43 @@ class WhatsappChatbotService
             'message'       => $message,
             'status'        => $ok ? 'sent' : 'failed',
             'error_message' => $ok ? null : $this->lastError,
+            'wamid'         => $ok ? $this->lastMessageId : null,
             'sent_at'       => now(),
         ]);
+    }
+
+    // Send a message through the WhatsApp Gateway (Milan CRM) instead of
+    // Meta directly — used by every send method below when this tenant's
+    // number was connected through the gateway. $payload is the gateway's
+    // message body without 'to'.
+    private function sendViaGateway(string $waId, array $payload): bool
+    {
+        $result = WhatsappGatewayClient::sendMessage($this->settings->gateway_workspace_id, ['to' => $waId] + $payload);
+
+        if (!$result['ok']) {
+            $this->lastError     = $result['error'];
+            $this->lastMessageId = null;
+            Log::error('WhatsApp gateway message failed', [
+                'tenant_id' => $this->settings->tenant_id,
+                'to'        => $waId,
+                'error'     => $result['error'],
+                'meta_code' => $result['meta_code'],
+            ]);
+            return false;
+        }
+
+        $this->lastError     = null;
+        $this->lastMessageId = $result['data']['wamid'] ?? null;
+        return true;
     }
 
     // Send WhatsApp message via Cloud API
     public function sendMessage(string $waId, string $message): bool
     {
+        if ($this->settings->viaGateway()) {
+            return $this->sendViaGateway($waId, ['type' => 'text', 'text' => $message]);
+        }
+
         $response = Http::withToken($this->settings->access_token)
             ->post(self::GRAPH_URL . '/' . $this->settings->phone_number_id . '/messages', [
                 'messaging_product' => 'whatsapp',
@@ -349,6 +385,23 @@ class WhatsappChatbotService
         return true;
     }
 
+    // Send an approved Meta message template — the only message type that can
+    // start a conversation or reply after the customer's 24-hour window has
+    // closed. Gateway connections only; $bodyParams fill {{1}}, {{2}}, … in order.
+    public function sendTemplate(string $waId, string $name, string $language, array $bodyParams = []): bool
+    {
+        if (!$this->settings->viaGateway()) {
+            $this->lastError     = 'Template messages are only available through the WhatsApp gateway.';
+            $this->lastMessageId = null;
+            return false;
+        }
+
+        return $this->sendViaGateway($waId, [
+            'type'     => 'template',
+            'template' => ['name' => $name, 'language' => $language, 'body_params' => array_values($bodyParams)],
+        ]);
+    }
+
     // Send a WhatsApp "reply buttons" interactive message — up to 3 tappable
     // options under $body. Each entry in $buttons is ['title' => string,
     // 'next_flow_id' => int|null, 'reply_id' => string|null]. An explicit
@@ -366,6 +419,19 @@ class WhatsappChatbotService
 
         if (empty($buttons)) {
             return $this->sendMessage($waId, $body);
+        }
+
+        if ($this->settings->viaGateway()) {
+            return $this->sendViaGateway($waId, [
+                'type'    => 'buttons',
+                'buttons' => [
+                    'body'  => $body,
+                    'items' => collect($buttons)->values()->map(fn($btn, $i) => [
+                        'id'    => $btn['reply_id'] ?? (!empty($btn['next_flow_id']) ? 'flow_' . $btn['next_flow_id'] : 'kw_' . $i),
+                        'title' => mb_substr((string) $btn['title'], 0, 20),
+                    ])->all(),
+                ],
+            ]);
         }
 
         $response = Http::withToken($this->settings->access_token)
@@ -407,6 +473,14 @@ class WhatsappChatbotService
     // (or null on failure) — required before a media message can reference it.
     public function uploadMedia(string $filePath, string $mimeType): ?string
     {
+        if ($this->settings->viaGateway()) {
+            $result = WhatsappGatewayClient::uploadMedia($this->settings->gateway_workspace_id, $filePath, $mimeType);
+
+            $this->lastError = $result['ok'] ? null : $result['error'];
+
+            return $result['ok'] ? ($result['data']['id'] ?? null) : null;
+        }
+
         $response = Http::withToken($this->settings->access_token)
             ->attach('file', file_get_contents($filePath), basename($filePath))
             ->post(self::GRAPH_URL . '/' . $this->settings->phone_number_id . '/media', [
@@ -430,6 +504,15 @@ class WhatsappChatbotService
     // Send an image/document message referencing an already-uploaded media id.
     public function sendMediaMessage(string $waId, string $mediaId, string $type, ?string $caption = null, ?string $filename = null): bool
     {
+        if ($this->settings->viaGateway()) {
+            return $this->sendViaGateway($waId, [
+                'type'  => $type,
+                'media' => $type === 'document'
+                    ? array_filter(['id' => $mediaId, 'filename' => $filename, 'caption' => $caption])
+                    : array_filter(['id' => $mediaId, 'caption' => $caption]),
+            ]);
+        }
+
         $payload = [
             'messaging_product' => 'whatsapp',
             'recipient_type'    => 'individual',
@@ -477,7 +560,8 @@ class WhatsappChatbotService
         return str_starts_with($mime, 'image/') ? 'image' : 'document';
     }
 
-    // Verify webhook token
+    // Verify webhook token (direct-Meta connections only — the gateway signs
+    // its webhooks with HMAC instead, see WhatsappGatewayClient::verifySignature)
     public function verifyWebhookToken(string $token): bool
     {
         return $token === $this->settings->webhook_verify_token;
@@ -486,6 +570,21 @@ class WhatsappChatbotService
     // Get WhatsApp Business Account info
     public function getAccountInfo(): ?array
     {
+        if ($this->settings->viaGateway()) {
+            $result = WhatsappGatewayClient::account($this->settings->gateway_workspace_id);
+            if (!$result['ok']) {
+                return null;
+            }
+
+            // Callers save these two back onto the settings row — keep what we
+            // already know if the gateway's health payload doesn't repeat them.
+            $info = $result['data'];
+            $info['display_phone_number'] = $info['display_phone_number'] ?? $this->settings->display_phone_number;
+            $info['verified_name']        = $info['verified_name'] ?? $this->settings->verified_name;
+
+            return $info;
+        }
+
         $response = Http::withToken($this->settings->access_token)
             ->get(self::GRAPH_URL . '/' . $this->settings->phone_number_id, [
                 'fields' => 'id,display_phone_number,verified_name,quality_rating',

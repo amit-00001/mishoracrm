@@ -14,7 +14,7 @@ class WhatsappLog extends Model
         'tenant_id', 'template_id', 'lead_id', 'contact_id',
         'sent_by', 'to_phone', 'to_name', 'message',
         'status', 'error_message', 'is_bulk', 'bulk_id', 'sent_at',
-        'media_type', 'media_id', 'attachment_name',
+        'media_type', 'media_id', 'attachment_name', 'wamid',
     ];
 
     protected $casts = [

@@ -54,12 +54,17 @@
         </div>
         <div class="page-title">WhatsApp Templates</div>
     </div>
-    <button class="btn btn-primary" onclick="openModal()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:15px;height:15px">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-        </svg>
-        New Template
-    </button>
+    <div class="page-actions">
+        @if($metaTemplatesAvailable ?? false)
+        <a href="{{ route('tenant.whatsapp.meta-templates') }}" class="btn btn-secondary">Meta Approved Templates</a>
+        @endif
+        <button class="btn btn-primary" onclick="openModal()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:15px;height:15px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            New Template
+        </button>
+    </div>
 </div>
 
 {{-- Variables hint --}}

@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\Tenant\ScreenshotController;
 use App\Http\Controllers\Web\Tenant\SubscriptionController;
 use App\Http\Controllers\Web\SubscriptionWebhookController;
 use App\Http\Controllers\Web\InstagramWebhookController;
+use App\Http\Controllers\Web\WhatsappGatewayWebhookController;
 use App\Http\Controllers\Web\WhatsappWebhookController;
 use App\Http\Controllers\Web\LeadWebhookController;
 use App\Http\Controllers\Web\SuperAdmin\LeadIntegrationController as SuperAdminLeadIntegrationController;
@@ -155,6 +156,10 @@ Route::post('/webhook/instagram', [InstagramWebhookController::class, 'handle'])
 Route::get('/webhook/whatsapp',   [WhatsappWebhookController::class, 'verify'])->name('webhook.whatsapp.verify');
 Route::post('/webhook/whatsapp',  [WhatsappWebhookController::class, 'handle'])->name('webhook.whatsapp');
 
+// WhatsApp Gateway (Milan CRM) events — HMAC-signed, answers 503 unless the
+// superadmin has switched the gateway on (Superadmin → WhatsApp Gateway).
+Route::post('/webhook/wa-gateway', [WhatsappGatewayWebhookController::class, 'handle'])->name('webhook.wa-gateway');
+
 // ── Lead Source Webhooks (Meta, JustDial, TradeIndia, Sulekha) ────
 Route::get('/webhook/leads/{token}',  [LeadWebhookController::class, 'verify'])->name('webhook.leads.verify');
 Route::post('/webhook/leads/{token}', [LeadWebhookController::class, 'handle'])->name('webhook.leads');
@@ -251,6 +256,13 @@ Route::prefix('superadmin')
         Route::prefix('platform-settings')->name('platform-settings.')->controller(SuperAdminPlatformSettingController::class)->group(function () {
             Route::get('/meta',  'metaApp')->name('meta');
             Route::post('/meta', 'saveMetaApp')->name('meta.save');
+
+            // WhatsApp Gateway (Milan CRM) — borrowed Meta app until ours is live
+            Route::get('/whatsapp-gateway',                    'whatsappGateway')->name('whatsapp-gateway');
+            Route::post('/whatsapp-gateway',                   'saveWhatsappGateway')->name('whatsapp-gateway.save');
+            Route::post('/whatsapp-gateway/toggle',            'toggleWhatsappGateway')->name('whatsapp-gateway.toggle');
+            Route::post('/whatsapp-gateway/test',              'testWhatsappGateway')->name('whatsapp-gateway.test');
+            Route::post('/whatsapp-gateway/register-webhook',  'registerWhatsappGatewayWebhook')->name('whatsapp-gateway.register-webhook');
         });
 
         // Coupon management
@@ -1067,6 +1079,18 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::post('api-settings/test',        [Tenant\WhatsappChatbotController::class, 'testConnection'])->name('api-settings.test')->middleware('tenant.admin');
             Route::get('oauth/qr',                  [Tenant\WhatsappChatbotController::class, 'oauthGenerateQr'])->name('oauth.qr');
             Route::get('oauth/status',              [Tenant\WhatsappChatbotController::class, 'oauthStatus'])->name('oauth.status');
+
+            // WhatsApp Gateway connect flow (only used while the superadmin has the gateway on)
+            Route::post('gateway/connect',          [Tenant\WhatsappGatewayController::class, 'connect'])->name('gateway.connect')->middleware('tenant.admin');
+            Route::post('gateway/sync',             [Tenant\WhatsappGatewayController::class, 'sync'])->name('gateway.sync')->middleware('tenant.admin');
+            Route::post('gateway/disconnect',       [Tenant\WhatsappGatewayController::class, 'disconnect'])->name('gateway.disconnect')->middleware('tenant.admin');
+
+            // Meta-approved message templates (gateway-connected numbers only)
+            Route::get('meta-templates',            [Tenant\WhatsappMetaTemplateController::class, 'index'])->name('meta-templates');
+            Route::middleware('permission:whatsapp.manage_templates')->group(function () {
+                Route::post('meta-templates',           [Tenant\WhatsappMetaTemplateController::class, 'store'])->name('meta-templates.store');
+                Route::delete('meta-templates/{name}',  [Tenant\WhatsappMetaTemplateController::class, 'destroy'])->where('name', '[a-z0-9_]+')->name('meta-templates.destroy');
+            });
         });
 
         // Email

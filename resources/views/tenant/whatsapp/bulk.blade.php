@@ -159,6 +159,9 @@
                 </div>
             </div>
 
+            {{-- Approved Meta template (WhatsApp Gateway numbers only) --}}
+            @include('tenant.whatsapp._meta-template-picker', ['metaTemplates' => $metaTemplates ?? [], 'bulk' => true])
+
             {{-- Message --}}
             <div class="form-section">
                 <div class="fs-title">Message <span class="req">*</span></div>
@@ -278,6 +281,15 @@ function loadTemplate(id){
     }
     const name = sel?.textContent?.trim() || 'None';
     document.getElementById('summaryTemplate').textContent = id ? name : 'None';
+    updateSummary();
+}
+
+// Approved template picked / cleared (see _meta-template-picker) — the text is
+// fixed by Meta, so the box is locked and just shows the filled-in template.
+function onMetaTemplateChange(text){
+    const msg = document.getElementById('bulkMessage');
+    msg.readOnly = text !== null;
+    msg.value = text ?? '';
     updateSummary();
 }
 

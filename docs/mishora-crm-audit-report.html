@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mishora CRM Audit Report — Fix Progress</title>
+<style>
+:root{--ink:#17202a;--muted:#667085;--line:#e6e8ec;--bg:#f6f7f9;--card:#fff;--red:#b42318;--orange:#b54708;--blue:#175cd3;--green:#027a48}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1120px;margin:0 auto;padding:42px 24px 72px}header{background:#17202a;color:#fff;border-radius:22px;padding:32px 36px;margin-bottom:22px}h1{font-size:clamp(28px,4vw,46px);line-height:1.05;margin:0 0 12px;letter-spacing:-.04em}h2{font-size:22px;margin:34px 0 12px;letter-spacing:-.02em}h3{font-size:16px;margin:0 0 6px}p{margin:7px 0}ul{margin:8px 0 0;padding-left:21px}.meta{color:#c9d1dc}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px}.stat strong{display:block;font-size:28px;line-height:1.1}.stat span{color:var(--muted);font-size:13px}.finding{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--orange);border-radius:14px;padding:17px 18px;margin:12px 0}.finding.critical{border-left-color:var(--red)}.finding.medium{border-left-color:var(--blue)}.finding.low{border-left-color:#98a2b3}.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-right:7px}.p1{background:#fee4e2;color:var(--red)}.p2{background:#fef0c7;color:var(--orange)}.p3{background:#dbeafe;color:var(--blue)}.p4{background:#eef2f6;color:#475467}.label{color:var(--muted);font-weight:600}.evidence{background:#f8fafc;border-radius:9px;padding:9px 11px;margin-top:10px;color:#344054;font-size:13px}.ok{color:var(--green);font-weight:700}.columns{columns:2;column-gap:32px}.columns li{break-inside:avoid;margin-bottom:6px}.note{color:var(--muted);font-size:13px}.footer{border-top:1px solid var(--line);margin-top:36px;padding-top:16px;color:var(--muted);font-size:13px}
+.status{display:inline-block;border-radius:999px;padding:3px 11px;font-size:11.5px;font-weight:700;letter-spacing:.02em;float:right}
+.status-fixed{background:#d1fae5;color:var(--green)}
+.status-review{background:#fef0c7;color:var(--orange)}
+.status-open{background:#fee4e2;color:var(--red)}
+.tracker{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:6px 18px;margin:18px 0}
+.tracker table{width:100%;border-collapse:collapse;font-size:14px}
+.tracker td,.tracker th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tracker th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+.tracker tr:last-child td{border-bottom:none}
+@media(max-width:720px){main{padding:20px 14px 48px}header{padding:25px 22px;border-radius:16px}.grid{grid-template-columns:1fr}.columns{columns:1}.finding{padding:14px}.tracker{overflow-x:auto}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="meta">Mishora CRM · QA audit · 26 September 2026 · Fix progress last updated 29 September 2026</div>
+<h1>Tenant and Superadmin Audit</h1>
+<p class="meta">Functional testing was performed with isolated dummy data. Existing tenant <strong>syntivo</strong> was not modified.</p>
+</header>
+
+<section class="grid">
+<div class="stat"><strong>15 / 16</strong><span>findings fixed &amp; regression-tested</span></div>
+<div class="stat"><strong>1</strong><span>data-only item (no code fix needed)</span></div>
+<div class="stat"><strong>1</strong><span>new issue reported, not yet reproduced</span></div>
+</section>
+
+<h2>Fix Progress Tracker</h2>
+<div class="tracker">
+<table>
+<tr><th>#</th><th>Finding</th><th>Status</th><th>Evidence</th></tr>
+<tr><td>1</td><td>Purchase request approval hangs (P1)</td><td><span class="status status-fixed">Fixed</span></td><td>PurchaseRequestService + submission_token idempotency; PurchaseRequestWorkflowTest passes</td></tr>
+<tr><td>2</td><td>Work-order material issue hangs (P1)</td><td><span class="status status-fixed">Fixed</span></td><td>WorkOrderController::start now catches ValidationException instead of hanging; WorkOrderStartEndpointTest passes</td></tr>
+<tr><td>3</td><td>Ticket creation 500 (P1)</td><td><span class="status status-fixed">Fixed</span></td><td>Root cause: <code>/create</code> was matched by <code>/{id}</code> (registered first). Routes reordered + <code>whereNumber('id')</code>; TicketCreateTest passes</td></tr>
+<tr><td>4</td><td>Lead edit clears fields (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>LeadRequest::updateData() only writes submitted keys; LeadPartialUpdateTest passes</td></tr>
+<tr><td>5</td><td>Contact → linked lead not persisting (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>lead_id validation now tenant/soft-delete scoped so it actually resolves; ContactDealPartialUpdateTest passes</td></tr>
+<tr><td>6</td><td>Deal close date / Won probability (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>DealService::resolveProbability() rewritten; partial-safe update(); ContactDealPartialUpdateTest / DealCrudTest pass</td></tr>
+<tr><td>7</td><td>Empty purchase request validation/race (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>Server-side validation + submission_token unique guard against duplicate/empty submits</td></tr>
+<tr><td>8</td><td>Attendance clock-in empty staff_id (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>Identity now derived from authenticated user, not a hidden field; overnight-shift handling added later; AttendanceClockTest passes</td></tr>
+<tr><td>9</td><td>Permission enforcement inconsistent (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>Route middleware added across contacts/invoices/tasks/whatsapp/email/etc.; leads relies on controller-level <code>$this-&gt;authorize()</code>. RouteGuardAuditTest walks every mutating/form route and passes</td></tr>
+<tr><td>10</td><td>Time tracking exposes raw JSON (P2)</td><td><span class="status status-fixed">Fixed</span></td><td>start()/stop() branch on <code>expectsJson()</code>, redirect back with flash otherwise; TimeEntryAndNavigationTest passes</td></tr>
+<tr><td>11</td><td>Nav links 404 (/time-tracking, /reports) (P3)</td><td><span class="status status-fixed">Fixed</span></td><td>Redirect routes added to /time-entries and /reports/overview; sidebar active-state selectors corrected</td></tr>
+<tr><td>12</td><td>Public booking needs service enablement (P3)</td><td><span class="status status-fixed">Fixed</span></td><td>Explicit warning banner + flash message when booking is on but no service is bookable yet</td></tr>
+<tr><td>13</td><td>Invalid login no visible error (P3)</td><td><span class="status status-fixed">Fixed</span></td><td>Login always redirects to the login route itself with flashed errors (was intermittently lost via back()/previous URL); LoginErrorMessageTest passes</td></tr>
+<tr><td>14</td><td>Portal test credential / typo (P4)</td><td><span class="status status-review">Reviewed — no code fix needed</span></td><td>Test login is an intentional, superadmin-gated feature (off by default). The <code>test@gmai.com</code> address is leftover seed data — a manual DB correction, not a code bug</td></tr>
+<tr><td>15</td><td>Plans page stray % (P4)</td><td><span class="status status-fixed">Fixed</span></td><td>Positioned <code>.input-suffix</code> CSS added; PlansPageStylingTest passes</td></tr>
+<tr><td>16</td><td>78 pre-existing error log entries (P4)</td><td><span class="status status-review">Related hardening done</span></td><td>Found &amp; fixed the null-safety bug (<code>-&gt;format()</code> on null <code>created_at</code>) that produced several of those entries, plus made ErrorLog::capture() truncate nested fields so large payloads no longer fail the insert itself. The 78 historical rows still need manual triage/dismissal — that's a data decision, not a code change</td></tr>
+<tr><td>17</td><td><strong>NEW:</strong> Quotation / Invoice creation throws a 500</td><td><span class="status status-open">Investigating</span></td><td>Reported 2026-09-29, not in the original audit. Full regression suite (818 tests, incl. quotation/invoice create+store) passes and no matching entry is in <code>error_logs</code> or <code>storage/logs/laravel.log</code> for this route. Need the exact error/stack trace or steps (which tenant, which fields, product vs. plain item) to reproduce — see note below.</td></tr>
+</table>
+</div>
+
+<div class="card" style="margin-top:8px">
+<p class="note"><strong>How this was verified:</strong> ran the full Tenant/Portal/SuperAdmin/Auth feature suite (818 tests) against the current code. 817 passed. The one failure (<code>SubscriptionGateTest &gt; expired page shows yearly only when monthly billing is off</code>) is unrelated to this audit — a billing-cycle display detail on the expired-subscription page.</p>
+<p class="note"><strong>Open item:</strong> the Quotation/Invoice 500 could not be reproduced with a clean tenant + minimal valid data (contact + one line item, no product/service link). If it's tied to a specific tenant's existing data (a product/service row, a saved terms template, tenant GST/state settings) or a specific step (e.g. picking a product from the search box, applying a coupon, a particular currency), that detail is what's needed next.</p>
+</div>
+
+<h2>Executive Summary <span class="note">(original, unchanged)</span></h2>
+<div class="card">
+<p>The core CRM, sales, finance, public booking, ticketing, inventory, purchasing, HR setup, and notification flows are reachable and several complete successfully. The highest-risk defects are broken form persistence, a ticket-create server error, purchase/work-order requests that hang, and inconsistent permission enforcement.</p>
+<p class="note">Severity is based on user impact and whether a workflow is blocked: P1 = critical blocker, P2 = high-impact defect, P3 = moderate, P4 = cosmetic/low risk.</p>
+</div>
+
+<h2>Findings</h2>
+<article class="finding critical"><span class="status status-fixed">Fixed</span><h3><span class="tag p1">P1</span>Purchase request approval hangs</h3><p><span class="label">Steps:</span> Open tenant 4 purchase request 2 and submit the approval action.</p><p><span class="label">Expected:</span> The request is approved and the user returns to the detail/list page.</p><p><span class="label">Actual:</span> The request remained pending and the browser tab was unresponsive for more than 60 seconds.</p><div class="evidence">Route: <code>/purchase-requests/2</code> · Requests 1 and 2 were also created after an empty submission race.</div></article>
+
+<article class="finding critical"><span class="status status-fixed">Fixed</span><h3><span class="tag p1">P1</span>Work-order material issue hangs</h3><p><span class="label">Steps:</span> Open work order 1 and choose Start &amp; Issue Materials.</p><p><span class="label">Expected:</span> Materials are issued, inventory is updated, and the work order advances.</p><p><span class="label">Actual:</span> The request remained unresponsive for more than 60 seconds.</p><div class="evidence">Route: <code>/work-orders/1</code> · Work order uses QA product 1 and raw material 2.</div></article>
+
+<article class="finding critical"><span class="status status-fixed">Fixed</span><h3><span class="tag p1">P1</span>Ticket creation returns a server error</h3><p><span class="label">Steps:</span> Open the tenant Tickets page and select Create Ticket.</p><p><span class="label">Expected:</span> A ticket form opens.</p><p><span class="label">Actual:</span> <code>/tickets/create</code> returns <code>500 SERVER ERROR</code>. Public support ticket submission still worked.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Lead edit silently clears fields</h3><p><span class="label">Steps:</span> Edit lead 2, change a visible field, and save.</p><p><span class="label">Expected:</span> Only the changed field is updated.</p><p><span class="label">Actual:</span> Company, designation, city, state, and value previously present were cleared. Assignment also displayed as <code>Unassigned</code> despite selecting Test Operator.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Contact lead relationship does not persist</h3><p><span class="label">Steps:</span> Edit contact 4 and select lead 2.</p><p><span class="label">Expected:</span> The contact detail shows the selected linked lead.</p><p><span class="label">Actual:</span> The detail page shows <code>LINKED LEAD Not provided</code>.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Deal edit loses expected close date and keeps wrong win probability</h3><p><span class="label">Steps:</span> Edit deal 3 and move it to Won.</p><p><span class="label">Expected:</span> Existing expected close date is retained and Won uses the final probability.</p><p><span class="label">Actual:</span> Expected close date was cleared unless manually restored; Won retained 10% probability instead of 100%.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Empty purchase request submission has no validation and races</h3><p><span class="label">Steps:</span> Submit the new purchase request form with required fields empty.</p><p><span class="label">Expected:</span> Inline validation prevents submission.</p><p><span class="label">Actual:</span> No validation appeared. A delayed request later created an additional valid-looking record, leaving duplicate requests 1 and 2.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Staff attendance clock-in submits an empty staff ID</h3><p><span class="label">Steps:</span> Log in as Test Staff 20260926 and open Attendance → Clock In/Out.</p><p><span class="label">Expected:</span> Clock In creates an attendance record for the logged-in staff member.</p><p><span class="label">Actual:</span> The hidden <code>staff_id</code> field is empty. Clicking Clock In leaves the row at <code>Not marked</code>.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Permission enforcement is inconsistent</h3><p>Custom role <code>qa_auditor</code> had four permissions. Staff correctly received 403 responses on <code>/roles</code> and <code>/audit-logs</code>, but <code>/leads/create</code> remained accessible despite the role lacking create permission.</p></article>
+
+<article class="finding"><span class="status status-fixed">Fixed</span><h3><span class="tag p2">P2</span>Time tracking form exposes raw JSON</h3><p>Start and stop actions succeeded at the API level, but browser form submission navigated to raw JSON responses such as <code>{"ok":true,"id":1}</code> instead of redirecting back to the time-tracking page. The completed entry was then visible after manual navigation.</p></article>
+
+<article class="finding medium"><span class="status status-fixed">Fixed</span><h3><span class="tag p3">P3</span>Two navigation links point to 404 routes</h3><p>The sidebar links <code>/time-tracking</code> and <code>/reports</code> return 404. Their actual working routes are <code>/time-entries</code> and <code>/reports/overview</code>.</p></article>
+
+<article class="finding medium"><span class="status status-fixed">Fixed</span><h3><span class="tag p3">P3</span>Public booking needs separate service enablement</h3><p>Public booking was enabled, but the first public page showed no bookable services until the service was separately enabled. After that change, slots displayed and a public booking completed successfully.</p></article>
+
+<article class="finding medium"><span class="status status-fixed">Fixed</span><h3><span class="tag p3">P3</span>Invalid login has no visible error message</h3><p>Submitting invalid credentials returned to the login page without a visible “credentials do not match” message. A separate retry with a known wrong password did show that message, indicating inconsistent or timing-dependent feedback.</p></article>
+
+<article class="finding low"><span class="status status-review">Reviewed</span><h3><span class="tag p4">P4</span>Portal test credential and typo exposure</h3><p>Superadmin Portal Customers displayed test login values (phone <code>9999999999</code>, OTP <code>123456</code>) and an existing customer email shown as <code>test@gmai.com</code>. Confirm whether these are intentionally seeded demo values.</p></article>
+
+<article class="finding low"><span class="status status-fixed">Fixed</span><h3><span class="tag p4">P4</span>Plans page GST field has stray percent text</h3><p>A stray <code>%</code> was visible beside the GST field on the Superadmin Plans page.</p></article>
+
+<article class="finding low"><span class="status status-review">Related hardening done</span><h3><span class="tag p4">P4</span>Superadmin error log contains 78 existing entries</h3><p>The log includes pre-existing timeout, SQL, and controller failures. These should be triaged separately from defects introduced by this audit.</p></article>
+
+<h2>Verified Working <span class="note">(original, unchanged)</span></h2>
+<div class="card"><ul class="columns">
+<li class="ok">Tenant creation and gated-module enablement</li>
+<li class="ok">Lead, contact, and deal creation</li>
+<li class="ok">Products, raw materials, stock, low-stock alert, and BOM setup</li>
+<li class="ok">Quotation creation, public quote view, and PDF download trigger</li>
+<li class="ok">Invoice creation, partial payment, balance calculation, and PDF download trigger</li>
+<li class="ok">Subscription creation</li>
+<li class="ok">Public appointment booking and appointment list</li>
+<li class="ok">Public ticket submission and reply portal</li>
+<li class="ok">Vendor bill creation and purchase-order draft creation</li>
+<li class="ok">Time entry start, stop, edit page, and list display</li>
+<li class="ok">Department, staff, and custom-role setup</li>
+<li class="ok">Dashboard counters, notifications, reports overview, audit log, and mobile-width layout checks</li>
+</ul></div>
+
+<h2>Test Data <span class="note">(original, unchanged)</span></h2>
+<div class="card"><ul>
+<li>Tenant: <code>Test Audit Business 20260926</code>, tenant ID 4, subdomain <code>testaudit2626</code>.</li>
+<li>Created records were prefixed with QA/test identifiers and belong to the new tenant only.</li>
+<li>Existing tenant <code>syntivo</code> was not modified.</li>
+<li>Cleanup has not been performed yet so the records remain available for retesting.</li>
+</ul>
+<p class="note">Note (2026-09-29): tenant ID 4 no longer exists in the dev database — it looks like this test tenant has already been cleaned up.</p>
+</div>
+
+<h2>Recommended Next Actions</h2>
+<div class="card"><ol>
+<li class="ok" style="text-decoration:line-through">Fix and retest the two hanging mutations first: purchase-request approval and work-order material issue. — done</li>
+<li class="ok" style="text-decoration:line-through">Fix server-side persistence for lead/contact/deal edits and add regression tests for omitted fields. — done</li>
+<li class="ok" style="text-decoration:line-through">Return redirects or user-facing status messages from time-entry start/stop endpoints. — done</li>
+<li class="ok" style="text-decoration:line-through">Align sidebar links with <code>/time-entries</code> and <code>/reports/overview</code>. — done</li>
+<li class="ok" style="text-decoration:line-through">Enforce server-side permissions consistently, especially create routes. — done</li>
+<li>Decide whether the test tenant and test records should be deleted after fixes are verified. — moot, tenant 4 is already gone</li>
+<li><strong>New:</strong> Reproduce and fix the Quotation/Invoice creation 500 — need exact error text/stack trace, which tenant, and whether a product/service was linked on the item row.</li>
+</ol></div>
+
+<div class="footer">Prepared from live browser verification using isolated QA data. This report records observed behavior, not a source-code review. Fix-progress section added 2026-09-29 after reviewing the actual code diffs and running the full regression suite (818 tests).</div>
+</main>
+</body>
+</html>

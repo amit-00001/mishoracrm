@@ -150,6 +150,9 @@
                 </div>
             </div>
 
+            {{-- Approved Meta template (WhatsApp Gateway numbers only) --}}
+            @include('tenant.whatsapp._meta-template-picker', ['metaTemplates' => $metaTemplates ?? [], 'bulk' => false])
+
             {{-- Message body with Quill --}}
             <div class="form-section">
                 <div class="fs-title">Message <span class="req">*</span></div>
@@ -279,6 +282,14 @@ function clearTemplate() {
     document.querySelectorAll('.tpl-chip').forEach(c => c.classList.remove('active'));
     document.getElementById('templateId').value = '';
     quillSend.setContents([]);
+    updatePreview();
+}
+
+// ── Approved template picked / cleared (see _meta-template-picker) ──
+// With a template the text is fixed by Meta, so the editor is locked.
+function onMetaTemplateChange(text) {
+    quillSend.enable(text === null);
+    quillSend.setText(text ?? '');
     updatePreview();
 }
 

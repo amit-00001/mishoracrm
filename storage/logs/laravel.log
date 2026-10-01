@@ -3604,3 +3604,209 @@ Content-Transfer-Encoding: quoted-printable
 #21 C:/Users/91812/Herd/MishoraCRM/artisan(13): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
 #22 {main}
 "} 
+[2026-10-01 20:09:32] testing.WARNING: Meta webhook: invalid signature for tenant 2  
+[2026-10-01 20:09:33] testing.INFO: Meta Lead Ads: imported 0 leads for tenant 3  
+[2026-10-01 20:27:03] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:27:03] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:27:04] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (6, 919876543210, Asha, hello, received, 2026-10-01 20:27:04, 2026-10-01 20:27:04, 2026-10-01 20:27:04))"} 
+[2026-10-01 20:27:05] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (7, 919876543210, Asha, hello, received, 2026-10-01 20:27:05, 2026-10-01 20:27:05, 2026-10-01 20:27:05))"} 
+[2026-10-01 20:27:06] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-01 20:27:08] testing.ERROR: WhatsApp gateway message failed {"tenant_id":12,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-01 20:27:10] testing.ERROR: WhatsApp gateway message failed {"tenant_id":14,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-01 20:27:11] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (15, 919876543210, Asha, hello, received, 2026-10-01 20:27:11, 2026-10-01 20:27:11, 2026-10-01 20:27:11))"} 
+[2026-10-01 20:34:06] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:34:07] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:34:07] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (6, 919876543210, Asha, hello, received, 2026-10-01 20:34:07, 2026-10-01 20:34:07, 2026-10-01 20:34:07))"} 
+[2026-10-01 20:34:09] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (7, 919876543210, Asha, hello, received, 2026-10-01 20:34:09, 2026-10-01 20:34:09, 2026-10-01 20:34:09))"} 
+[2026-10-01 20:34:09] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-01 20:34:11] testing.ERROR: WhatsApp gateway message failed {"tenant_id":12,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-01 20:34:12] testing.ERROR: WhatsApp gateway message failed {"tenant_id":14,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-01 20:34:12] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (15, 919876543210, Asha, hello, received, 2026-10-01 20:34:12, 2026-10-01 20:34:12, 2026-10-01 20:34:12))"} 
+[2026-10-01 20:51:57] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:51:57] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:51:57] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (6, 919876543210, Asha, hello, received, 2026-10-01 20:51:57, 2026-10-01 20:51:57, 2026-10-01 20:51:57))"} 
+[2026-10-01 20:51:57] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (7, 919876543210, Asha, hello, received, 2026-10-01 20:51:57, 2026-10-01 20:51:57, 2026-10-01 20:51:57))"} 
+[2026-10-01 20:51:58] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-01 20:51:59] testing.ERROR: WhatsApp gateway message failed {"tenant_id":12,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-01 20:51:59] testing.ERROR: WhatsApp gateway message failed {"tenant_id":14,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-01 20:52:00] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (15, 919876543210, Asha, hello, received, 2026-10-01 20:52:00, 2026-10-01 20:52:00, 2026-10-01 20:52:00))"} 
+[2026-10-01 20:52:05] testing.ERROR: Undefined constant "n" {"userId":12,"exception":"[object] (Spatie\\LaravelIgnition\\Exceptions\\ViewException(code: 0): Undefined constant \"n\" at C:/Users/91812/Herd/MishoraCRM/resources/views/tenant/whatsapp/_meta-template-picker.blade.php:39)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//91812//...')
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::Illuminate/Filesystem/{closure}()
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//91812//...', Array)
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//91812//...', Array)
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(209): Illuminate/View/Engines/CompilerEngine->get('C://Users//91812//...', Array)
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#7 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Response.php(79): Illuminate/View/View->render()
+#8 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Response.php(35): Illuminate/Http/Response->setContent(Object(Illuminate/View/View))
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(920): Illuminate/Http/Response->__construct(Object(Illuminate/View/View), 200, Array)
+#10 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(887): Illuminate/Routing/Router::toResponse(Object(Illuminate/Http/Request), Object(Illuminate/View/View))
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Routing/Router->prepareResponse(Object(Illuminate/Http/Request), Object(Illuminate/View/View))
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/spatie/laravel-permission/src/Middleware/PermissionMiddleware.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#14 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Spatie/Permission/Middleware/PermissionMiddleware->handle(Object(Illuminate/Http/Request), Object(Closure), 'whatsapp.send')
+#15 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#16 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#17 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#18 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#23 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#25 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#61 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(368): Illuminate/Foundation/Testing/TestCase->call('GET', 'https://saas-cr...', Array, Array, Array, Array)
+#62 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Webhooks/WhatsappGatewayTest.php(532): Illuminate/Foundation/Testing/TestCase->get('https://saas-cr...')
+#63 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Webhooks/WhatsappGatewayTest->test_send_form_offers_templates_only_to_gateway_numbers()
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Webhooks/WhatsappGatewayTest))
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestSuite->run()
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestSuite->run()
+#70 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#71 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#72 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#73 C:/Users/91812/Herd/MishoraCRM/vendor/bin/phpunit(122): include('C://Users//91812//...')
+#74 {main}
+
+[previous exception] [object] (Error(code: 0): Undefined constant \"n\" at C:/Users/91812/Herd/MishoraCRM/storage/framework/views/9c952740a16465d0bf9e14835038988d.php:32)
+[stacktrace]
+#0 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require()
+#1 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::Illuminate/Filesystem/{closure}()
+#2 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//91812//...', Array)
+#3 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//91812//...', Array)
+#4 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(209): Illuminate/View/Engines/CompilerEngine->get('C://Users//91812//...', Array)
+#5 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#6 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#7 C:/Users/91812/Herd/MishoraCRM/storage/framework/views/1b48ea099482fb9adbfe487859fcf871.php(157): Illuminate/View/View->render()
+#8 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('C://Users//91812//...')
+#9 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate/Filesystem/Filesystem::Illuminate/Filesystem/{closure}()
+#10 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(58): Illuminate/Filesystem/Filesystem->getRequire('C://Users//91812//...', Array)
+#11 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(75): Illuminate/View/Engines/PhpEngine->evaluatePath('C://Users//91812//...', Array)
+#12 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(209): Illuminate/View/Engines/CompilerEngine->get('C://Users//91812//...', Array)
+#13 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(192): Illuminate/View/View->getContents()
+#14 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/View.php(161): Illuminate/View/View->renderContents()
+#15 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Response.php(79): Illuminate/View/View->render()
+#16 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Response.php(35): Illuminate/Http/Response->setContent(Object(Illuminate/View/View))
+#17 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(920): Illuminate/Http/Response->__construct(Object(Illuminate/View/View), 200, Array)
+#18 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(887): Illuminate/Routing/Router::toResponse(Object(Illuminate/Http/Request), Object(Illuminate/View/View))
+#19 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Routing/Router->prepareResponse(Object(Illuminate/Http/Request), Object(Illuminate/View/View))
+#20 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Routing/Router->Illuminate/Routing/{closure}(Object(Illuminate/Http/Request))
+#21 C:/Users/91812/Herd/MishoraCRM/vendor/spatie/laravel-permission/src/Middleware/PermissionMiddleware.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#22 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Spatie/Permission/Middleware/PermissionMiddleware->handle(Object(Illuminate/Http/Request), Object(Closure), 'whatsapp.send')
+#23 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/CheckSubscription.php(29): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#24 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/CheckSubscription->handle(Object(Illuminate/Http/Request), Object(Closure))
+#25 C:/Users/91812/Herd/MishoraCRM/app/Http/Middleware/IdentifyTenant.php(19): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#26 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): App/Http/Middleware/IdentifyTenant->handle(Object(Illuminate/Http/Request), Object(Closure))
+#27 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(51): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#28 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Routing/Middleware/SubstituteBindings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#29 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(64): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#30 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Auth/Middleware/Authenticate->handle(Object(Illuminate/Http/Request), Object(Closure))
+#31 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(88): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#32 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/VerifyCsrfToken->handle(Object(Illuminate/Http/Request), Object(Closure))
+#33 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#34 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/View/Middleware/ShareErrorsFromSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#35 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#36 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate/Session/Middleware/StartSession->handleStatefulRequest(Object(Illuminate/Http/Request), Object(Illuminate/Session/Store), Object(Closure))
+#37 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Session/Middleware/StartSession->handle(Object(Illuminate/Http/Request), Object(Closure))
+#38 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#39 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse->handle(Object(Illuminate/Http/Request), Object(Closure))
+#40 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(75): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#41 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Cookie/Middleware/EncryptCookies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#42 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#43 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(807): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#44 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(786): Illuminate/Routing/Router->runRouteWithinStack(Object(Illuminate/Routing/Route), Object(Illuminate/Http/Request))
+#45 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(750): Illuminate/Routing/Router->runRoute(Object(Illuminate/Http/Request), Object(Illuminate/Routing/Route))
+#46 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Routing/Router.php(739): Illuminate/Routing/Router->dispatchToRoute(Object(Illuminate/Http/Request))
+#47 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(201): Illuminate/Routing/Router->dispatch(Object(Illuminate/Http/Request))
+#48 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(170): Illuminate/Foundation/Http/Kernel->Illuminate/Foundation/Http/{closure}(Object(Illuminate/Http/Request))
+#49 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#50 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#51 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull->handle(Object(Illuminate/Http/Request), Object(Closure))
+#52 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#53 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate/Foundation/Http/Middleware/TransformsRequest->handle(Object(Illuminate/Http/Request), Object(Closure))
+#54 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/TrimStrings->handle(Object(Illuminate/Http/Request), Object(Closure))
+#55 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#56 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/ValidatePostSize->handle(Object(Illuminate/Http/Request), Object(Closure))
+#57 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(110): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#58 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance->handle(Object(Illuminate/Http/Request), Object(Closure))
+#59 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(49): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#60 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/HandleCors->handle(Object(Illuminate/Http/Request), Object(Closure))
+#61 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#62 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Http/Middleware/TrustProxies->handle(Object(Illuminate/Http/Request), Object(Closure))
+#63 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#64 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(209): Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks->handle(Object(Illuminate/Http/Request), Object(Closure))
+#65 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(127): Illuminate/Pipeline/Pipeline->Illuminate/Pipeline/{closure}(Object(Illuminate/Http/Request))
+#66 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(176): Illuminate/Pipeline/Pipeline->then(Object(Closure))
+#67 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(145): Illuminate/Foundation/Http/Kernel->sendRequestThroughRouter(Object(Illuminate/Http/Request))
+#68 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
+#69 C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(368): Illuminate/Foundation/Testing/TestCase->call('GET', 'https://saas-cr...', Array, Array, Array, Array)
+#70 C:/Users/91812/Herd/MishoraCRM/tests/Feature/Webhooks/WhatsappGatewayTest.php(532): Illuminate/Foundation/Testing/TestCase->get('https://saas-cr...')
+#71 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(1548): Tests/Feature/Webhooks/WhatsappGatewayTest->test_send_form_offers_templates_only_to_gateway_numbers()
+#72 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(686): PHPUnit/Framework/TestCase->runTest()
+#73 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestRunner.php(106): PHPUnit/Framework/TestCase->runBare()
+#74 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestCase.php(516): PHPUnit/Framework/TestRunner->run(Object(Tests/Feature/Webhooks/WhatsappGatewayTest))
+#75 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestCase->run()
+#76 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestSuite->run()
+#77 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/Framework/TestSuite.php(374): PHPUnit/Framework/TestSuite->run()
+#78 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit/Framework/TestSuite->run()
+#79 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/src/TextUI/Application.php(204): PHPUnit/TextUI/TestRunner->run(Object(PHPUnit/TextUI/Configuration/Configuration), Object(PHPUnit/Runner/ResultCache/DefaultResultCache), Object(PHPUnit/Framework/TestSuite))
+#80 C:/Users/91812/Herd/MishoraCRM/vendor/phpunit/phpunit/phpunit(104): PHPUnit/TextUI/Application->run(Array)
+#81 C:/Users/91812/Herd/MishoraCRM/vendor/bin/phpunit(122): include('C://Users//91812//...')
+#82 {main}
+"} 
+[2026-10-01 20:52:59] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:52:59] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 20:53:00] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (6, 919876543210, Asha, hello, received, 2026-10-01 20:53:00, 2026-10-01 20:53:00, 2026-10-01 20:53:00))"} 
+[2026-10-01 20:53:00] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (7, 919876543210, Asha, hello, received, 2026-10-01 20:53:00, 2026-10-01 20:53:00, 2026-10-01 20:53:00))"} 
+[2026-10-01 20:53:00] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-01 20:53:01] testing.ERROR: WhatsApp gateway message failed {"tenant_id":12,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-01 20:53:02] testing.ERROR: WhatsApp gateway message failed {"tenant_id":14,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-01 20:53:02] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (15, 919876543210, Asha, hello, received, 2026-10-01 20:53:02, 2026-10-01 20:53:02, 2026-10-01 20:53:02))"} 
+[2026-10-01 21:03:33] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 21:03:33] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-01 21:03:33] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (6, 919876543210, Asha, hello, received, 2026-10-01 21:03:33, 2026-10-01 21:03:33, 2026-10-01 21:03:33))"} 
+[2026-10-01 21:03:34] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (7, 919876543210, Asha, hello, received, 2026-10-01 21:03:34, 2026-10-01 21:03:34, 2026-10-01 21:03:34))"} 
+[2026-10-01 21:03:34] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-01 21:03:35] testing.ERROR: WhatsApp gateway message failed {"tenant_id":12,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-01 21:03:36] testing.ERROR: WhatsApp gateway message failed {"tenant_id":14,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-01 21:03:36] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (15, 919876543210, Asha, hello, received, 2026-10-01 21:03:36, 2026-10-01 21:03:36, 2026-10-01 21:03:36))"} 

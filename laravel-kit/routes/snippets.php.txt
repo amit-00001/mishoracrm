@@ -1,0 +1,16 @@
+<?php
+// ───────────── paste into routes/web.php (inside your tenant-authenticated group) ─────────────
+use App\Http\Controllers\WhatsappConnectController;
+
+Route::middleware(['auth'])->prefix('settings/whatsapp')->group(function () {
+    Route::get('/',            [WhatsappConnectController::class, 'show'])->name('whatsapp.settings');
+    Route::post('/connect',    [WhatsappConnectController::class, 'connect'])->name('whatsapp.connect');
+    Route::get('/connected',   [WhatsappConnectController::class, 'connected'])->name('whatsapp.connected');   // return_url
+    Route::post('/disconnect', [WhatsappConnectController::class, 'disconnect'])->name('whatsapp.disconnect');
+});
+
+// ───────────── paste into routes/api.php (NOT web.php: no session, no CSRF) ─────────────
+use App\Http\Controllers\MilanWhatsappWebhookController;
+
+// Public URL to give Milan CRM:  https://your-product.com/api/hooks/whatsapp
+Route::post('/hooks/whatsapp', MilanWhatsappWebhookController::class)->name('whatsapp.webhook');

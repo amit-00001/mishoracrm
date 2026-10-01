@@ -166,6 +166,19 @@
             <span class="sb-label">Meta App</span>
         </a>
 
+        <a href="{{ route('superadmin.platform-settings.whatsapp-gateway') }}"
+           class="sb-item {{ request()->routeIs('superadmin.platform-settings.whatsapp-gateway*') ? 'active' : '' }}">
+            <span class="sb-icon">
+                <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+                </svg>
+            </span>
+            <span class="sb-label">WhatsApp Gateway</span>
+            @if(\App\Services\WhatsappGatewayClient::enabled())
+                <span style="margin-left:auto;background:var(--green-dim);color:var(--green);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;">ON</span>
+            @endif
+        </a>
+
     @else
         {{-- ════════════════ TENANT NAV ════════════════ --}}
         {{-- Main --}}
