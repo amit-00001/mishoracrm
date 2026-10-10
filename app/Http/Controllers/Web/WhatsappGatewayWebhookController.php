@@ -10,7 +10,7 @@ use App\Services\WhatsappInboundService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 // Receives the signed events the WhatsApp Gateway (Milan CRM) POSTs to us:
@@ -42,23 +42,32 @@ class WhatsappGatewayWebhookController extends Controller
         }
 
         // The same delivery can arrive twice (a retry after a slow 2xx) —
-        // process each delivery id once.
-        $deliveryId  = (string) ($request->header('X-Gateway-Delivery') ?: ($event['id'] ?? ''));
-        $deliveryKey = "wa_gateway_delivery:{$deliveryId}";
-        if ($deliveryId !== '' && !Cache::add($deliveryKey, true, now()->addDay())) {
-            return response()->json(['ok' => true, 'duplicate' => true]);
-        }
+        // process each event id once. The id is recorded in the same
+        // transaction as the handling, so a handling that throws rolls the id
+        // back too and the gateway's retry is processed instead of dropped.
+        $eventId = (string) ($event['id'] ?? $request->header('X-Gateway-Delivery') ?? '');
 
         try {
-            $this->dispatchEvent($event);
+            $duplicate = DB::transaction(function () use ($event, $eventId) {
+                if ($eventId !== '' && !DB::table('whatsapp_webhook_events')->insertOrIgnore([
+                    'event_id'   => $eventId,
+                    'event'      => $event['event'] ?? null,
+                    'created_at' => now(),
+                ])) {
+                    return true;
+                }
+
+                $this->dispatchEvent($event);
+
+                return false;
+            });
         } catch (\Throwable $e) {
             // Let the gateway retry this delivery.
-            Cache::forget($deliveryKey);
             Log::error('WhatsApp gateway event failed', ['event' => $event['event'] ?? null, 'error' => $e->getMessage()]);
             return response('Processing failed.', 500);
         }
 
-        return response()->json(['ok' => true]);
+        return response()->json($duplicate ? ['ok' => true, 'duplicate' => true] : ['ok' => true]);
     }
 
     private function dispatchEvent(array $event): void
@@ -77,6 +86,7 @@ class WhatsappGatewayWebhookController extends Controller
             'message.received'  => $this->messageReceived($setting, $data['message'] ?? []),
             'message.status'    => $this->messageStatus($setting, $data['message'] ?? []),
             'account.connected' => $this->accountConnected($setting, $data),
+            'account.update'    => $this->accountUpdate($setting, $data),
             // Meta approved / rejected a template — make the send forms re-read the list.
             'template.status'   => WhatsappGatewayClient::forgetTemplateCache($workspaceId),
             default             => Log::info('WhatsApp gateway event ignored', ['event' => $event['event'] ?? null, 'workspace' => $workspaceId]),
@@ -167,6 +177,31 @@ class WhatsappGatewayWebhookController extends Controller
         }
 
         WhatsappGatewayClient::applyConnection($setting, $data);
+
+        // warnings[] is a list of strings (or {message}) — surface the latest.
+        $warning = collect($data['warnings'] ?? [])
+            ->map(fn ($w) => is_array($w) ? ($w['message'] ?? null) : $w)
+            ->filter(fn ($w) => is_string($w) && $w !== '')
+            ->last();
+
+        if ($warning) {
+            WhatsappGatewayClient::applyWarning($setting, $warning);
+        }
+    }
+
+    // Something about the number changed on Meta's side. The one we act on is
+    // billing_issue ({code: 131042, message, fix_url}): template messages
+    // outside the 24h window show as "sent" but never arrive until billing is
+    // set up, so show the tenant admin the warning and Meta's fix link. An
+    // empty value means it was resolved. Other fields are only logged.
+    private function accountUpdate(WhatsappSetting $setting, array $data): void
+    {
+        if (($data['field'] ?? null) !== 'billing_issue') {
+            Log::info('WhatsApp gateway account update ignored', ['field' => $data['field'] ?? null, 'tenant' => $setting->tenant_id]);
+            return;
+        }
+
+        WhatsappGatewayClient::applyWarning($setting, $data['value'] ?? null);
     }
 
     private function errorText(mixed $error): ?string

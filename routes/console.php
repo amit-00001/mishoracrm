@@ -3,6 +3,7 @@
 use App\Jobs\SyncIndiaMartLeadsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -17,6 +18,12 @@ Schedule::command('leads:check-sla')->everyFifteenMinutes();
 
 // ── Follow-up due/overdue reminders — every 5 minutes ─────────────
 Schedule::command('followups:remind')->everyFiveMinutes();
+
+// ── WhatsApp Gateway dedupe ids — the gateway retries for 6h at most,
+// so a fortnight of event ids is plenty — daily ───────────────────
+Schedule::call(fn () => DB::table('whatsapp_webhook_events')->where('created_at', '<', now()->subDays(14))->delete())
+    ->name('whatsapp-gateway:prune-events')
+    ->dailyAt('03:30');
 
 // ── Invoice payment due/overdue reminders — daily ─────────────────
 Schedule::command('invoices:remind-payments')->daily();

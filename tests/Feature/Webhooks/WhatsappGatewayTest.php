@@ -10,8 +10,10 @@ use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
 use App\Services\WhatsappGatewayClient;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\SetsUpTenant;
 use Tests\TestCase;
@@ -241,6 +243,196 @@ class WhatsappGatewayTest extends TestCase
         $this->assertTrue($setting->viaGateway());
         $this->assertSame('PN9', $setting->phone_number_id);
         $this->assertSame('Acme Traders', $setting->verified_name);
+    }
+
+    // ── Event ids (DB dedupe) ────────────────────────────────────
+
+    public function test_each_event_id_is_recorded_once_in_the_database(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant);
+
+        $event = [
+            'id' => 'evt-once', 'event' => 'account.connected', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['connected' => true, 'display_phone_number' => '+91 1'],
+        ];
+
+        $this->signedPost($event)->assertOk()->assertJsonMissing(['duplicate' => true]);
+        $this->signedPost($event)->assertOk()->assertJson(['duplicate' => true]);
+
+        $this->assertSame(1, DB::table('whatsapp_webhook_events')->where('event_id', 'evt-once')->count());
+        $this->assertDatabaseHas('whatsapp_webhook_events', ['event_id' => 'evt-once', 'event' => 'account.connected']);
+    }
+
+    public function test_a_failed_handling_leaves_no_event_row_so_the_retry_is_processed(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        WhatsappSetting::create(['tenant_id' => $tenant->id, 'gateway_workspace_id' => 'tenant-' . $tenant->id]);
+
+        $fail = true;
+        WhatsappSetting::saving(function () use (&$fail) {
+            if ($fail) {
+                throw new \RuntimeException('database went away');
+            }
+        });
+
+        $event = [
+            'id' => 'evt-retry', 'event' => 'account.connected', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['connected' => true, 'display_phone_number' => '+91 2'],
+        ];
+
+        $this->signedPost($event)->assertStatus(500);
+        $this->assertDatabaseMissing('whatsapp_webhook_events', ['event_id' => 'evt-retry']);
+        $this->assertFalse(WhatsappSetting::forTenant($tenant->id)->is_connected);
+
+        // The gateway retries the same event id — now it goes through.
+        $fail = false;
+        $this->signedPost($event)->assertOk();
+        $this->assertDatabaseHas('whatsapp_webhook_events', ['event_id' => 'evt-retry']);
+        $this->assertTrue(WhatsappSetting::forTenant($tenant->id)->is_connected);
+    }
+
+    public function test_old_event_ids_are_pruned_by_the_daily_schedule(): void
+    {
+        DB::table('whatsapp_webhook_events')->insert([
+            ['event_id' => 'old', 'event' => 'x', 'created_at' => now()->subDays(20)],
+            ['event_id' => 'recent', 'event' => 'x', 'created_at' => now()->subDays(2)],
+        ]);
+
+        $prune = collect(app(Schedule::class)->events())->first(fn ($e) => $e->description === 'whatsapp-gateway:prune-events');
+        $this->assertNotNull($prune);
+        $prune->run(app());
+
+        $this->assertDatabaseMissing('whatsapp_webhook_events', ['event_id' => 'old']);
+        $this->assertDatabaseHas('whatsapp_webhook_events', ['event_id' => 'recent']);
+    }
+
+    // ── Billing warning (account.update) ─────────────────────────
+
+    private function billingIssue(Tenant $tenant, mixed $value, string $id = 'b-1'): array
+    {
+        return [
+            'id' => $id, 'event' => 'account.update', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['field' => 'billing_issue', 'value' => $value],
+        ];
+    }
+
+    public function test_billing_issue_shows_the_admin_a_warning_with_the_fix_link(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $admin  = $this->makeUser($tenant, 'tenant_admin');
+        $this->gatewaySetting($tenant);
+
+        $this->signedPost($this->billingIssue($tenant, [
+            'code' => 131042, 'message' => 'Add a payment method to send templates', 'fix_url' => 'https://business.facebook.com/billing',
+        ]))->assertOk();
+
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertSame('Add a payment method to send templates', $setting->gateway_warning);
+        $this->assertSame('https://business.facebook.com/billing', $setting->gateway_warning_url);
+
+        $this->actingAs($admin)->get(route('tenant.whatsapp.api-settings'))
+            ->assertOk()
+            ->assertSee('WhatsApp needs your attention')
+            ->assertSee('Add a payment method to send templates')
+            ->assertSee('href="https://business.facebook.com/billing"', false);
+    }
+
+    public function test_billing_warning_is_for_admins_only(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $staff  = $this->makeUser($tenant, 'staff');
+        $this->gatewaySetting($tenant, ['gateway_warning' => 'Billing needed']);
+
+        $this->actingAs($staff)->get(route('tenant.whatsapp.api-settings'))
+            ->assertOk()->assertDontSee('Billing needed');
+    }
+
+    public function test_billing_issue_is_cleared_when_resolved_and_a_non_https_link_is_dropped(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant);
+
+        $this->signedPost($this->billingIssue($tenant, ['code' => 131042, 'message' => 'Fix billing', 'fix_url' => 'javascript:alert(1)']))->assertOk();
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertSame('Fix billing', $setting->gateway_warning);
+        $this->assertNull($setting->gateway_warning_url);
+
+        $this->signedPost($this->billingIssue($tenant, null, 'b-2'))->assertOk();
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertNull($setting->gateway_warning);
+        $this->assertNull($setting->gateway_warning_url);
+    }
+
+    public function test_other_account_update_fields_leave_the_warning_alone(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant, ['gateway_warning' => 'Billing needed']);
+
+        $this->signedPost([
+            'id' => 'u-1', 'event' => 'account.update', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['field' => 'quality_rating', 'value' => 'YELLOW'],
+        ])->assertOk();
+
+        $this->assertSame('Billing needed', WhatsappSetting::forTenant($tenant->id)->gateway_warning);
+    }
+
+    public function test_account_connected_warnings_are_kept_for_the_admin(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        WhatsappSetting::create(['tenant_id' => $tenant->id, 'gateway_workspace_id' => 'tenant-' . $tenant->id]);
+
+        $this->signedPost([
+            'id' => 'w-1', 'event' => 'account.connected', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['connected' => true, 'warnings' => ['Display name is pending review']],
+        ])->assertOk();
+
+        $this->assertSame('Display name is pending review', WhatsappSetting::forTenant($tenant->id)->gateway_warning);
+    }
+
+    public function test_refreshing_status_syncs_the_billing_warning_and_clears_it_once_fixed(): void
+    {
+        $this->enableGateway();
+        $workspace = fn (array $whatsapp) => ['success' => true, 'data' => ['whatsapp' => [
+            'connected' => true, 'phone_number_id' => 'PN7', 'display_phone_number' => '+91 90000 00000',
+        ] + $whatsapp]];
+        Http::fake(['gw.test/*/workspaces/*' => Http::sequence()
+            ->push($workspace(['billing_issue' => true, 'billing_fix_url' => 'https://business.facebook.com/fix']), 200)
+            ->push($workspace([]), 200)]);
+
+        $tenant = $this->setUpTenant();
+        $admin  = $this->makeUser($tenant, 'tenant_admin');
+        WhatsappSetting::create(['tenant_id' => $tenant->id, 'gateway_workspace_id' => 'tenant-' . $tenant->id]);
+
+        $this->actingAs($admin)->post(route('tenant.whatsapp.gateway.sync'));
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertStringContainsString('billing', $setting->gateway_warning);
+        $this->assertSame('https://business.facebook.com/fix', $setting->gateway_warning_url);
+
+        $this->actingAs($admin)->post(route('tenant.whatsapp.gateway.sync'));
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertNull($setting->gateway_warning);
+        $this->assertNull($setting->gateway_warning_url);
+    }
+
+    public function test_disconnecting_clears_the_warning(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $setting = $this->gatewaySetting($tenant, ['gateway_warning' => 'Billing needed', 'gateway_warning_url' => 'https://business.facebook.com/fix']);
+
+        WhatsappGatewayClient::applyDisconnection($setting);
+
+        $setting = WhatsappSetting::forTenant($tenant->id);
+        $this->assertNull($setting->gateway_warning);
+        $this->assertNull($setting->gateway_warning_url);
     }
 
     // ── Sending ──────────────────────────────────────────────────

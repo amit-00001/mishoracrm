@@ -135,6 +135,14 @@ class WhatsappGatewayClient
         if (!empty($whatsapp['connected'])) {
             static::applyConnection($setting, $whatsapp);
 
+            // The workspace summary is the authoritative billing state, so this
+            // also clears a warning that has since been fixed.
+            static::applyWarning(
+                $setting,
+                $whatsapp['billing_issue'] ?? $res['data']['billing_issue'] ?? null,
+                $whatsapp['billing_fix_url'] ?? $res['data']['billing_fix_url'] ?? null
+            );
+
             // The workspace summary may not carry the number details — the
             // account endpoint does, so top up from it.
             if (blank($setting->display_phone_number)) {
@@ -208,6 +216,39 @@ class WhatsappGatewayClient
         $setting->waba_id              = null;
         $setting->display_phone_number = null;
         $setting->verified_name        = null;
+        $setting->gateway_warning      = null;
+        $setting->gateway_warning_url  = null;
+        $setting->save();
+    }
+
+    // Records (or clears) the gateway's warning for a number — the 131042
+    // billing issue arrives as {code, message, fix_url}, but a plain string or
+    // a bare "true" with a separate $fixUrl is accepted too; empty clears it.
+    // The values come off the wire and end up in a link, so only an https fix
+    // URL is kept (Blade escapes the message itself).
+    public static function applyWarning(WhatsappSetting $setting, mixed $issue, mixed $fixUrl = null): void
+    {
+        if ($issue === []) {
+            $issue = null;
+        }
+
+        if (is_array($issue)) {
+            $fixUrl = $issue['fix_url'] ?? $fixUrl;
+            $issue  = $issue['message'] ?? (isset($issue['code']) ? "WhatsApp reported error {$issue['code']}." : true);
+        }
+
+        if (blank($issue) || $issue === false) {
+            $setting->gateway_warning     = null;
+            $setting->gateway_warning_url = null;
+        } else {
+            $setting->gateway_warning     = $issue === true
+                ? "WhatsApp can't deliver your template messages until billing is set up on your WhatsApp Business Account."
+                : mb_substr((string) $issue, 0, 500);
+            $setting->gateway_warning_url = is_string($fixUrl) && str_starts_with($fixUrl, 'https://')
+                ? mb_substr($fixUrl, 0, 500)
+                : null;
+        }
+
         $setting->save();
     }
 

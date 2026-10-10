@@ -38,6 +38,16 @@
     <div class="alert alert-{{ $notice[0] === 'success' ? 'success' : 'error' }}" style="margin-bottom:20px;">{{ $notice[1] }}</div>
 @endif
 
+{{-- Raised by the gateway's account.update (billing_issue) event — admins only --}}
+@if($settings->is_connected && $settings->gateway_warning && auth()->user()->user_type === 'tenant_admin')
+    <div class="alert alert-error" style="margin-bottom:20px;">
+        <strong>WhatsApp needs your attention.</strong> {{ $settings->gateway_warning }}
+        @if($settings->gateway_warning_url)
+            <a href="{{ $settings->gateway_warning_url }}" target="_blank" rel="noopener noreferrer" style="font-weight:600;text-decoration:underline;">Fix it on Meta →</a>
+        @endif
+    </div>
+@endif
+
 <div class="gw-card">
     <div class="gw-card-head">
         <div class="gw-card-title">

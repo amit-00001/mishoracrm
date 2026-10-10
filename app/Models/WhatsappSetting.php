@@ -11,6 +11,8 @@ class WhatsappSetting extends Model
         'tenant_id',
         'connection_mode',
         'gateway_workspace_id',
+        'gateway_warning',
+        'gateway_warning_url',
         'phone_number_id',
         'waba_id',
         'display_phone_number',
