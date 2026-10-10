@@ -165,7 +165,7 @@
                     <td style="font-size:12.5px;color:var(--text-200)" data-label="Sent By">{{ $log->sentBy?->name ?? '—' }}</td>
                     <td style="font-size:11.5px;color:var(--text-400);font-family:var(--mono)" data-label="Time">{{ $log->created_at->diffForHumans() }}</td>
                     <td data-label="Status">
-                        @php $sc = match($log->status) { 'sent'=>['green','Sent'], 'failed'=>['red','Failed'], 'pending'=>['amber','Pending'], default=>['text-300','—'] }; @endphp
+                        @php $sc = match($log->status) { 'sent'=>['green','Sent'], 'delivered'=>['green','Delivered'], 'received'=>['green','Received'], 'failed'=>['red','Failed'], 'pending'=>['amber','Pending'], default=>['text-300','—'] }; @endphp
                         <span style="background:var(--{{ $sc[0] }}-dim);color:var(--{{ $sc[0] }});font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">
                             {{ $sc[1] }}
                         </span>
@@ -179,7 +179,7 @@
     {{-- Mobile card list (shown only <768px, table above hides itself) --}}
     <div class="wa-mobile-list">
     @foreach($recentLogs as $log)
-    @php $sc = match($log->status) { 'sent'=>['green','Sent'], 'failed'=>['red','Failed'], 'pending'=>['amber','Pending'], default=>['text-300','—'] }; @endphp
+    @php $sc = match($log->status) { 'sent'=>['green','Sent'], 'delivered'=>['green','Delivered'], 'received'=>['green','Received'], 'failed'=>['red','Failed'], 'pending'=>['amber','Pending'], default=>['text-300','—'] }; @endphp
     <div class="wa-card">
         <div class="wa-top">
             <div style="min-width:0">

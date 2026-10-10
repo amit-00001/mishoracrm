@@ -430,19 +430,35 @@ class WhatsappGatewayClient
     // secret, rejecting anything older (or newer) than 5 minutes — replay guard.
     public static function verifySignature(string $rawBody, ?string $timestamp, ?string $signature): bool
     {
+        return static::signatureProblem($rawBody, $timestamp, $signature) === null;
+    }
+
+    // Why a webhook would be refused, in words the superadmin can act on
+    // (null = the signature is fine). The three real-world causes — no secret
+    // saved here, a secret that differs from the gateway client's, and a
+    // server clock more than 5 minutes off — each get their own message.
+    public static function signatureProblem(string $rawBody, ?string $timestamp, ?string $signature): ?string
+    {
         $secret = (string) PlatformSetting::get('wa_gateway_webhook_secret');
 
-        if ($secret === '' || !$timestamp || !$signature || !ctype_digit($timestamp)) {
-            return false;
+        if ($secret === '') {
+            return 'no webhook secret is saved in Superadmin → WhatsApp Gateway';
         }
 
-        if (abs(time() - (int) $timestamp) > 300) {
-            return false;
+        if (!$timestamp || !$signature || !ctype_digit($timestamp)) {
+            return 'the request has no valid X-Gateway-Timestamp / X-Gateway-Signature headers (not sent by the gateway)';
+        }
+
+        $skew = abs(time() - (int) $timestamp);
+        if ($skew > 300) {
+            return "the timestamp is {$skew}s away from this server's clock (limit 300s) — a stale replay or a wrong server clock";
         }
 
         $expected = 'sha256=' . hash_hmac('sha256', $timestamp . '.' . $rawBody, $secret);
 
-        return hash_equals($expected, $signature);
+        return hash_equals($expected, $signature)
+            ? null
+            : 'the signature does not match — the webhook secret saved here differs from the gateway client\'s secret';
     }
 
     // ── Internals ─────────────────────────────────────────────────

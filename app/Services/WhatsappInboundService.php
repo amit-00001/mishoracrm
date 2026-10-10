@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ErrorLog;
 use App\Models\Quotation;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
@@ -46,6 +47,9 @@ class WhatsappInboundService
                 (new WhatsappChatbotService($setting))->handleIncomingMessage($waId, $messageText, $contactName, $buttonId);
             } catch (\Throwable $e) {
                 Log::error('WhatsApp inbound processing failed', ['error' => $e->getMessage()]);
+                // Swallowed so the webhook still answers 2xx — but a chatbot that
+                // dies here would otherwise be invisible, so show it in Error Logs.
+                ErrorLog::capture($e);
             }
         }
     }

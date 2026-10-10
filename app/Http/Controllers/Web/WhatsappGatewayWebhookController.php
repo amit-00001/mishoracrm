@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\ErrorLog;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappGatewayClient;
@@ -10,8 +11,10 @@ use App\Services\WhatsappInboundService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 // Receives the signed events the WhatsApp Gateway (Milan CRM) POSTs to us:
 // message.received, message.status, account.connected (+ template.status /
@@ -31,8 +34,10 @@ class WhatsappGatewayWebhookController extends Controller
 
         $rawBody = $request->getContent();
 
-        if (!WhatsappGatewayClient::verifySignature($rawBody, $request->header('X-Gateway-Timestamp'), $request->header('X-Gateway-Signature'))) {
-            Log::warning('WhatsApp gateway webhook rejected: bad signature');
+        $problem = WhatsappGatewayClient::signatureProblem($rawBody, $request->header('X-Gateway-Timestamp'), $request->header('X-Gateway-Signature'));
+        if ($problem !== null) {
+            Log::warning('WhatsApp gateway webhook rejected: bad signature', ['reason' => $problem]);
+            $this->noteProblem('signature', 401, "WhatsApp gateway webhook rejected: {$problem}");
             return response('Invalid signature.', 401);
         }
 
@@ -64,10 +69,22 @@ class WhatsappGatewayWebhookController extends Controller
         } catch (\Throwable $e) {
             // Let the gateway retry this delivery.
             Log::error('WhatsApp gateway event failed', ['event' => $event['event'] ?? null, 'error' => $e->getMessage()]);
+            ErrorLog::capture($e, $request);
             return response('Processing failed.', 500);
         }
 
         return response()->json($duplicate ? ['ok' => true, 'duplicate' => true] : ['ok' => true]);
+    }
+
+    // Puts a webhook problem in Superadmin → Error Logs — the production log
+    // file isn't reachable there, so otherwise a rejected or ignored event
+    // (and with it a silent chatbot) can't be diagnosed. The endpoint is
+    // public, so each distinct problem is recorded at most once per 10 minutes.
+    private function noteProblem(string $key, int $status, string $message): void
+    {
+        if (Cache::add("wa_gateway_problem:{$key}", true, now()->addMinutes(10))) {
+            ErrorLog::capture(new HttpException($status, $message), request());
+        }
     }
 
     private function dispatchEvent(array $event): void
@@ -77,6 +94,7 @@ class WhatsappGatewayWebhookController extends Controller
 
         if (!$setting) {
             Log::info('WhatsApp gateway event for an unknown workspace', ['workspace' => $workspaceId, 'event' => $event['event'] ?? null]);
+            $this->noteProblem("workspace:{$workspaceId}", 422, "WhatsApp gateway event '" . ($event['event'] ?? '?') . "' ignored: no tenant has gateway workspace '{$workspaceId}' (the number is connected under a different workspace id than the CRM stored)");
             return;
         }
 

@@ -3828,3 +3828,22 @@ Content-Transfer-Encoding: quoted-printable
 [2026-10-10 23:41:15] testing.ERROR: WhatsApp gateway message failed {"tenant_id":21,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
 [2026-10-10 23:41:16] testing.ERROR: WhatsApp gateway message failed {"tenant_id":23,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
 [2026-10-10 23:41:17] testing.ERROR: WA log create failed {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, SQL: insert into `whatsapp_logs` (`tenant_id`, `to_phone`, `to_name`, `message`, `status`, `sent_at`, `updated_at`, `created_at`) values (24, 919876543210, Asha, hello, received, 2026-10-10 23:41:17, 2026-10-10 23:41:17, 2026-10-10 23:41:17))"} 
+[2026-10-11 00:09:25] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-11 00:09:25] testing.WARNING: WhatsApp gateway webhook rejected: bad signature  
+[2026-10-11 00:09:28] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 00:09:31] testing.ERROR: WhatsApp gateway event failed {"event":"account.connected","error":"database went away"} 
+[2026-10-11 00:09:34] testing.INFO: WhatsApp gateway account update ignored {"field":"quality_rating","tenant":18} 
+[2026-10-11 00:09:36] testing.ERROR: WhatsApp gateway message failed {"tenant_id":22,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-11 00:09:38] testing.ERROR: WhatsApp gateway message failed {"tenant_id":24,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-11 00:17:02] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 00:17:02] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 00:17:05] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 00:17:06] testing.ERROR: WhatsApp gateway event failed {"event":"account.connected","error":"database went away"} 
+[2026-10-11 00:17:06] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 00:17:06] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 00:17:06] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 00:17:07] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 00:17:07] testing.ERROR: WhatsApp inbound processing failed {"error":"chatbot session store is broken"} 
+[2026-10-11 00:17:08] testing.INFO: WhatsApp gateway account update ignored {"field":"quality_rating","tenant":21} 
+[2026-10-11 00:17:10] testing.ERROR: WhatsApp gateway message failed {"tenant_id":25,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-11 00:17:10] testing.ERROR: WhatsApp gateway message failed {"tenant_id":27,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 

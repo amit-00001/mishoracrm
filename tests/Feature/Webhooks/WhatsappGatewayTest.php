@@ -3,9 +3,11 @@
 namespace Tests\Feature\Webhooks;
 
 use App\Models\Contact;
+use App\Models\ErrorLog;
 use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use App\Models\WhatsappChatbotFlow;
+use App\Models\WhatsappChatbotSession;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
@@ -153,6 +155,20 @@ class WhatsappGatewayTest extends TestCase
         ]);
     }
 
+    public function test_an_inbound_message_is_saved_to_the_whatsapp_log(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant);
+
+        $this->signedPost($this->received($tenant, 'need a quote'))->assertOk();
+
+        $this->assertDatabaseHas('whatsapp_logs', [
+            'tenant_id' => $tenant->id, 'to_phone' => '919876543210', 'to_name' => 'Asha',
+            'message' => 'need a quote', 'status' => 'received',
+        ]);
+    }
+
     public function test_a_redelivered_event_is_processed_once(): void
     {
         $this->enableGateway();
@@ -284,6 +300,7 @@ class WhatsappGatewayTest extends TestCase
         ];
 
         $this->signedPost($event)->assertStatus(500);
+        $this->assertDatabaseHas('error_logs', ['message' => 'database went away']);
         $this->assertDatabaseMissing('whatsapp_webhook_events', ['event_id' => 'evt-retry']);
         $this->assertFalse(WhatsappSetting::forTenant($tenant->id)->is_connected);
 
@@ -307,6 +324,57 @@ class WhatsappGatewayTest extends TestCase
 
         $this->assertDatabaseMissing('whatsapp_webhook_events', ['event_id' => 'old']);
         $this->assertDatabaseHas('whatsapp_webhook_events', ['event_id' => 'recent']);
+    }
+
+    // ── Problems are visible in Superadmin → Error Logs ──────────
+
+    public function test_a_rejected_webhook_is_recorded_in_error_logs_with_the_reason(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant);
+
+        // Secret differs from the gateway client's.
+        $this->signedPost($this->received($tenant, 'hi'), null, 'some-other-secret')->assertStatus(401);
+        $this->assertDatabaseHas('error_logs', ['http_status' => 401]);
+        $this->assertStringContainsString('webhook secret', ErrorLog::latest('id')->first()->message);
+
+        // The endpoint is public — the same problem isn't recorded again within 10 minutes.
+        $this->signedPost($this->received($tenant, 'hi', 'd-2'), null, 'some-other-secret')->assertStatus(401);
+        $this->assertSame(1, ErrorLog::count());
+
+        // A different cause gets its own wording: the server clock / a stale request.
+        Cache::flush();
+        $this->signedPost($this->received($tenant, 'hi', 'd-3'), time() - 3600)->assertStatus(401);
+        $this->assertStringContainsString('clock', ErrorLog::latest('id')->first()->message);
+    }
+
+    public function test_an_event_for_an_unknown_workspace_is_recorded_in_error_logs(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+
+        $event = $this->received($tenant, 'hi');
+        $event['workspace']['id'] = 'tenant-9999';
+
+        $this->signedPost($event)->assertOk();
+
+        $this->assertStringContainsString('tenant-9999', ErrorLog::latest('id')->first()->message);
+    }
+
+    public function test_a_chatbot_crash_is_recorded_in_error_logs_but_still_acknowledged(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+
+        WhatsappChatbotSession::creating(function () {
+            throw new \RuntimeException('chatbot session store is broken');
+        });
+
+        $this->signedPost($this->received($tenant, 'hello'))->assertOk();
+
+        $this->assertDatabaseHas('error_logs', ['message' => 'chatbot session store is broken']);
     }
 
     // ── Billing warning (account.update) ─────────────────────────
