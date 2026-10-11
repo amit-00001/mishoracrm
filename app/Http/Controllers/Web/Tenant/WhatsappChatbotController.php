@@ -387,31 +387,10 @@ class WhatsappChatbotController extends Controller
     // ── Chatbot Flows — store ─────────────────────────────────────
     public function storeFlow(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name'                        => ['required', 'string', 'max:255'],
-            'trigger_keywords'            => ['required', 'string'],
-            'keyword_match'               => ['required', 'in:any,exact,contains'],
-            'response_message'            => ['required', 'string', 'max:4096'],
-            'action'                      => ['nullable', 'in:loyalty_join,loyalty_balance,book_appointment,raise_ticket'],
-            'is_default'                  => ['nullable'],
-            'quick_replies'               => ['nullable', 'array', 'max:3'],
-            'quick_replies.*.title'       => ['nullable', 'string', 'max:20'],
-            'quick_replies.*.next_flow_id'=> ['nullable', 'integer'],
-        ]);
+        $request->validate($this->flowRules());
 
-        $keywords = array_map('trim', explode(',', $request->trigger_keywords));
-
-        WhatsappChatbotFlow::create([
-            'tenant_id'        => $this->tenantId(),
-            'name'             => $request->name,
-            'trigger_keywords' => $keywords,
-            'keyword_match'    => $request->keyword_match,
-            'response_message' => $request->response_message,
-            'action'           => $request->action ?: null,
-            'quick_replies'    => $this->buildQuickReplies($request),
-            'is_default'       => (bool) $request->is_default,
-            'is_active'        => true,
-        ]);
+        $flow = WhatsappChatbotFlow::create(['tenant_id' => $this->tenantId(), 'is_active' => true] + $this->flowAttributes($request));
+        $this->keepOneWelcome($flow);
 
         return back()->with('success', 'Chatbot flow created.');
     }
@@ -422,52 +401,195 @@ class WhatsappChatbotController extends Controller
         $flow = WhatsappChatbotFlow::where('id', $id)
             ->where('tenant_id', $this->tenantId())->firstOrFail();
 
-        $request->validate([
-            'name'                        => ['required', 'string', 'max:255'],
-            'trigger_keywords'            => ['required', 'string'],
-            'keyword_match'               => ['required', 'in:any,exact,contains'],
-            'response_message'            => ['required', 'string', 'max:4096'],
-            'action'                      => ['nullable', 'in:loyalty_join,loyalty_balance,book_appointment,raise_ticket'],
-            'is_default'                  => ['nullable'],
-            'quick_replies'               => ['nullable', 'array', 'max:3'],
-            'quick_replies.*.title'       => ['nullable', 'string', 'max:20'],
-            'quick_replies.*.next_flow_id'=> ['nullable', 'integer'],
-        ]);
+        $request->validate($this->flowRules());
 
-        $keywords = array_map('trim', explode(',', $request->trigger_keywords));
-
-        $flow->update([
-            'name'             => $request->name,
-            'trigger_keywords' => $keywords,
-            'keyword_match'    => $request->keyword_match,
-            'response_message' => $request->response_message,
-            'action'           => $request->action ?: null,
-            'quick_replies'    => $this->buildQuickReplies($request),
-            'is_default'       => (bool) $request->is_default,
-        ]);
+        $flow->update($this->flowAttributes($request));
+        $this->keepOneWelcome($flow);
 
         return back()->with('success', 'Chatbot flow updated.');
     }
 
+    // ── Chatbot Flows — duplicate ─────────────────────────────────
+    // A copy starts switched off and is neither default nor welcome, so
+    // duplicating a live flow never changes what customers get.
+    public function duplicateFlow(int $id): RedirectResponse
+    {
+        $flow = WhatsappChatbotFlow::where('id', $id)
+            ->where('tenant_id', $this->tenantId())->firstOrFail();
+
+        $copy = $flow->replicate(['triggered_count', 'canvas_x', 'canvas_y']);
+        $copy->name       = Str::limit($flow->name, 240, '') . ' (copy)';
+        $copy->is_default = false;
+        $copy->is_welcome = false;
+        $copy->is_active  = false;
+        $copy->save();
+
+        return back()->with('success', 'Flow duplicated — switch it on when it is ready.');
+    }
+
+    // ── Chatbot Flows — "which flow would answer this message?" ────
+    // Uses the very same matching the live bot uses, so the admin can try
+    // wording (typos, Hindi, a long sentence) without messaging the number.
+    public function testFlow(Request $request): JsonResponse
+    {
+        $request->validate(['text' => ['required', 'string', 'max:500']]);
+
+        $flows = WhatsappChatbotFlow::where('tenant_id', $this->tenantId())
+            ->where('is_active', true)->orderBy('sort_order')->get();
+
+        $best = WhatsappChatbotFlow::best($flows, $request->text);
+
+        if ($best) {
+            return response()->json(['flow' => $best['flow']->name, 'why' => 'Keyword match', 'type' => $best['flow']->effectiveReplyType()]);
+        }
+
+        $settings = WhatsappSetting::forTenant($this->tenantId());
+
+        if (!$settings->isOpenNow()) {
+            return response()->json(['flow' => null, 'why' => 'No keyword matched and you are outside business hours — the after-hours message is sent.']);
+        }
+
+        $welcome = $flows->firstWhere('is_welcome', true);
+        $default = $flows->firstWhere('is_default', true);
+
+        if ($welcome) {
+            return response()->json(['flow' => $welcome->name, 'why' => 'No keyword matched — a new customer gets the welcome flow' . ($default ? " (a returning one gets “{$default->name}”)" : ' (a returning one gets no reply)'), 'type' => $welcome->effectiveReplyType()]);
+        }
+
+        return $default
+            ? response()->json(['flow' => $default->name, 'why' => 'No keyword matched — the default flow answers', 'type' => $default->effectiveReplyType()])
+            : response()->json(['flow' => null, 'why' => 'No keyword matched and there is no default flow — the bot stays silent.']);
+    }
+
+    // ── Business hours + after-hours message ──────────────────────
+    public function saveHours(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'hours_enabled'       => ['nullable', 'boolean'],
+            'hours_start'         => ['required_if:hours_enabled,1', 'nullable', 'date_format:H:i'],
+            'hours_end'           => ['required_if:hours_enabled,1', 'nullable', 'date_format:H:i'],
+            'hours_days'          => ['nullable', 'array'],
+            'hours_days.*'        => ['integer', 'between:0,6'],
+            'after_hours_message' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $settings = WhatsappSetting::forTenant($this->tenantId());
+        $settings->tenant_id           = $this->tenantId();
+        $settings->hours_enabled       = (bool) $request->hours_enabled;
+        $settings->hours_start         = $request->input('hours_start') ?: '09:00';
+        $settings->hours_end           = $request->input('hours_end') ?: '18:00';
+        $settings->hours_days          = array_values(array_map('intval', $request->input('hours_days', []))) ?: [1, 2, 3, 4, 5];
+        $settings->after_hours_message = $request->input('after_hours_message');
+        if (!$settings->webhook_verify_token) $settings->webhook_verify_token = Str::random(32);
+        $settings->save();
+
+        return back()->with('success', 'Business hours saved.');
+    }
+
+    private function flowRules(): array
+    {
+        return [
+            'name'                         => ['required', 'string', 'max:255'],
+            'trigger_keywords'             => ['required_without_all:is_default,is_welcome', 'nullable', 'string'],
+            'keyword_match'                => ['required', 'in:any,exact,contains'],
+            'response_message'             => ['required', 'string', 'max:4096'],
+            'action'                       => ['nullable', 'in:loyalty_join,loyalty_balance,book_appointment,raise_ticket'],
+            'is_default'                   => ['nullable'],
+            'is_welcome'                   => ['nullable'],
+            'reply_type'                   => ['nullable', 'in:' . implode(',', WhatsappChatbotFlow::REPLY_TYPES)],
+            'header_text'                  => ['nullable', 'string', 'max:60'],
+            'footer_text'                  => ['nullable', 'string', 'max:60'],
+            'list_button_text'             => ['nullable', 'string', 'max:20'],
+            'media_type'                   => ['nullable', 'in:' . implode(',', WhatsappChatbotFlow::MEDIA_TYPES)],
+            'media_url'                    => ['nullable', 'url:https', 'max:500'],
+            'quick_replies'                => ['nullable', 'array', 'max:10'],
+            'quick_replies.*.title'        => ['nullable', 'string', 'max:24'],
+            'quick_replies.*.description'  => ['nullable', 'string', 'max:72'],
+            'quick_replies.*.url'          => ['nullable', 'url:https', 'max:500'],
+            'quick_replies.*.next_flow_id' => ['nullable', 'integer'],
+        ];
+    }
+
+    private function flowAttributes(Request $request): array
+    {
+        $type     = $request->input('reply_type') ?: null;
+        $mediaUrl = $request->input('media_url') ?: null;
+
+        return [
+            'name'             => $request->name,
+            'trigger_keywords' => array_values(array_filter(array_map('trim', explode(',', (string) $request->trigger_keywords)), 'strlen')),
+            'keyword_match'    => $request->keyword_match,
+            'response_message' => $request->response_message,
+            'action'           => $request->action ?: null,
+            'reply_type'       => $type,
+            'header_text'      => $request->input('header_text') ?: null,
+            'footer_text'      => $request->input('footer_text') ?: null,
+            'list_button_text' => $request->input('list_button_text') ?: null,
+            'media_url'        => $mediaUrl,
+            'media_type'       => $mediaUrl ? ($request->input('media_type') ?: $this->mediaTypeFromUrl($mediaUrl)) : null,
+            'quick_replies'    => $this->buildQuickReplies($request, $type),
+            'is_default'       => (bool) $request->is_default,
+            'is_welcome'       => (bool) $request->is_welcome,
+        ];
+    }
+
+    // Only one welcome flow per tenant — saving a new one retires the old.
+    private function keepOneWelcome(WhatsappChatbotFlow $flow): void
+    {
+        if ($flow->is_welcome) {
+            WhatsappChatbotFlow::where('tenant_id', $this->tenantId())
+                ->where('id', '!=', $flow->id)->update(['is_welcome' => false]);
+        }
+    }
+
+    private function mediaTypeFromUrl(string $url): string
+    {
+        $ext = strtolower(pathinfo((string) parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+
+        return match (true) {
+            in_array($ext, ['mp4', '3gp', 'mov'], true) => 'video',
+            in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true) => 'image',
+            default => 'document',
+        };
+    }
+
     // ── Chatbot Flows — build quick_replies payload ────────────────
-    // Drops empty rows and strips any next_flow_id that doesn't belong to
-    // this tenant (defends against a tampered/stale form submission).
-    private function buildQuickReplies(Request $request): ?array
+    // What the rows mean depends on the reply type: ≤ 3 buttons, ≤ 10 list
+    // rows (with a description), or one URL button. Drops empty rows and
+    // strips any next_flow_id that doesn't belong to this tenant (defends
+    // against a tampered / stale form submission).
+    private function buildQuickReplies(Request $request, ?string $type): ?array
     {
         $rows = $request->input('quick_replies', []);
-        if (!is_array($rows) || empty($rows)) return null;
+        if ($type === 'text' || !is_array($rows) || empty($rows)) return null;
 
         $validFlowIds = WhatsappChatbotFlow::where('tenant_id', $this->tenantId())->pluck('id')->all();
 
+        $limit = match ($type) { 'list' => 10, 'link' => 1, default => 3 };
+        $max   = $type === 'list' ? 24 : 20;
+
         $quickReplies = [];
-        foreach (array_slice($rows, 0, 3) as $row) {
+        foreach ($rows as $row) {
             $title = trim((string) ($row['title'] ?? ''));
             if ($title === '') continue;
+
+            if ($type === 'link') {
+                $url = trim((string) ($row['url'] ?? ''));
+                if ($url === '') continue;
+                $quickReplies[] = ['title' => mb_substr($title, 0, 20), 'url' => $url];
+                continue;
+            }
 
             $nextFlowId = $row['next_flow_id'] ?? null;
             $nextFlowId = ($nextFlowId && in_array((int) $nextFlowId, $validFlowIds, true)) ? (int) $nextFlowId : null;
 
-            $quickReplies[] = ['title' => $title, 'next_flow_id' => $nextFlowId];
+            $item = ['title' => mb_substr($title, 0, $max), 'next_flow_id' => $nextFlowId];
+            if ($type === 'list' && filled($row['description'] ?? null)) {
+                $item['description'] = mb_substr(trim((string) $row['description']), 0, 72);
+            }
+
+            $quickReplies[] = $item;
+            if (count($quickReplies) >= $limit) break;
         }
 
         return $quickReplies ?: null;

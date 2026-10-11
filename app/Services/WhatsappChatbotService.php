@@ -8,6 +8,7 @@ use App\Models\WhatsappChatbotFlow;
 use App\Models\WhatsappChatbotSession;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -221,6 +222,10 @@ class WhatsappChatbotService
         if (!$this->settings->chatbot_enabled) return false;
 
         $session = WhatsappChatbotSession::getOrCreate($this->settings->tenant_id, $waId, $contactName);
+        // Read before the update below: a first-time customer, or one who has been
+        // away for half a day, deserves the welcome flow when nothing else matches.
+        $isNew = $session->wasRecentlyCreated
+            || ($session->last_message_at && $session->last_message_at->lt(now()->subHours(12)));
         $session->update(['last_message_at' => now()]);
 
         $matchedFlow = null;
@@ -241,16 +246,22 @@ class WhatsappChatbotService
                 ->orderBy('is_default') // non-default first
                 ->get();
 
-            foreach ($flows as $flow) {
-                if (!$flow->is_default && $flow->matches($messageText)) {
-                    $matchedFlow = $flow;
-                    break;
-                }
-            }
+            // The best-scoring flow answers (exact > phrase > word > typo), so a
+            // specific "refund price" flow beats a general "price" one.
+            $matchedFlow = WhatsappChatbotFlow::best($flows, $messageText)['flow'] ?? null;
 
-            // Fallback to default
+            // Nothing matched. Outside business hours say so; otherwise greet a
+            // new customer with the welcome flow, else fall back to the default.
             if (!$matchedFlow) {
-                $matchedFlow = $flows->firstWhere('is_default', true);
+                if (!$this->settings->isOpenNow()) {
+                    return $this->sendAfterHours($waId, $contactName);
+                }
+
+                if ($isNew) {
+                    $matchedFlow = $flows->firstWhere('is_welcome', true);
+                }
+
+                $matchedFlow ??= $flows->firstWhere('is_default', true);
             }
         }
 
@@ -292,15 +303,74 @@ class WhatsappChatbotService
                 break;
         }
 
-        // Flows with quick-reply buttons configured get sent as an interactive
-        // message; every other flow keeps sending plain text exactly as before.
-        if (!empty($matchedFlow->quick_replies)) {
-            $ok = $this->sendInteractiveButtons($waId, $body, $matchedFlow->quick_replies);
-            $this->recordLog($waId, $contactName, $body, $ok);
-            return $ok;
+        return $this->deliverFlow($matchedFlow, $waId, $body, $contactName);
+    }
+
+    // "We're closed" — once per customer per 6 hours, so a chatty customer
+    // isn't answered with the same notice every message.
+    private function sendAfterHours(string $waId, ?string $contactName): bool
+    {
+        if (!Cache::add("wa_after_hours:{$this->settings->tenant_id}:{$waId}", true, now()->addHours(6))) {
+            return false;
         }
 
-        return $this->sendAndLog($waId, $body, $contactName);
+        $message = trim((string) $this->settings->after_hours_message)
+            ?: "Thanks for messaging us! We're closed right now and will reply as soon as we're back.";
+
+        return $this->sendAndLog($waId, $message, $contactName);
+    }
+
+    // Sends a flow the way it was designed: optional image / video / PDF first,
+    // then plain text, reply buttons, a list menu or a URL button. If WhatsApp
+    // refuses an interactive message, the customer still gets the same options
+    // as plain text — a reply is never lost to a formatting problem.
+    private function deliverFlow(WhatsappChatbotFlow $flow, string $waId, string $body, ?string $contactName): bool
+    {
+        $type  = $flow->effectiveReplyType();
+        $items = array_values(array_filter(
+            $flow->quick_replies ?? [],
+            fn ($i) => is_array($i) && trim((string) ($i['title'] ?? '')) !== ''
+        ));
+
+        if ($type !== 'text' && ($items === [] || ($type === 'link' && blank($items[0]['url'] ?? null)))) {
+            $type = 'text';
+        }
+
+        if ($flow->media_url && in_array($flow->media_type, WhatsappChatbotFlow::MEDIA_TYPES, true)) {
+            $inline = $type === 'text';
+            $sent   = $this->sendMediaByLink($waId, $flow->media_type, $flow->media_url, $inline ? $body : null);
+            $this->recordLog($waId, $contactName, $inline ? $body : "[{$flow->media_type}] {$flow->media_url}", $sent);
+
+            if ($inline) {
+                return $sent;
+            }
+        }
+
+        $ok = match ($type) {
+            'list'    => $this->sendInteractiveList($waId, $body, $items, $flow->list_button_text, $flow->header_text, $flow->footer_text),
+            'link'    => $this->sendCtaUrl($waId, $body, $items[0], $flow->header_text, $flow->footer_text),
+            'buttons' => $this->sendInteractiveButtons($waId, $body, $items, $flow->header_text, $flow->footer_text),
+            default   => $this->sendMessage($waId, $this->plainText($body, $flow->header_text, $flow->footer_text)),
+        };
+
+        if (!$ok && $type !== 'text') {
+            $lines = collect($items)->map(fn ($i, $n) => ($n + 1) . '. ' . $i['title'] . (filled($i['url'] ?? null) ? ': ' . $i['url'] : ''));
+            $ok    = $this->sendMessage($waId, $this->plainText($body . "\n\n" . $lines->implode("\n"), $flow->header_text, $flow->footer_text));
+        }
+
+        $this->recordLog($waId, $contactName, $body, $ok);
+
+        return $ok;
+    }
+
+    // Header (bold) and footer (italic) for messages that have no native slot for them.
+    private function plainText(string $body, ?string $header, ?string $footer): string
+    {
+        return trim(
+            (filled($header) ? "*{$header}*\n" : '')
+            . $body
+            . (filled($footer) ? "\n\n_{$footer}_" : '')
+        );
     }
 
     // Sends a plain-text message and records it in WhatsApp Logs — the single
@@ -410,7 +480,7 @@ class WhatsappChatbotService
     // otherwise a next_flow_id is encoded as flow_{id} so the webhook can
     // jump straight to that flow, and with neither the button title falls
     // back to normal keyword matching, same as typed text (see handleIncomingMessage).
-    public function sendInteractiveButtons(string $waId, string $body, array $buttons): bool
+    public function sendInteractiveButtons(string $waId, string $body, array $buttons, ?string $header = null, ?string $footer = null): bool
     {
         $buttons = array_slice(array_values(array_filter(
             $buttons,
@@ -424,7 +494,10 @@ class WhatsappChatbotService
         if ($this->settings->viaGateway()) {
             return $this->sendViaGateway($waId, [
                 'type'    => 'buttons',
-                'buttons' => [
+                'buttons' => array_filter([
+                    'header' => filled($header) ? mb_substr($header, 0, 60) : null,
+                    'footer' => filled($footer) ? mb_substr($footer, 0, 60) : null,
+                ]) + [
                     'body'  => $body,
                     'items' => collect($buttons)->values()->map(fn($btn, $i) => [
                         'id'    => $btn['reply_id'] ?? (!empty($btn['next_flow_id']) ? 'flow_' . $btn['next_flow_id'] : 'kw_' . $i),
@@ -440,7 +513,10 @@ class WhatsappChatbotService
                 'recipient_type'    => 'individual',
                 'to'                => $waId,
                 'type'              => 'interactive',
-                'interactive'       => [
+                'interactive'       => array_filter([
+                    'header' => filled($header) ? ['type' => 'text', 'text' => mb_substr($header, 0, 60)] : null,
+                    'footer' => filled($footer) ? ['text' => mb_substr($footer, 0, 60)] : null,
+                ]) + [
                     'type' => 'button',
                     'body' => ['text' => $body],
                     'action' => [
@@ -462,6 +538,90 @@ class WhatsappChatbotService
                 'to'        => $waId,
                 'error'     => $response->json(),
             ]);
+            return false;
+        }
+
+        $this->lastError = null;
+        return true;
+    }
+
+    // A WhatsApp list menu: one button that opens up to 10 rows (title ≤ 24,
+    // optional description ≤ 72). Each row's id is flow_{id} when it opens a
+    // flow, otherwise kw_{n}, so a tap is routed like a reply button.
+    public function sendInteractiveList(string $waId, string $body, array $rows, ?string $buttonLabel = null, ?string $header = null, ?string $footer = null): bool
+    {
+        $rows = collect($rows)->take(10)->values()->map(fn ($row, $i) => array_filter([
+            'id'          => $row['reply_id'] ?? (!empty($row['next_flow_id']) ? 'flow_' . $row['next_flow_id'] : 'kw_' . $i),
+            'title'       => mb_substr((string) $row['title'], 0, 24),
+            'description' => filled($row['description'] ?? null) ? mb_substr((string) $row['description'], 0, 72) : null,
+        ]))->all();
+
+        return $this->sendInteractive($waId, array_filter([
+            'type'   => 'list',
+            'header' => filled($header) ? ['type' => 'text', 'text' => mb_substr($header, 0, 60)] : null,
+            'body'   => ['text' => mb_substr($body, 0, 1024)],
+            'footer' => filled($footer) ? ['text' => mb_substr($footer, 0, 60)] : null,
+            'action' => [
+                'button'   => mb_substr(filled($buttonLabel) ? $buttonLabel : 'Choose', 0, 20),
+                'sections' => [['title' => 'Options', 'rows' => $rows]],
+            ],
+        ]));
+    }
+
+    // A message with one button that opens a website: $item = ['title' => label, 'url' => https://…].
+    public function sendCtaUrl(string $waId, string $body, array $item, ?string $header = null, ?string $footer = null): bool
+    {
+        return $this->sendInteractive($waId, array_filter([
+            'type'   => 'cta_url',
+            'header' => filled($header) ? ['type' => 'text', 'text' => mb_substr($header, 0, 60)] : null,
+            'body'   => ['text' => mb_substr($body, 0, 1024)],
+            'footer' => filled($footer) ? ['text' => mb_substr($footer, 0, 60)] : null,
+            'action' => [
+                'name'       => 'cta_url',
+                'parameters' => ['display_text' => mb_substr((string) $item['title'], 0, 20), 'url' => $item['url']],
+            ],
+        ]));
+    }
+
+    // An image / video / PDF from a public https link (no upload needed).
+    public function sendMediaByLink(string $waId, string $type, string $url, ?string $caption = null): bool
+    {
+        $media = array_filter(['link' => $url, 'caption' => filled($caption) ? mb_substr($caption, 0, 1024) : null]);
+
+        if ($type === 'document') {
+            $media['filename'] = basename((string) parse_url($url, PHP_URL_PATH)) ?: 'file';
+        }
+
+        return $this->sendPayload($waId, $type, $media);
+    }
+
+    // Meta-format "interactive" object → gateway ("interactive" passes through
+    // to Meta as-is) or Graph API.
+    private function sendInteractive(string $waId, array $interactive): bool
+    {
+        return $this->sendPayload($waId, 'interactive', $interactive);
+    }
+
+    // One path for the newer message kinds: the gateway takes {type, <type>: …},
+    // the Graph API wants the same plus the recipient fields.
+    private function sendPayload(string $waId, string $type, array $content): bool
+    {
+        if ($this->settings->viaGateway()) {
+            return $this->sendViaGateway($waId, ['type' => $type, $type === 'interactive' ? 'interactive' : 'media' => $content]);
+        }
+
+        $response = Http::withToken($this->settings->access_token)
+            ->post(self::GRAPH_URL . '/' . $this->settings->phone_number_id . '/messages', [
+                'messaging_product' => 'whatsapp',
+                'recipient_type'    => 'individual',
+                'to'                => $waId,
+                'type'              => $type,
+                $type               => $content,
+            ]);
+
+        if ($response->failed()) {
+            $this->lastError = $this->extractApiError($response);
+            Log::error('WhatsApp message failed', ['tenant_id' => $this->settings->tenant_id, 'to' => $waId, 'type' => $type, 'error' => $response->json()]);
             return false;
         }
 

@@ -1073,6 +1073,9 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::post('chatbot',                  [Tenant\WhatsappChatbotController::class, 'storeFlow'])->name('chatbot.store')->middleware('tenant.admin');
             Route::put('chatbot/{id}',              [Tenant\WhatsappChatbotController::class, 'updateFlow'])->name('chatbot.update')->middleware('tenant.admin');
             Route::post('chatbot/{id}/toggle',      [Tenant\WhatsappChatbotController::class, 'toggleFlow'])->name('chatbot.toggle')->middleware('tenant.admin');
+            Route::post('chatbot/{id}/duplicate',   [Tenant\WhatsappChatbotController::class, 'duplicateFlow'])->name('chatbot.duplicate')->middleware('tenant.admin');
+            Route::post('chatbot-test',             [Tenant\WhatsappChatbotController::class, 'testFlow'])->name('chatbot.test')->middleware('tenant.admin');
+            Route::post('chatbot-hours',            [Tenant\WhatsappChatbotController::class, 'saveHours'])->name('chatbot.hours')->middleware('tenant.admin');
             Route::post('chatbot/{id}/position',    [Tenant\WhatsappChatbotController::class, 'updateFlowPosition'])->name('chatbot.position')->middleware('tenant.admin');
             Route::delete('chatbot/{id}',           [Tenant\WhatsappChatbotController::class, 'destroyFlow'])->name('chatbot.destroy')->middleware('tenant.admin');
             Route::get('api-settings',              [Tenant\WhatsappChatbotController::class, 'settings'])->name('api-settings');
