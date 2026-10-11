@@ -9,6 +9,8 @@ use App\Services\WhatsappGatewayClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class PlatformSettingController extends Controller
@@ -72,6 +74,11 @@ class PlatformSettingController extends Controller
             'prefix'      => PlatformSetting::get('wa_gateway_workspace_prefix') ?: 'tenant-',
             'webhook_url' => url('/webhook/wa-gateway'),
             'gatewayTenants' => WhatsappSetting::where('connection_mode', 'gateway')->where('is_connected', true)->count(),
+            // What the gateway has actually delivered to us — null when the
+            // table is missing (migration not run), which makes every event fail.
+            'recentEvents' => Schema::hasTable('whatsapp_webhook_events')
+                ? DB::table('whatsapp_webhook_events')->latest('id')->limit(10)->get()
+                : null,
         ]);
     }
 

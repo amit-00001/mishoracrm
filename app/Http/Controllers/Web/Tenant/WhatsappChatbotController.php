@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PlatformSetting;
 use App\Models\WhatsappChatbotFlow;
 use App\Models\WhatsappChatbotSession;
+use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
 use App\Services\WhatsappGatewayClient;
@@ -51,10 +52,56 @@ class WhatsappChatbotController extends Controller
                 }
             }
 
-            return view('tenant.whatsapp.gateway-settings', compact('settings', 'notice'));
+            return view('tenant.whatsapp.gateway-settings', [
+                'settings' => $settings,
+                'notice'   => $notice,
+                'chatbot'  => $this->chatbotChecklist($settings),
+            ]);
         }
 
         return view('tenant.whatsapp.chatbot-settings', compact('settings'));
+    }
+
+    // Everything the chatbot needs before it can answer a customer, read live
+    // so "the chatbot doesn't reply" points at the one thing that's missing.
+    // ok: true = fine, false = blocks replies, null = worth a look.
+    private function chatbotChecklist(WhatsappSetting $settings): array
+    {
+        $tenantId = $this->tenantId();
+
+        $flows        = WhatsappChatbotFlow::where('tenant_id', $tenantId)->where('is_active', true);
+        $activeFlows  = (clone $flows)->count();
+        $hasDefault   = (clone $flows)->where('is_default', true)->exists();
+        $lastReceived = WhatsappLog::where('tenant_id', $tenantId)->where('status', 'received')->latest('id')->first();
+
+        return [
+            [
+                'ok'    => (bool) $settings->is_connected,
+                'label' => 'WhatsApp number connected',
+                'hint'  => $settings->is_connected ? ($settings->display_phone_number ?: null) : 'Connect your number above first.',
+            ],
+            [
+                'ok'    => (bool) $settings->chatbot_enabled,
+                'label' => 'Chatbot switched on',
+                'hint'  => $settings->chatbot_enabled ? null : 'Tick "Enable Chatbot" below and click Save Settings — it is off by default.',
+            ],
+            [
+                'ok'    => $activeFlows === 0 ? false : ($hasDefault ? true : null),
+                'label' => 'An active flow to answer with',
+                'hint'  => match (true) {
+                    $activeFlows === 0 => 'No active flow. Add one (or switch one on) on the Chatbot page.',
+                    !$hasDefault       => "{$activeFlows} active, but none is the default — the bot only replies when a message contains a flow's keyword. Mark one flow as Default to answer everything else.",
+                    default            => "{$activeFlows} active, including a default flow.",
+                },
+            ],
+            [
+                'ok'    => $lastReceived ? true : null,
+                'label' => 'Customer messages reaching the CRM',
+                'hint'  => $lastReceived
+                    ? 'Last one ' . $lastReceived->created_at->diffForHumans() . '.'
+                    : 'None received yet. If you already messaged this number, WhatsApp is not reaching the CRM — a platform admin should check Superadmin → WhatsApp Gateway (recent events) and Error Logs.',
+            ],
+        ];
     }
 
     // ── Settings — save ───────────────────────────────────────────

@@ -129,6 +129,33 @@
         </div>
     </div>
 
+    {{-- ── Recent events — proof the gateway can reach us ────────── --}}
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Recent events from the gateway</h3></div>
+        <div class="card-body">
+            @if($recentEvents === null)
+                <div class="alert alert-error">
+                    The <code>whatsapp_webhook_events</code> table is missing, so <strong>every</strong> event from the gateway fails (HTTP 500) — the chatbot and delivery receipts cannot work. Run <code>php artisan migrate</code>.
+                </div>
+            @elseif($recentEvents->isEmpty())
+                <p style="font-size:13px;color:var(--text-300);line-height:1.6;margin:0;">
+                    Nothing received yet. Send a WhatsApp message to a connected number — a <code>message.received</code> line should appear here within seconds.
+                    If it doesn't, the gateway can't reach this server: check the webhook URL registered with the gateway, the webhook secret above, and <strong>Error Logs</strong> (rejected signatures are recorded there with the reason).
+                </p>
+            @else
+                <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                    @foreach($recentEvents as $e)
+                        <tr style="border-bottom:1px solid var(--border-subtle);">
+                            <td style="padding:8px 0;"><code>{{ $e->event ?? '—' }}</code></td>
+                            <td style="padding:8px 0;text-align:right;color:var(--text-300);">{{ \Illuminate\Support\Carbon::parse($e->created_at)->diffForHumans() }}</td>
+                        </tr>
+                    @endforeach
+                </table>
+                <p style="font-size:12px;color:var(--text-400);margin:12px 0 0;">Only <code>message.received</code> lines mean customers are reaching the chatbot; <code>message.status</code> alone means only delivery receipts arrive.</p>
+            @endif
+        </div>
+    </div>
+
     {{-- ── Setup guide ─────────────────────────────────────────── --}}
     <div class="card">
         <div class="card-header"><h3 class="card-title">Setup</h3></div>

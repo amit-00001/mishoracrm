@@ -19,6 +19,11 @@
 .gw-meta-item { font-size:12px; color:var(--text-300); }
 .gw-meta-item strong { color:var(--text-200); display:block; font-size:11px; margin-bottom:2px; letter-spacing:.03em; text-transform:uppercase; }
 .gw-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.gw-check { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border-subtle); }
+.gw-check:last-child { border-bottom:0; }
+.gw-check-icon { width:22px; height:22px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; margin-top:1px; }
+.gw-check-label { font-size:13.5px; font-weight:600; color:var(--text-100); }
+.gw-check-hint { font-size:12.5px; color:var(--text-300); line-height:1.5; margin-top:2px; max-width:620px; }
 .gw-health { margin-top:16px; font-size:13px; line-height:1.6; display:none; }
 .gw-health.ok  { color:var(--green); }
 .gw-health.bad { color:var(--red); }
@@ -118,6 +123,34 @@
                 Use a number that is not already registered on another WhatsApp app or API. A number currently running on the WhatsApp Business phone app can only be linked if Meta allows it for that number.
             </p>
         @endif
+    </div>
+</div>
+
+{{-- Why the chatbot would (not) reply — read live, one line per requirement --}}
+<div class="gw-card">
+    <div class="gw-card-head">
+        <div class="gw-card-title">Chatbot status</div>
+        @if(collect($chatbot)->every(fn ($c) => $c['ok'] === true))
+            <span class="gw-badge-on">● Ready to reply</span>
+        @elseif(collect($chatbot)->contains(fn ($c) => $c['ok'] === false))
+            <span class="gw-badge-off">● Won't reply yet</span>
+        @else
+            <span class="gw-badge-off" style="background:var(--amber-dim);color:var(--amber);">● Check below</span>
+        @endif
+    </div>
+    <div class="gw-body" style="padding-top:8px;padding-bottom:8px;">
+        @foreach($chatbot as $check)
+            @php $tone = $check['ok'] === true ? 'green' : ($check['ok'] === false ? 'red' : 'amber'); @endphp
+            <div class="gw-check">
+                <span class="gw-check-icon" style="background:var(--{{ $tone }}-dim);color:var(--{{ $tone }});">{{ $check['ok'] === true ? '✓' : ($check['ok'] === false ? '✕' : '!') }}</span>
+                <div>
+                    <div class="gw-check-label">{{ $check['label'] }}</div>
+                    @if($check['hint'])
+                        <div class="gw-check-hint">{{ $check['hint'] }}</div>
+                    @endif
+                </div>
+            </div>
+        @endforeach
     </div>
 </div>
 

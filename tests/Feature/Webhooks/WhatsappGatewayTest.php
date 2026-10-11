@@ -615,6 +615,49 @@ class WhatsappGatewayTest extends TestCase
             ->assertDontSee('gw_testkey')->assertDontSee('whsec_test');
     }
 
+    public function test_superadmin_page_shows_what_the_gateway_has_delivered(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant);
+
+        $this->actingAs($super)->get(route('superadmin.platform-settings.whatsapp-gateway'))
+            ->assertOk()->assertSee('Nothing received yet');
+
+        $this->signedPost($this->received($tenant, 'hi'))->assertOk();
+
+        $this->actingAs($super)->get(route('superadmin.platform-settings.whatsapp-gateway'))
+            ->assertOk()->assertDontSee('Nothing received yet')->assertSee('message.received');
+    }
+
+    public function test_chatbot_checklist_names_what_is_missing_and_turns_ready(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        $admin  = $this->makeUser($tenant, 'tenant_admin');
+        $this->gatewaySetting($tenant);
+
+        // Connected, but the chatbot is off, there is no flow and nothing has arrived yet.
+        $this->actingAs($admin)->get(route('tenant.whatsapp.api-settings'))
+            ->assertOk()
+            ->assertSee("Won't reply yet", false)
+            ->assertSee('Tick "Enable Chatbot"')
+            ->assertSee('No active flow')
+            ->assertSee('None received yet');
+
+        // Everything in place, and a customer message has come through the webhook.
+        WhatsappSetting::forTenant($tenant->id)->update(['chatbot_enabled' => true]);
+        WhatsappChatbotFlow::create([
+            'tenant_id' => $tenant->id, 'name' => 'Default', 'trigger_keywords' => [], 'keyword_match' => 'any',
+            'response_message' => 'Hi!', 'is_default' => true, 'is_active' => true,
+        ]);
+        $this->signedPost($this->received($tenant, 'hello'))->assertOk();
+
+        $this->actingAs($admin)->get(route('tenant.whatsapp.api-settings'))
+            ->assertOk()->assertSee('Ready to reply')->assertSee('including a default flow')->assertDontSee("Won't reply yet", false);
+    }
+
     public function test_superadmin_can_test_credentials_while_switched_off(): void
     {
         PlatformSetting::set('wa_gateway_base_url', 'https://gw.test/api/v1/gateway');
