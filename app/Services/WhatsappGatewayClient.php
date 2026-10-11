@@ -431,6 +431,23 @@ class WhatsappGatewayClient
         return static::call('get', '/webhook-deliveries', ['status' => $status, 'limit' => $limit], null, 15, true);
     }
 
+    // The webhook URL the gateway currently sends this client's events to:
+    // a string ('' = none registered), or null when it can't be read (the
+    // read endpoint isn't in the gateway's documentation, so a failure is
+    // not treated as a problem).
+    public static function registeredWebhookUrl(): ?string
+    {
+        $res = static::call('get', '/client', [], null, 10, true);
+
+        if (!$res['ok']) {
+            return null;
+        }
+
+        $url = $res['data']['webhook_url'] ?? $res['data']['client']['webhook_url'] ?? null;
+
+        return is_string($url) ? trim($url) : (array_key_exists('webhook_url', $res['data']) ? '' : null);
+    }
+
     // Tells the gateway where to POST our events (PUT /client).
     public static function registerWebhookUrl(string $url): array
     {

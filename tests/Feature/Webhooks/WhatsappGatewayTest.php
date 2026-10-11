@@ -664,6 +664,7 @@ class WhatsappGatewayTest extends TestCase
         Http::fake([
             'gw.test/*/workspaces/*/messages*' => Http::response(['success' => true, 'data' => []], 200),
             'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => []], 200),
+            'gw.test/*/client'                 => Http::response(['success' => false], 404),
         ]);
         $tenant = $this->setUpTenant();
         $super  = $this->makeUser($tenant, 'superadmin');
@@ -686,6 +687,7 @@ class WhatsappGatewayTest extends TestCase
             'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => [
                 ['event' => 'message.received', 'last_response_code' => 401, 'last_error' => 'Invalid signature.'],
             ]], 200),
+            'gw.test/*/client'                 => Http::response(['success' => false], 404),
         ]);
         $tenant = $this->setUpTenant();
         $super  = $this->makeUser($tenant, 'superadmin');
@@ -697,6 +699,87 @@ class WhatsappGatewayTest extends TestCase
         $this->assertStringContainsString('the gateway has received 1 recent customer message', $res->json('message'));
         $this->assertStringContainsString('HTTP 401', $res->json('message'));
         $this->assertStringContainsString('webhook secret', $res->json('message'));
+    }
+
+    private function fakeDiagnose(?string $registeredUrl, string $gatewayMessageAt): void
+    {
+        Http::fake([
+            'gw.test/*/workspaces/*/messages*' => Http::response(['success' => true, 'data' => [
+                ['id' => 'm-1', 'direction' => 'inbound', 'phone' => '919876543210', 'text' => 'hi', 'created_at' => $gatewayMessageAt],
+            ]], 200),
+            'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => []], 200),
+            'gw.test/*/client'                 => $registeredUrl === null
+                ? Http::response(['success' => false], 404)
+                : Http::response(['success' => true, 'data' => ['webhook_url' => $registeredUrl]], 200),
+        ]);
+    }
+
+    public function test_diagnose_flags_a_webhook_url_registered_for_another_app(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose('https://other-app.example/hook', now()->toIso8601String());
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('https://other-app.example/hook, not to this CRM', $res->json('message'));
+        $this->assertStringContainsString('never received a message.received event', $res->json('message'));
+    }
+
+    public function test_diagnose_reports_the_chatbot_off_when_everything_else_arrives(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose(url('/webhook/wa-gateway'), now()->toIso8601String());
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant);
+        DB::table('whatsapp_webhook_events')->insert(['event_id' => 'e-1', 'event' => 'message.received', 'created_at' => now()]);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('registered to send events to this CRM', $res->json('message'));
+        $this->assertStringContainsString('received a message.received event', $res->json('message'));
+        $this->assertStringContainsString('the chatbot is switched OFF', $res->json('message'));
+    }
+
+    public function test_diagnose_is_all_clear_when_the_message_arrived_and_the_chatbot_is_ready(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose(url('/webhook/wa-gateway'), now()->toIso8601String());
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+        WhatsappChatbotFlow::create([
+            'tenant_id' => $tenant->id, 'name' => 'Default', 'trigger_keywords' => [], 'keyword_match' => 'any',
+            'response_message' => 'Hi!', 'is_default' => true, 'is_active' => true,
+        ]);
+        DB::table('whatsapp_webhook_events')->insert(['event_id' => 'e-1', 'event' => 'message.received', 'created_at' => now()]);
+        WhatsappLog::create(['tenant_id' => $tenant->id, 'to_phone' => '919876543210', 'message' => 'hi', 'status' => 'received']);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertTrue($res->json('success'), $res->json('message'));
+        $this->assertStringContainsString('chatbot is on with 1 active flow(s), including a default flow', $res->json('message'));
+    }
+
+    public function test_diagnose_notices_a_gateway_message_that_never_arrived(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose(null, now()->toIso8601String());
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+        // The last event this CRM got is an hour older than the gateway's newest customer message.
+        DB::table('whatsapp_webhook_events')->insert(['event_id' => 'e-old', 'event' => 'message.received', 'created_at' => now()->subHour()]);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('never arrived here', $res->json('message'));
     }
 
     public function test_superadmin_can_test_credentials_while_switched_off(): void

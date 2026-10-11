@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformSetting;
+use App\Models\WhatsappChatbotFlow;
+use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappGatewayClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -139,8 +142,9 @@ class PlatformSettingController extends Controller
     // so the output is defensive and falls back to raw JSON.
     public function diagnoseWhatsappGateway(): JsonResponse
     {
-        $lines = [];
-        $bad   = false;
+        $lines         = [];
+        $bad           = false;
+        $gatewayLatest = null;
 
         $workspaces = WhatsappSetting::where('connection_mode', 'gateway')
             ->whereNotNull('gateway_workspace_id')
@@ -171,6 +175,15 @@ class PlatformSettingController extends Controller
 
             $latest  = $items[0]['created_at'] ?? $items[0]['sent_at'] ?? null;
             $lines[] = '✓ ' . $workspace . ': the gateway has received ' . count($items) . ' recent customer message(s)' . ($latest ? ", latest {$latest}" : '') . '. So Meta → gateway works; if the chatbot is silent, the problem is gateway → this CRM (next line) or the chatbot settings.';
+
+            try {
+                $at = $latest ? Carbon::parse($latest) : null;
+            } catch (\Throwable) {
+                $at = null;
+            }
+            if ($at && (!$gatewayLatest || $at->gt($gatewayLatest))) {
+                $gatewayLatest = $at;
+            }
         }
 
         $res = WhatsappGatewayClient::webhookDeliveries('failed');
@@ -205,6 +218,64 @@ class PlatformSettingController extends Controller
                 ]);
                 $lines[] = '✕ failed delivery: ' . ($parts ? implode(' · ', $parts) : mb_substr(json_encode($d), 0, 200)) . ($meaning ? " → {$meaning}" : '');
             }
+        }
+
+        // ── This CRM's side: what actually arrived here, and what the chatbot does with it ──
+        $registered = WhatsappGatewayClient::registeredWebhookUrl();
+        $ours       = url('/webhook/wa-gateway');
+
+        if ($registered === '') {
+            $bad     = true;
+            $lines[] = '✕ The gateway has NO webhook URL registered, so it sends this CRM nothing (and shows no failed deliveries). Use "Register webhook URL with gateway" on this production page.';
+        } elseif ($registered !== null && rtrim($registered, '/') !== rtrim($ours, '/')) {
+            $bad     = true;
+            $lines[] = "✕ The gateway sends events to {$registered}, not to this CRM ({$ours}). One API key has one webhook URL — use \"Register webhook URL with gateway\" on this production page (and don't share the key with another app).";
+        } elseif ($registered !== null) {
+            $lines[] = '✓ The gateway is registered to send events to this CRM.';
+        }
+
+        $lastEvent = Schema::hasTable('whatsapp_webhook_events')
+            ? DB::table('whatsapp_webhook_events')->where('event', 'message.received')->latest('id')->first()
+            : null;
+
+        if (!$lastEvent) {
+            $bad     = true;
+            $lines[] = '✕ This CRM has never received a message.received event from the gateway, although the gateway holds customer messages — so the gateway is not delivering them here (see the webhook URL line above).';
+        } else {
+            $arrived = Carbon::parse($lastEvent->created_at);
+
+            if ($gatewayLatest && $gatewayLatest->gt($arrived->copy()->addMinutes(2))) {
+                $bad     = true;
+                $lines[] = "✕ The gateway's newest customer message ({$gatewayLatest->timezone(config('app.timezone'))->format('d M H:i')}) never arrived here — the last message.received this CRM got was {$arrived->diffForHumans()}.";
+            } else {
+                $lines[] = "✓ This CRM received a message.received event {$arrived->diffForHumans()}.";
+            }
+        }
+
+        foreach ($workspaces as $workspace) {
+            $setting = WhatsappSetting::where('gateway_workspace_id', $workspace)->first();
+            if (!$setting) {
+                continue;
+            }
+
+            $active   = WhatsappChatbotFlow::withoutGlobalScopes()->where('tenant_id', $setting->tenant_id)->where('is_active', true);
+            $flows    = (clone $active)->count();
+            $default  = (clone $active)->where('is_default', true)->exists();
+            $received = WhatsappLog::withoutGlobalScopes()->where('tenant_id', $setting->tenant_id)->where('status', 'received')->latest('id')->first();
+
+            if (!$setting->chatbot_enabled) {
+                $bad     = true;
+                $lines[] = "✕ {$workspace}: the chatbot is switched OFF — the CRM receives the message but deliberately does not reply. Tenant → WhatsApp → API Settings → tick \"Enable Chatbot\" → Save.";
+            } elseif ($flows === 0) {
+                $bad     = true;
+                $lines[] = "✕ {$workspace}: the chatbot is on but has no ACTIVE flow to answer with.";
+            } else {
+                $lines[] = "✓ {$workspace}: chatbot is on with {$flows} active flow(s)" . ($default ? ', including a default flow.' : ' but NO default flow — it only replies when the message contains a flow keyword.');
+            }
+
+            $lines[] = $received
+                ? "✓ {$workspace}: last customer message saved in the CRM " . $received->created_at->diffForHumans() . '.'
+                : "! {$workspace}: no customer message has been saved in the CRM's WhatsApp log yet.";
         }
 
         return response()->json(['success' => !$bad, 'message' => implode("\n", $lines)]);

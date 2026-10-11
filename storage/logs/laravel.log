@@ -3887,3 +3887,17 @@ Content-Transfer-Encoding: quoted-printable
 [2026-10-11 11:06:38] testing.ERROR: WhatsApp gateway message failed {"tenant_id":27,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
 [2026-10-11 11:06:43] testing.WARNING: WhatsApp gateway unreachable: cURL error 6: Could not resolve host: gw.test (see https://curl.se/libcurl/c/libcurl-errors.html) for https://gw.test/api/v1/gateway/workspaces/tenant-32/messages  
 [2026-10-11 11:06:43] testing.ERROR: WhatsApp gateway message failed {"tenant_id":32,"to":"919876543210","error":"Could not reach the WhatsApp gateway. Please try again.","meta_code":null} 
+[2026-10-11 11:25:39] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:25:39] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 11:25:42] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 11:25:45] testing.ERROR: WhatsApp gateway event failed {"event":"account.connected","error":"database went away"} 
+[2026-10-11 11:25:46] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:25:46] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:25:46] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 11:25:47] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 11:25:48] testing.ERROR: WhatsApp inbound processing failed {"error":"chatbot session store is broken"} 
+[2026-10-11 11:25:51] testing.INFO: WhatsApp gateway account update ignored {"field":"quality_rating","tenant":21} 
+[2026-10-11 11:25:54] testing.ERROR: WhatsApp gateway message failed {"tenant_id":25,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-11 11:25:55] testing.ERROR: WhatsApp gateway message failed {"tenant_id":27,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-11 11:26:00] testing.WARNING: WhatsApp gateway unreachable: cURL error 6: Could not resolve host: gw.test (see https://curl.se/libcurl/c/libcurl-errors.html) for https://gw.test/api/v1/gateway/workspaces/tenant-32/messages  
+[2026-10-11 11:26:00] testing.ERROR: WhatsApp gateway message failed {"tenant_id":32,"to":"919876543210","error":"Could not reach the WhatsApp gateway. Please try again.","meta_code":null} 
