@@ -174,7 +174,8 @@
 
 @push('scripts')
 <script>
-const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+(function () {
+const IB_CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
 const FILTER = @json($filter);
 const CUR = @json($selected?->id);
 const BASE = @json(route('tenant.whatsapp.inbox.index'));
@@ -276,7 +277,7 @@ async function sendReply() {
     const btn = document.getElementById('ibSend');
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
-        const r = await fetch(`${BASE}/${CUR}/reply`, {method: 'POST', body: fd, headers: {'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'}});
+        const r = await fetch(`${BASE}/${CUR}/reply`, {method: 'POST', body: fd, headers: {'X-CSRF-TOKEN': IB_CSRF, 'Accept': 'application/json'}});
         const d = await r.json().catch(() => ({}));
         if (d.message) appendMessages([d.message]);
         if (!r.ok && d.error && !d.message) alert(d.error);
@@ -292,8 +293,11 @@ async function sendReply() {
 }
 
 async function toggleStatus() {
-    const r = await fetch(`${BASE}/${CUR}/status`, {method: 'POST', headers: {'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'}});
+    const r = await fetch(`${BASE}/${CUR}/status`, {method: 'POST', headers: {'X-CSRF-TOKEN': IB_CSRF, 'Accept': 'application/json'}});
     if (r.ok) location.reload();
 }
+
+window.sendReply = sendReply; window.toggleStatus = toggleStatus; window.fileChosen = fileChosen; window.tplChanged = tplChanged;
+})();
 </script>
 @endpush
