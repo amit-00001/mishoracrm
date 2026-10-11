@@ -83,6 +83,7 @@
         <div class="page-title">WhatsApp Inbox</div>
     </div>
     <div class="page-actions">
+        @can('whatsapp.view_reports')<a href="{{ route('tenant.whatsapp.performance') }}" class="btn btn-secondary">Team performance</a>@endcan
         @if($canQuick)<button type="button" class="btn btn-secondary" data-open-modal="qrModal">⚡ Quick replies</button>@endif
         @if($canAssign)<button type="button" class="btn btn-secondary" data-open-modal="aaModal">Auto-assign</button>@endif
     </div>

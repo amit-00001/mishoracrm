@@ -9,7 +9,7 @@ Living document. Update the **Progress tracker** after every step and read it fi
 | 1 | Shared Team Inbox — chat list, conversation, reply (text + file), 24-hour window + template fallback, unread, resolve/reopen, link to Lead/Contact, live refresh | **Built — needs `php artisan migrate` and a live test** |
 | 1a | Plan/superadmin gating (`whatsapp_inbox` module) + role permission (`whatsapp.inbox`) | Built |
 | 2 | Assign conversations, auto-assign (round-robin, off by default), Quick Replies (`/shortcut`), private internal notes, permissions `whatsapp.assign` / `whatsapp.view_all` / `whatsapp.quick_replies` | **Built — needs `php artisan migrate` and a live test** |
-| 3 | Team performance, broadcast segmentation, campaign dashboard | Not started |
+| 3 | Team performance report, Campaign dashboard (per bulk send), Bulk Send recipient filters (lead status / source) | **Built — needs `php artisan migrate` and a live test** |
 | 4 | Product Catalog Sharing | Deferred (needs Meta Commerce Manager catalog + `catalog_management` permission) |
 
 Known limits (steps 1–2): inbound images/documents show as `[image]` / `[document]` text (the file itself is not downloaded yet); chat is not paused while an agent is replying (the chatbot may still answer keywords); notes cannot be edited or deleted; auto-assign does not look at who is online or on leave; a chat only appears once the customer has written to you.
@@ -30,6 +30,8 @@ Step 2 adds three more role permissions (all need the module to be on first):
 | `whatsapp.view_all` | See every chat. Without it a person sees only chats assigned to them plus unassigned ones. | Admin + Staff |
 | `whatsapp.assign` | Assign / reassign chats, and change the auto-assign settings | Admin + Staff |
 | `whatsapp.quick_replies` | Add, edit and delete quick replies (everyone with inbox access can *use* them) | Admin only |
+| `whatsapp.view_reports` | Open the **Team performance** report | Admin only |
+| `whatsapp.view_logs` (existing) | Open **Campaigns** (bulk-send results) | as before |
 
 To make staff see only their own chats, the owner unticks `whatsapp.view_all` for the Staff role in Settings → Roles.
 
@@ -66,6 +68,12 @@ Menu: **Messages → WA Inbox**.
 
 **Private notes.** Switch the reply box to **Private note**, write, and press Enter. The note appears in the chat as a yellow card and is **never sent to the customer** — use it for hand-over details ("customer wants the 3BHK, call after 5").
 
+**Team performance** (Messages → WA Performance, owners). Pick Today / Last 7 days / Last 30 days or your own dates. Top cards: customers who wrote in, how many a teammate answered, **average first-reply time**, chats still waiting for a reply, open chats nobody owns. The table shows, per teammate: messages sent, chats replied to, average first reply, and open chats they own right now. Only replies typed by a teammate count — chatbot, automatic and bulk messages are ignored.
+
+**Campaigns** (Messages → WA Campaigns). Every Bulk Send is one row: when, the message, who sent it, recipients, delivered, failed, success bar. **Details** shows the totals, **why messages failed** (grouped reasons), how many recipients **replied within 3 days**, and every recipient with their status (filter: All / Sent / Delivered / Failed). "Delivered" is filled only for numbers linked through the WhatsApp gateway.
+
+**Bulk Send filters.** In WhatsApp → Bulk Send, when sending to Leads you can narrow the list by **status** and **source** (plus the existing search); **Select All** then ticks only the people shown, e.g. "Qualified + JustDial".
+
 Everything sent from the Inbox also appears in **WhatsApp → Logs**.
 
 ## 3. Seller notes
@@ -74,11 +82,11 @@ Everything sent from the Inbox also appears in **WhatsApp → Logs**.
 
 **Sell it to:** any customer already using WhatsApp for enquiries — real estate, coaching, clinics, salons, service/AMC companies — where more than one person answers chats.
 
-**Demo (3 minutes):** (1) send a message to the demo number from your phone, (2) show it land in the Inbox with the unread badge, (3) assign it to a teammate, (4) reply with a `/quick reply` and show it on the phone, (5) add a private note, (6) mark resolved.
+**Demo (3 minutes):** (1) send a message to the demo number from your phone, (2) show it land in the Inbox with the unread badge, (3) assign it to a teammate, (4) reply with a `/quick reply` and show it on the phone, (5) add a private note, (6) show **Team performance** and a finished **Campaign**, (7) mark resolved.
 
 **Pricing / packaging:** included from **Pro** by default; can be added to a Starter tenant by superadmin as a per-tenant add-on (Tenant → Modules).
 
-**Don't promise yet (coming in later steps):** agent performance reports (response times), segment-based broadcasts, campaign analytics, product catalogs. Be honest that customers' incoming photos/documents show only as a label for now.
+**Don't promise yet:** product catalogs, tag-based segments (Leads/Contacts have no tags yet), a separate "read" count in campaigns (only delivered / failed today), re-sending to failed numbers from the campaign page. Be honest that customers' incoming photos/documents show only as a label for now.
 
 **Objections:** *"Can two people reply at once?"* — yes, both see new messages within seconds, and each reply is stamped with the sender's name. *"Can I stop staff seeing each other's chats?"* — yes, untick `whatsapp.view_all` for that role; they then see only their own and unassigned chats. *"Can chats be shared automatically?"* — yes, auto-assign (round-robin) among the people you choose. *"What if the chatbot is on?"* — the chatbot still answers its keywords; staff can reply on top.
 
@@ -92,6 +100,11 @@ Everything sent from the Inbox also appears in **WhatsApp → Logs**.
 - **Visibility rule:** `WhatsappInboxController::scoped()` — without `whatsapp.view_all`, queries add `assigned_to = me OR assigned_to IS NULL`. It is applied to the list, counts, and every single-chat lookup.
 - **Auto-assign:** `WhatsappConversation::touchFor()` calls `nextAutoAssignee()` for an inbound message on an unassigned chat; it picks the next active user id after `inbox_last_assigned_to` from the saved list.
 - **Notes in the thread:** `timeline()` merges messages and notes sorted by `ts`; the page keeps two cursors (`after`, `after_note`) when polling.
+- **Step 3:** `WhatsappInsightsController` (read-only, derived from `whatsapp_logs` / `whatsapp_conversations`; no new tables). Routes `whatsapp/performance`, `whatsapp/campaigns`, `whatsapp/campaigns/{bulkId}` sit behind `module:whatsapp_inbox`; performance needs `whatsapp.view_reports` (new, admin-only via migration `2026_10_15_100000_add_view_reports_permission_to_whatsapp_inbox`), campaigns need `whatsapp.view_logs`.
+- **First-reply metric:** logs are walked in id order per customer phone (digits only): an inbound message starts a wait, the next outbound with `sent_by` set (not bulk, not failed) ends it and credits that user. Chatbot messages have no `sent_by`, so they never count. Capped at 100,000 messages per report (`MAX_ROWS`; the page warns when hit).
+- **Campaign = `bulk_id`:** `WhatsappController::sendBulk()` stamps every recipient's log with the same uuid. List = `GROUP BY bulk_id`; "replied" = recipients whose number sent a `received` message within 3 days of the first send.
+- **Delivery status caveat:** only the gateway webhook updates `delivered`/`failed` and it folds *read* into `delivered`; the direct-Meta webhook (`WhatsappWebhookController`) ignores status events, so on a direct-Meta connection rows stay `sent`. A separate "read" status would need the status enum widened (see migration `2026_10_11_100000`) and the direct webhook extended.
+- **Bulk filters:** pure front-end (`applyFilters()` in `bulk.blade.php`, `data-status` / `data-source` on each lead row); the server still receives the ticked recipient ids.
 - **Live refresh:** the page polls `GET whatsapp/inbox/poll` every 6 s (list + messages after the last id). No websockets.
 - **Deploy:** `php artisan migrate`, then (to bundle it into the stock plans) `php artisan db:seed --class=PlanSeeder`.
 - **Files:** `app/Models/WhatsappConversation.php`, `app/Http/Controllers/Web/Tenant/WhatsappInboxController.php`, `resources/views/tenant/whatsapp/inbox.blade.php`, sidebar entry in `resources/views/components/sidebar.blade.php`.

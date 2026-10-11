@@ -188,6 +188,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'whatsapp.assign',         // Inbox: assign chats, auto-assign settings
             'whatsapp.view_all',       // Inbox: see every chat (without it: own + unassigned only)
             'whatsapp.quick_replies',  // Inbox: manage saved quick replies
+            'whatsapp.view_reports',   // Inbox: team performance report
 
             // ── Email ─────────────────────────────────────────────
             'email.send',

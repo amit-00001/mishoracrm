@@ -1082,6 +1082,13 @@ Route::middleware(['tenant', 'auth', 'subscription'])
                 Route::post('auto-assign',     [Tenant\WhatsappInboxController::class, 'saveAutoAssign'])->name('auto-assign')->middleware('permission:whatsapp.assign');
             });
 
+            // WhatsApp Team Inbox reports — same module gate as the inbox
+            Route::middleware('module:whatsapp_inbox')->group(function () {
+                Route::get('performance', [Tenant\WhatsappInsightsController::class, 'performance'])->name('performance')->middleware('permission:whatsapp.view_reports');
+                Route::get('campaigns',   [Tenant\WhatsappInsightsController::class, 'campaigns'])->name('campaigns')->middleware('permission:whatsapp.view_logs');
+                Route::get('campaigns/{bulkId}', [Tenant\WhatsappInsightsController::class, 'campaign'])->where('bulkId', '[A-Za-z0-9\-]+')->name('campaign')->middleware('permission:whatsapp.view_logs');
+            });
+
             // WhatsApp Chatbot & Business API settings
             Route::get('chatbot',                  [Tenant\WhatsappChatbotController::class, 'flows'])->name('chatbot');
             Route::get('conversations',             [Tenant\WhatsappChatbotController::class, 'conversations'])->name('conversations');

@@ -101,7 +101,23 @@
                 {{-- Search filter --}}
                 <input type="text" id="recipientSearch" class="field-input"
                        placeholder="Filter recipients..." style="width:100%;margin-bottom:8px"
-                       oninput="filterRecipients(this.value)"/>
+                       oninput="applyFilters()"/>
+
+                {{-- Leads only: narrow the list by status / source, then "Select All" picks just those --}}
+                <div id="leadFilters" style="display:flex;gap:8px;margin-bottom:8px">
+                    <select id="filterStatus" class="field-input field-select" style="flex:1" onchange="applyFilters()">
+                        <option value="">All statuses</option>
+                        @foreach(\App\Models\Lead::statuses() as $key => $st)
+                        <option value="{{ $key }}">{{ $st['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterSource" class="field-input field-select" style="flex:1" onchange="applyFilters()">
+                        <option value="">All sources</option>
+                        @foreach(\App\Models\Lead::sources() as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 {{-- Select all --}}
                 <div class="select-bar">
@@ -113,7 +129,7 @@
                 {{-- Leads list --}}
                 <div class="recipient-list" id="leadsList">
                     @foreach($leads as $l)
-                    <label class="recipient-item" id="lead_{{ $l->id }}">
+                    <label class="recipient-item" id="lead_{{ $l->id }}" data-status="{{ $l->status }}" data-source="{{ $l->source }}">
                         <input type="checkbox" name="recipients[]" value="{{ $l->id }}"
                                class="rec-check" onchange="updateCount()"/>
                         <div>
@@ -257,6 +273,8 @@ function switchType(type) {
     document.getElementById('selectAll').checked = false;
     updateCount();
     document.getElementById('summaryType').textContent = type === 'leads' ? 'Leads' : 'Contacts';
+    document.getElementById('leadFilters').style.display = type === 'leads' ? 'flex' : 'none';
+    applyFilters();
 }
 
 function toggleAll(cb){
@@ -293,12 +311,23 @@ function onMetaTemplateChange(text){
     updateSummary();
 }
 
-function filterRecipients(query){
-    const list = document.getElementById(currentType === 'leads' ? 'leadsList' : 'contactsList');
+// Text search + (for leads) status and source. "Select All" only ticks what is visible.
+function applyFilters(){
+    const query  = document.getElementById('recipientSearch').value.toLowerCase();
+    const status = document.getElementById('filterStatus').value;
+    const source = document.getElementById('filterSource').value;
+    const leads  = currentType === 'leads';
+    const list   = document.getElementById(leads ? 'leadsList' : 'contactsList');
+    let shown = 0;
     list.querySelectorAll('.recipient-item').forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
+        const ok = item.textContent.toLowerCase().includes(query)
+            && (!leads || !status || item.dataset.status === status)
+            && (!leads || !source || item.dataset.source === source);
+        item.style.display = ok ? 'flex' : 'none';
+        if (ok) shown++;
     });
+    document.getElementById('selectAll').checked = false;
+    document.querySelector('label[for="selectAll"]').textContent = 'Select All (' + shown + ' shown)';
 }
 
 function updateSummary(){
