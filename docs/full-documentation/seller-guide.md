@@ -246,7 +246,7 @@ Same order as the ranking in §3. For each industry you get what to lead with, w
 
 **Customer Loyalty & Wallet (Business plan)** — Points and stamps, tiers, rewards, and targeted offer campaigns aimed at a segment (high spenders, frequent visitors, inactive customers, a tier, or hand-picked contacts), plus birthday and anniversary rewards. The Customer Portal gives each customer one login to see their points across every shop they visit, with QR redemption at the counter.
 
-**Communication** — Email and WhatsApp (send, bulk-send, templates, full logs; bring-your-own SMTP), a WhatsApp chatbot flow builder, a **WhatsApp Team Inbox** (Pro and above — the whole team answers customer chats from one number; see `docs/whatsapp-team-inbox.md`), Instagram comment/DM automation, Slack alerts for the team.
+**Communication** — Email and WhatsApp (send, bulk-send, templates, full logs; bring-your-own SMTP), a WhatsApp chatbot flow builder, a **WhatsApp Team Inbox** (Pro and above — the whole team answers customer chats from one number, with chat assignment, optional auto-assign, `/` quick replies, private team notes, a Team Performance report and a Campaigns results page; details in the *WhatsApp Team Inbox* section below), Instagram comment/DM automation, Slack alerts for the team.
 
 **Automation & Reliability** — SLA breach detection (leads and tickets), automatic reminders (follow-ups, tasks, invoices, subscriptions, appointments), automatic no-show handling — the platform proactively surfaces what needs attention instead of making staff remember to check.
 
@@ -255,6 +255,36 @@ Same order as the ranking in §3. For each industry you get what to lead with, w
 **Access Control & Security** — Role-based permissions out of the box (Admin/Staff), fully customizable roles for anything more granular, per-module access control, audit logs.
 
 **Integrations** — A versioned REST API with tenant-issued API keys, outgoing webhooks for connecting to tools like Zapier/n8n, and (as a white-glove option) a request-based custom automation service — the platform team builds bespoke workflow automations on request.
+
+---
+
+## 5a. WhatsApp Team Inbox (Pro and above)
+
+**One-line pitch:** "Your whole team answers customers from one WhatsApp number — nobody shares a phone, nothing gets missed, and you can see who is replying fast."
+
+**What the customer gets**
+- **Shared inbox** — every customer message lands in one place, with unread badges, search, and Open / Mine / Unassigned / Unread / Resolved tabs. Replies can include a photo, PDF or document.
+- **Assign chats** — hand a chat to a teammate; optional **auto-assign** shares new chats between chosen people in turn (off until the owner switches it on). A returning customer stays with the same person.
+- **Quick replies** — type `/` and pick a saved answer (price, address, thanks); the customer's name is filled in automatically.
+- **Private notes** — internal notes inside the chat that the customer never sees.
+- **Team Performance** (owner) — average first-reply time, chats answered, chats still waiting, and per-teammate numbers.
+- **Campaigns** — every bulk send with delivered / failed counts, why messages failed, and how many people replied within 3 days. Bulk Send can also be narrowed by lead status and source.
+- **Consent & safety** — a customer can reply **STOP** to opt out of broadcasts (and **START** to return); opted-out numbers are skipped automatically in every bulk send.
+- **No lost leads** — a first WhatsApp message from a new number automatically becomes a Lead (source WhatsApp) and is linked to the chat.
+- **Scheduled campaigns** — write a bulk message now, choose the date and time, and it goes out by itself; it can be cancelled until then.
+- **Control** — owners decide per role who sees every chat, who can assign, who can manage quick replies and who sees reports.
+
+**Who to sell it to:** any customer who already runs enquiries on WhatsApp with more than one person answering — real estate, coaching, clinics, salons, AMC / service companies.
+
+**How it is sold:** it is a premium module. It is included from **Pro** upward by default, and the platform team can also switch it on for a single customer on a lower plan as an add-on (Tenants → Modules), or off again, at any time.
+
+**3-minute demo:** send a message from your phone → show it arrive with the unread badge → assign it → reply with a `/quick reply` → add a private note → open Team Performance and a finished Campaign → mark resolved.
+
+**Don't promise:** product catalogs, recurring scheduled sends, an opt-out list page, tag-based segments (leads have no tags yet), a separate "read" count in campaigns, re-sending to failed numbers from the campaign page. "Delivered" is shown only for numbers linked through the WhatsApp gateway.
+
+**Objections:** *"Can two people reply at once?"* — yes, both see new messages within seconds and each reply carries the sender's name. *"Can staff see each other's chats?"* — by default yes; the owner can limit a role to its own and unassigned chats. *"What if the chatbot is on?"* — it still answers its keywords; staff can reply on top.
+
+Step-by-step guide for the customer's team: `docs/whatsapp-team-inbox.md`.
 
 ---
 

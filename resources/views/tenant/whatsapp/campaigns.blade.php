@@ -29,6 +29,45 @@
     </div>
 </div>
 
+@if($scheduled->isNotEmpty())
+<div class="card" style="margin-bottom:18px">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border-subtle);font-weight:600">Scheduled sends</div>
+    <div style="overflow-x:auto">
+        <table class="data-table">
+            <thead><tr><th>Goes out</th><th>Message</th><th>By</th><th>Recipients</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                @foreach($scheduled as $sc)
+                <tr>
+                    <td style="white-space:nowrap">{{ $sc->scheduled_for->format('d M Y, h:i A') }}</td>
+                    <td style="max-width:300px">@if($sc->attachment_name)📎 @endif{{ \Illuminate\Support\Str::limit($sc->message, 70) }}</td>
+                    <td>{{ $sc->creator?->name ?? '—' }}</td>
+                    <td>{{ count($sc->recipients) }}</td>
+                    <td>
+                        @if($sc->status === 'failed')
+                            <span style="color:var(--red);font-weight:600">Failed</span>
+                            <div style="font-size:11.5px;color:var(--text-300);max-width:260px">{{ $sc->error }}</div>
+                        @elseif($sc->status === 'processing')
+                            <span style="font-weight:600">Sending…</span>
+                        @else
+                            <span style="font-weight:600;color:#128C7E">Waiting</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($sc->status === 'pending')
+                        <form method="POST" action="{{ route('tenant.whatsapp.scheduled.cancel', $sc->id) }}" onsubmit="return confirm('Cancel this scheduled send?')">
+                            @csrf
+                            <button class="btn btn-secondary btn-sm">Cancel</button>
+                        </form>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
 <div class="card">
     @if($campaigns->isEmpty())
     <div style="padding:60px 20px;text-align:center;color:var(--text-300);font-size:13px">

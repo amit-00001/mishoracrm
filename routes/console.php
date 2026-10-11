@@ -25,6 +25,9 @@ Schedule::call(fn () => DB::table('whatsapp_webhook_events')->where('created_at'
     ->name('whatsapp-gateway:prune-events')
     ->dailyAt('03:30');
 
+// ── Scheduled WhatsApp bulk sends — every minute ──────────────────
+Schedule::command('whatsapp:send-scheduled')->everyMinute()->withoutOverlapping();
+
 // ── Invoice payment due/overdue reminders — daily ─────────────────
 Schedule::command('invoices:remind-payments')->daily();
 

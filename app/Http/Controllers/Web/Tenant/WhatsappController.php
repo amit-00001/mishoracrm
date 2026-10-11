@@ -13,6 +13,10 @@ use App\Services\WhatsappGatewayClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Models\WhatsappOptOut;
+use App\Models\WhatsappScheduledBroadcast;
+use App\Services\WhatsappBulkSender;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -292,7 +296,10 @@ class WhatsappController extends Controller
 
         $metaTemplates = $this->metaTemplates();
 
-        return view('tenant.whatsapp.bulk', compact('templates', 'leads', 'contacts', 'isConnected', 'metaTemplates'));
+        $optedOut    = WhatsappOptOut::setFor($this->tenantId());
+        $canSchedule = (bool) auth()->user()->tenant?->hasModuleEnabled('whatsapp_inbox');
+
+        return view('tenant.whatsapp.bulk', compact('templates', 'leads', 'contacts', 'isConnected', 'metaTemplates', 'optedOut', 'canSchedule'));
     }
 
     // ── Bulk send — process ───────────────────────────────────────
@@ -307,6 +314,7 @@ class WhatsappController extends Controller
             'meta_template'     => ['nullable', 'string', 'max:200'],
             'template_params'   => ['nullable', 'array'],
             'template_params.*' => ['nullable', 'string', 'max:1000'],
+            'schedule_at'       => ['nullable', 'date'],
         ]);
 
         $service = $this->connectedService();
@@ -329,6 +337,13 @@ class WhatsappController extends Controller
             }
         }
 
+        $bulkId = (string) Str::uuid();
+
+        // ── Scheduled: save it now, the scheduler sends it later ────
+        if ($request->filled('schedule_at')) {
+            return $this->scheduleBulk($request, $bulkId);
+        }
+
         // Upload the attachment once — the same media id is reused for every recipient below.
         $mediaId = $mediaType = $attachmentName = null;
         if ($request->hasFile('attachment')) {
@@ -342,69 +357,87 @@ class WhatsappController extends Controller
             }
         }
 
-        $bulkId = Str::uuid();
-        $today  = now()->format('d M Y');
+        $result = WhatsappBulkSender::run($service, [
+            'tenant_id'       => $this->tenantId(),
+            'user_id'         => auth()->id(),
+            'type'            => $request->type,
+            'ids'             => $request->recipients,
+            'message'         => $request->message,
+            'template_id'     => $request->template_id,
+            'bulk_id'         => $bulkId,
+            'business'        => auth()->user()->tenant->name,
+            'agent_name'      => auth()->user()->name,
+            'meta_template'   => $metaTemplate,
+            'raw_params'      => $rawParams,
+            'media_id'        => $mediaId,
+            'media_type'      => $mediaType,
+            'attachment_name' => $attachmentName,
+        ]);
 
-        $sent = 0;
-        $failed = 0;
+        $note = "{$result['sent']} messages sent."
+            . ($result['failed'] > 0 ? " {$result['failed']} failed." : '')
+            . ($result['skipped'] > 0 ? " {$result['skipped']} skipped (opted out of broadcasts)." : '');
 
-        foreach ($request->recipients as $id) {
-            $record = $request->type === 'leads'
-                ? Lead::find($id)
-                : Contact::find($id);
+        return redirect()->route('tenant.whatsapp.logs')->with('success', $note);
+    }
 
-            if (!$record || !$record->phone) continue;
-
-            $waId = preg_replace('/[^0-9]/', '', $record->phone);
-
-            // Replace {{variables}} in the actual submitted message per recipient
-            $variables = [
-                'name'       => $record->name ?? '',
-                'company'    => $record->company ?? '',
-                'phone'      => $record->phone ?? '',
-                'email'      => $record->email ?? '',
-                'amount'     => $record->lead_value ?? '',
-                'date'       => $today,
-                'business'   => auth()->user()->tenant->name,
-                'agent_name' => auth()->user()->name,
-            ];
-            $message = WhatsappTemplate::substituteVariables($request->message, $variables);
-
-            if ($metaTemplate) {
-                // Template fields take the same {{variables}}, filled per recipient.
-                $params  = array_map(fn ($value) => WhatsappTemplate::substituteVariables($value, $variables), $rawParams);
-                $ok      = $service->sendTemplate($waId, $metaTemplate['name'], $metaTemplate['language'], $params);
-                $error   = $ok ? null : ($service->lastError ?? 'WhatsApp API rejected the template message.');
-                $message = WhatsappGatewayClient::renderTemplateBody($metaTemplate['body'], $params);
-            } else {
-                [$ok, $error] = $this->deliver($service, $waId, $message, null, $mediaId, $mediaType, $attachmentName);
-            }
-            $ok ? $sent++ : $failed++;
-
-            WhatsappLog::create([
-                'tenant_id'       => $this->tenantId(),
-                'template_id'     => $request->template_id,
-                'lead_id'         => $request->type === 'leads' ? $id : null,
-                'contact_id'      => $request->type === 'contacts' ? $id : null,
-                'sent_by'         => auth()->id(),
-                'to_phone'        => $record->phone,
-                'to_name'         => $record->name,
-                'message'         => $message,
-                'status'          => $ok ? 'sent' : 'failed',
-                'error_message'   => $error,
-                'media_type'      => $mediaType,
-                'media_id'        => $mediaId,
-                'attachment_name' => $attachmentName,
-                'wamid'           => $ok ? $service->lastMessageId : null,
-                'is_bulk'         => true,
-                'bulk_id'         => $bulkId,
-                'sent_at'         => now(),
-            ]);
+    // Saves a bulk send to go out at schedule_at. Needs the WhatsApp Team Inbox
+    // module (it is part of that suite). The attachment is kept on the private
+    // disk until it is sent.
+    private function scheduleBulk(Request $request, string $bulkId): RedirectResponse
+    {
+        if (!auth()->user()->tenant?->hasModuleEnabled('whatsapp_inbox')) {
+            return back()->withInput()->with('error', 'Scheduling is part of the WhatsApp Team Inbox plan feature. Contact support to enable it.');
         }
 
-        return redirect()
-            ->route('tenant.whatsapp.logs')
-            ->with('success', "{$sent} messages sent." . ($failed > 0 ? " {$failed} failed." : ''));
+        $when = \Illuminate\Support\Carbon::parse($request->input('schedule_at'), config('app.timezone'));
+        if ($when->lt(now()->addMinutes(2)) || $when->gt(now()->addDays(60))) {
+            return back()->withInput()->with('error', 'Pick a time between 2 minutes and 60 days from now.');
+        }
+
+        $path = $name = $mime = null;
+        if ($file = $request->file('attachment')) {
+            $name = $file->getClientOriginalName();
+            $mime = $file->getMimeType();
+            $path = $file->storeAs('whatsapp-scheduled/' . $this->tenantId(), $bulkId . '.' . $file->getClientOriginalExtension(), 'local');
+        }
+
+        WhatsappScheduledBroadcast::create([
+            'tenant_id'       => $this->tenantId(),
+            'created_by'      => auth()->id(),
+            'type'            => $request->type,
+            'recipients'      => array_values($request->recipients),
+            'message'         => $request->message,
+            'template_id'     => $request->template_id,
+            'meta_template'   => $request->input('meta_template'),
+            'template_params' => $request->input('template_params'),
+            'attachment_path' => $path,
+            'attachment_name' => $name,
+            'attachment_mime' => $mime,
+            'scheduled_for'   => $when,
+            'bulk_id'         => $bulkId,
+        ]);
+
+        return redirect()->route('tenant.whatsapp.campaigns')
+            ->with('success', 'Scheduled for ' . $when->format('d M Y, h:i A') . '. You can cancel it from here until then.');
+    }
+
+    // ── Cancel a scheduled send ───────────────────────────────────
+    public function cancelScheduled(int $id): RedirectResponse
+    {
+        $item = WhatsappScheduledBroadcast::where('tenant_id', $this->tenantId())->findOrFail($id);
+
+        if ($item->status !== 'pending') {
+            return back()->with('error', 'This send has already started and cannot be cancelled.');
+        }
+
+        // Cancel only if the scheduler has not just picked it up.
+        $changed = WhatsappScheduledBroadcast::where('id', $item->id)->where('status', 'pending')->update(['status' => 'cancelled']);
+        if ($changed && $item->attachment_path) {
+            Storage::disk('local')->delete($item->attachment_path);
+        }
+
+        return back()->with($changed ? 'success' : 'error', $changed ? 'Scheduled send cancelled.' : 'It just started sending and cannot be cancelled.');
     }
 
     // ── Logs ──────────────────────────────────────────────────────

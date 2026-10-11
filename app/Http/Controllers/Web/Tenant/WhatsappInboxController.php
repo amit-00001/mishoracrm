@@ -8,6 +8,7 @@ use App\Models\WhatsappConversation;
 use App\Models\WhatsappConversationNote;
 use App\Models\WhatsappQuickReply;
 use App\Models\WhatsappLog;
+use App\Models\WhatsappOptOut;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
 use App\Services\WhatsappGatewayClient;
@@ -88,7 +89,12 @@ class WhatsappInboxController extends Controller
             'canQuick'      => auth()->user()->can('whatsapp.quick_replies'),
             'team'          => $this->team()->map(fn ($u) => ['id' => $u->id, 'name' => $u->name])->values(),
             'me'            => auth()->id(),
-            'autoAssign'    => ['on' => (bool) $settings->inbox_auto_assign, 'users' => $settings->inbox_auto_assign_users ?: []],
+            'autoAssign'    => [
+                'on'     => (bool) $settings->inbox_auto_assign,
+                'users'  => $settings->inbox_auto_assign_users ?: [],
+                'lead'   => (bool) ($settings->auto_create_lead ?? true),
+                'optout' => (bool) ($settings->optout_enabled ?? true),
+            ],
             'quickReplies'  => WhatsappQuickReply::where('tenant_id', $this->tenantId())->orderBy('shortcut')->get(['id', 'shortcut', 'body']),
             'list'          => $conversations->map(fn ($c) => $this->summary($c))->values(),
             'head'          => $selected ? $this->head($selected) : null,
@@ -122,6 +128,7 @@ class WhatsappInboxController extends Controller
             'window_open' => $c->windowOpen(),
             'assigned_to' => $c->assigned_to,
             'assignee'    => $c->assignee?->name,
+            'opted_out'   => WhatsappOptOut::isOptedOut($c->tenant_id, $c->wa_id),
         ];
     }
 
@@ -408,6 +415,8 @@ class WhatsappInboxController extends Controller
             'on'      => ['required', 'boolean'],
             'users'   => ['nullable', 'array'],
             'users.*' => ['integer'],
+            'lead'    => ['nullable', 'boolean'],
+            'optout'  => ['nullable', 'boolean'],
         ]);
 
         $valid = $this->team()->pluck('id')->all();
@@ -421,9 +430,27 @@ class WhatsappInboxController extends Controller
         $setting->fill([
             'inbox_auto_assign'       => (bool) $data['on'],
             'inbox_auto_assign_users' => $users,
+            'auto_create_lead'        => (bool) ($data['lead'] ?? true),
+            'optout_enabled'          => (bool) ($data['optout'] ?? true),
         ])->save();
 
         return response()->json(['on' => (bool) $data['on'], 'users' => $users]);
+    }
+
+    // ── Broadcast opt-out, by hand ────────────────────────────────
+    // Marks this number as not wanting bulk messages (or lets them back in).
+    // One-to-one replies in the Inbox are never blocked.
+    public function toggleOptOut(int $id): JsonResponse
+    {
+        $conv = $this->conversation($id);
+
+        if (WhatsappOptOut::isOptedOut($conv->tenant_id, $conv->wa_id)) {
+            WhatsappOptOut::remove($conv->tenant_id, $conv->wa_id);
+        } else {
+            WhatsappOptOut::add($conv->tenant_id, $conv->wa_id, 'manual');
+        }
+
+        return response()->json(['head' => $this->head($conv)]);
     }
 
     // ── Resolve / reopen ──────────────────────────────────────────

@@ -129,14 +129,15 @@
                 {{-- Leads list --}}
                 <div class="recipient-list" id="leadsList">
                     @foreach($leads as $l)
-                    <label class="recipient-item" id="lead_{{ $l->id }}" data-status="{{ $l->status }}" data-source="{{ $l->source }}">
+                    @php $optL = isset($optedOut[preg_replace('/[^0-9]/', '', (string) $l->phone)]); @endphp
+                    <label class="recipient-item" id="lead_{{ $l->id }}" data-status="{{ $l->status }}" data-source="{{ $l->source }}" @if($optL) style="opacity:.55" title="Opted out of broadcasts" @endif>
                         <input type="checkbox" name="recipients[]" value="{{ $l->id }}"
-                               class="rec-check" onchange="updateCount()"/>
+                               class="rec-check" onchange="updateCount()" {{ $optL ? 'disabled' : '' }}/>
                         <div>
                             <div class="rec-name">{{ $l->name }}</div>
                             <div class="rec-phone">{{ $l->phone }}</div>
                         </div>
-                        <span class="rec-badge">{{ ucfirst($l->status) }}</span>
+                        <span class="rec-badge">{{ $optL ? 'Opted out' : ucfirst($l->status) }}</span>
                     </label>
                     @endforeach
                 </div>
@@ -144,9 +145,10 @@
                 {{-- Contacts list --}}
                 <div class="recipient-list" id="contactsList" style="display:none">
                     @foreach($contacts as $c)
-                    <label class="recipient-item" id="contact_{{ $c->id }}">
+                    @php $optC = isset($optedOut[preg_replace('/[^0-9]/', '', (string) $c->phone)]); @endphp
+                    <label class="recipient-item" id="contact_{{ $c->id }}" @if($optC) style="opacity:.55" title="Opted out of broadcasts" @endif>
                         <input type="checkbox" name="recipients[]" value="{{ $c->id }}"
-                               class="rec-check" onchange="updateCount()"/>
+                               class="rec-check" onchange="updateCount()" {{ $optC ? 'disabled' : '' }}/>
                         <div>
                             <div class="rec-name">{{ $c->name }}</div>
                             <div class="rec-phone">{{ $c->phone }}</div>
@@ -197,6 +199,20 @@
                 <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx" class="field-input">
                 <div style="font-size:11.5px;color:var(--text-400);margin-top:6px">One image or document, up to 16MB — sent to every recipient.</div>
             </div>
+
+            @if($canSchedule ?? false)
+            <div class="form-section">
+                <div class="fs-title">When to send</div>
+                <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px;font-size:13.5px">
+                    <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="when" value="now" checked onchange="whenChanged()"> Send now</label>
+                    <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="when" value="later" onchange="whenChanged()"> Schedule for later</label>
+                </div>
+                <div id="scheduleBox" style="display:none">
+                    <input type="datetime-local" id="scheduleAt" class="field-input" style="max-width:260px">
+                    <div style="font-size:11.5px;color:var(--text-400);margin-top:6px">Between 2 minutes and 60 days from now (India time). Recipients are fixed when you schedule; people who opt out before the time are skipped. You can cancel from Campaigns.</div>
+                </div>
+            </div>
+            @endif
 
             <div class="form-actions">
                 <a href="{{ route('tenant.whatsapp.index') }}" class="btn btn-secondary">Cancel</a>
@@ -280,7 +296,7 @@ function switchType(type) {
 function toggleAll(cb){
     const list = document.getElementById(currentType === 'leads' ? 'leadsList' : 'contactsList');
     list.querySelectorAll('.rec-check').forEach(c => {
-        if(c.closest('.recipient-item').style.display !== 'none') c.checked = cb.checked;
+        if(!c.disabled && c.closest('.recipient-item').style.display !== 'none') c.checked = cb.checked;
     });
     updateCount();
 }
@@ -335,10 +351,36 @@ function updateSummary(){
     document.getElementById('summaryChars').textContent = msg.length;
 }
 
+// "Send now" / "Schedule for later" (only present when the plan includes scheduling).
+function whenChanged(){
+    const later = document.querySelector('input[name="when"]:checked')?.value === 'later';
+    document.getElementById('scheduleBox').style.display = later ? 'block' : 'none';
+    const btn = document.getElementById('submitBtn');
+    btn.firstChild.textContent = later ? 'Schedule for ' : 'Send to ';
+    if (later) {
+        const min = new Date(Date.now() + 5*60000 - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+        document.getElementById('scheduleAt').min = min;
+    }
+}
+
 function confirmSend(){
     const count = document.querySelectorAll('.rec-check:checked').length;
     if(count === 0){ showToast('Please select at least one recipient.', 'error'); return false; }
-    return requireConfirm(document.getElementById('bulkForm'), `Send WhatsApp message to ${count} recipients?`, {ok: 'Send', danger: false});
+
+    const later = document.querySelector('input[name="when"]:checked')?.value === 'later';
+    const form  = document.getElementById('bulkForm');
+    let old = form.querySelector('input[name="schedule_at"]');
+    if (old) old.remove();
+
+    if (later) {
+        const at = document.getElementById('scheduleAt').value;
+        if (!at) { showToast('Pick the date and time to send.', 'error'); return false; }
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden'; hidden.name = 'schedule_at'; hidden.value = at;
+        form.appendChild(hidden);
+        return requireConfirm(form, `Schedule this message to ${count} recipients for ${at.replace('T', ' ')}?`, {ok: 'Schedule', danger: false});
+    }
+    return requireConfirm(form, `Send WhatsApp message to ${count} recipients?`, {ok: 'Send', danger: false});
 }
 </script>
 @endpush

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\WhatsappConversation;
 use App\Models\WhatsappLog;
+use App\Models\WhatsappScheduledBroadcast;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -153,7 +154,13 @@ class WhatsappInsightsController extends Controller
 
         $senders = User::whereIn('id', $campaigns->pluck('sent_by')->filter()->unique())->pluck('name', 'id');
 
-        return view('tenant.whatsapp.campaigns', compact('campaigns', 'senders'));
+        // Waiting to go out, or failed in the last two weeks (sent ones are in the table above).
+        $scheduled = WhatsappScheduledBroadcast::where('tenant_id', $this->tenantId())
+            ->where(fn ($q) => $q->whereIn('status', ['pending', 'processing'])
+                ->orWhere(fn ($q) => $q->where('status', 'failed')->where('processed_at', '>=', now()->subDays(14))))
+            ->orderBy('scheduled_for')->with('creator:id,name')->get();
+
+        return view('tenant.whatsapp.campaigns', compact('campaigns', 'senders', 'scheduled'));
     }
 
     public function campaign(Request $request, string $bulkId): View

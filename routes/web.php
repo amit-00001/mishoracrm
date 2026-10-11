@@ -1063,6 +1063,7 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::post('send',                [Tenant\WhatsappController::class, 'send'])->name('send.store')->middleware('permission:whatsapp.send');
             Route::get('bulk',                 [Tenant\WhatsappController::class, 'bulkForm'])->name('bulk')->middleware('permission:whatsapp.bulk_send');
             Route::post('bulk',                [Tenant\WhatsappController::class, 'sendBulk'])->name('bulk.send')->middleware('permission:whatsapp.bulk_send');
+            Route::post('scheduled/{id}/cancel', [Tenant\WhatsappController::class, 'cancelScheduled'])->whereNumber('id')->name('scheduled.cancel')->middleware('permission:whatsapp.bulk_send');
             Route::get('logs',                 [Tenant\WhatsappController::class, 'logs'])->name('logs');
             Route::post('preview-template',    [Tenant\WhatsappController::class, 'previewTemplate'])->name('preview')
                 ->middleware('permission:whatsapp.send|whatsapp.bulk_send|whatsapp.manage_templates');
@@ -1076,6 +1077,7 @@ Route::middleware(['tenant', 'auth', 'subscription'])
                 Route::post('{id}/status',     [Tenant\WhatsappInboxController::class, 'toggleStatus'])->name('status');
                 Route::post('{id}/assign',     [Tenant\WhatsappInboxController::class, 'assign'])->name('assign')->middleware('permission:whatsapp.assign');
                 Route::post('{id}/notes',      [Tenant\WhatsappInboxController::class, 'addNote'])->name('notes');
+                Route::post('{id}/opt-out',    [Tenant\WhatsappInboxController::class, 'toggleOptOut'])->name('opt-out')->middleware('permission:whatsapp.send');
                 Route::post('quick-replies',        [Tenant\WhatsappInboxController::class, 'saveQuickReply'])->name('quick.store')->middleware('permission:whatsapp.quick_replies');
                 Route::put('quick-replies/{id}',    [Tenant\WhatsappInboxController::class, 'saveQuickReply'])->whereNumber('id')->name('quick.update')->middleware('permission:whatsapp.quick_replies');
                 Route::delete('quick-replies/{id}', [Tenant\WhatsappInboxController::class, 'deleteQuickReply'])->whereNumber('id')->name('quick.delete')->middleware('permission:whatsapp.quick_replies');

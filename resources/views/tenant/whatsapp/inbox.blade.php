@@ -41,6 +41,7 @@
 .ib-reply textarea:focus { border-color:var(--accent); }
 .ib-note { font-size:12px; padding:9px 12px; border-radius:var(--r-sm); background:var(--amber-dim); color:var(--amber); }
 .ib-none { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-300); font-size:14px; background:var(--bg-elevated); }
+.ib-optout { font-size:11.5px; font-weight:600; color:#8a4b00; background:#FFF1E0; border:1px solid #f1c48a; border-radius:20px; padding:3px 10px; }
 .ib-who { font-size:11px; color:var(--text-400); margin-top:3px; }
 .ib-select { height:32px; padding:0 8px; background:var(--bg-input); border:1.5px solid var(--border-default); border-radius:var(--r-sm); color:var(--text-100); font-family:var(--font); font-size:12.5px; }
 .ib-msg.note { align-self:center; max-width:80%; background:#FFF8E1; border:1px dashed #E6B800; color:#5c4a00; }
@@ -85,7 +86,7 @@
     <div class="page-actions">
         @can('whatsapp.view_reports')<a href="{{ route('tenant.whatsapp.performance') }}" class="btn btn-secondary">Team performance</a>@endcan
         @if($canQuick)<button type="button" class="btn btn-secondary" data-open-modal="qrModal">⚡ Quick replies</button>@endif
-        @if($canAssign)<button type="button" class="btn btn-secondary" data-open-modal="aaModal">Auto-assign</button>@endif
+        @if($canAssign)<button type="button" class="btn btn-secondary" data-open-modal="aaModal">Inbox settings</button>@endif
     </div>
 </div>
 
@@ -129,6 +130,8 @@
                 @else
                 <span class="ib-head-sub" id="ibAssignText"></span>
                 @endif
+                <span class="ib-optout" id="ibOptBadge" style="display:none" title="Gets no bulk / broadcast messages">Opted out of broadcasts</span>
+                @if($canReply)<button type="button" class="btn btn-secondary btn-sm" id="ibOptBtn" title="Stop or allow bulk messages to this number">Block broadcasts</button>@endif
                 <button type="button" class="btn btn-secondary btn-sm" id="statusBtn">Mark resolved</button>
             </div>
         </div>
@@ -204,7 +207,8 @@
 @if($canAssign)
 <div class="ib-modal" id="aaModal">
     <div class="ib-modal-box">
-        <div class="ib-modal-head"><b>Auto-assign new chats</b><button type="button" class="ib-x" data-close>✕</button></div>
+        <div class="ib-modal-head"><b>Inbox settings</b><button type="button" class="ib-x" data-close>✕</button></div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">Auto-assign new chats</div>
         <label style="display:flex;gap:8px;align-items:center;font-size:13.5px;margin-bottom:6px">
             <input type="checkbox" id="aaOn"> Share new chats between the people below, one after another
         </label>
@@ -214,6 +218,13 @@
             <label><input type="checkbox" value="{{ $u['id'] }}"> {{ $u['name'] }}</label>
             @endforeach
         </div>
+        <div style="font-weight:600;font-size:13px;margin:14px 0 6px">Customers &amp; consent</div>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin-bottom:8px">
+            <input type="checkbox" id="aaLead" style="margin-top:3px"> <span>Create a Lead automatically when a new number messages us <span style="color:var(--text-300)">(source: WhatsApp)</span></span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px">
+            <input type="checkbox" id="aaOptout" style="margin-top:3px"> <span>Let customers opt out by sending <b>STOP</b> (and back in with <b>START</b>) — opted-out numbers are skipped in bulk sends</span>
+        </label>
         <div id="aaError" class="ib-err" style="display:none"></div>
         <div style="display:flex;justify-content:flex-end;margin-top:12px">
             <button type="button" class="btn btn-primary btn-sm" id="aaSave">Save</button>
@@ -322,6 +333,8 @@ function applyHead(h) {
         + (h.lead_url ? ` · <a href="${esc(h.lead_url)}">Lead</a>` : '')
         + (h.contact_url ? ` · <a href="${esc(h.contact_url)}">Contact</a>` : '');
     $('statusBtn').textContent = h.status === 'open' ? 'Mark resolved' : 'Reopen';
+    $('ibOptBadge').style.display = h.opted_out ? '' : 'none';
+    if ($('ibOptBtn')) $('ibOptBtn').textContent = h.opted_out ? 'Allow broadcasts' : 'Block broadcasts';
     if ($('ibAssign')) { if (document.activeElement !== $('ibAssign')) $('ibAssign').value = h.assigned_to || ''; }
     if ($('ibAssignText')) $('ibAssignText').textContent = h.assignee ? '👤 ' + h.assignee : 'Unassigned';
     if (CAN_REPLY) syncComposer();
@@ -423,6 +436,14 @@ $('statusBtn').addEventListener('click', async () => {
     renderCounts(data.counts);
     refreshList();
 });
+
+if ($('ibOptBtn')) {
+    $('ibOptBtn').addEventListener('click', async () => {
+        if (!cur) return;
+        const {ok, data} = await json(`${BASE}/${cur}/opt-out`, {method: 'POST'});
+        if (ok) applyHead(data.head);
+    });
+}
 
 if (CAN_ASSIGN && $('ibAssign')) {
     $('ibAssign').addEventListener('change', async e => {
@@ -622,10 +643,12 @@ if (CAN_QUICK) {
 // Auto-assign settings
 if (CAN_ASSIGN && $('aaModal')) {
     $('aaOn').checked = autoAssign.on;
+    $('aaLead').checked = autoAssign.lead;
+    $('aaOptout').checked = autoAssign.optout;
     document.querySelectorAll('#aaUsers input').forEach(i => { i.checked = autoAssign.users.includes(Number(i.value)); });
     $('aaSave').addEventListener('click', async () => {
         const users = [...document.querySelectorAll('#aaUsers input:checked')].map(i => Number(i.value));
-        const {ok, data} = await post(`${BASE}/auto-assign`, {on: $('aaOn').checked, users});
+        const {ok, data} = await post(`${BASE}/auto-assign`, {on: $('aaOn').checked, users, lead: $('aaLead').checked, optout: $('aaOptout').checked});
         if (!ok) {
             $('aaError').textContent = data.error || Object.values(data.errors || {})[0]?.[0] || 'Could not save.';
             $('aaError').style.display = 'block'; return;
