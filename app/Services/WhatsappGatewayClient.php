@@ -426,9 +426,10 @@ class WhatsappGatewayClient
         return static::call('get', "/workspaces/{$workspaceId}/messages", ['direction' => 'inbound', 'limit' => $limit], null, 15, true);
     }
 
-    public static function webhookDeliveries(string $status = 'failed', int $limit = 5): array
+    // $status null = the latest deliveries of any status.
+    public static function webhookDeliveries(?string $status = 'failed', int $limit = 5): array
     {
-        return static::call('get', '/webhook-deliveries', ['status' => $status, 'limit' => $limit], null, 15, true);
+        return static::call('get', '/webhook-deliveries', array_filter(['status' => $status, 'limit' => $limit]), null, 15, true);
     }
 
     // The webhook URL the gateway currently sends this client's events to:

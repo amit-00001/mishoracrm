@@ -220,6 +220,35 @@ class PlatformSettingController extends Controller
             }
         }
 
+        // "No failed deliveries" is ambiguous: it is also what you see when the
+        // gateway never tried to send anything. The latest deliveries of ANY
+        // status settle it.
+        $res = WhatsappGatewayClient::webhookDeliveries(null, 5);
+
+        if ($res['ok']) {
+            $recent = $this->listFrom($res['data'], ['data', 'deliveries', 'items']);
+
+            if ($recent === []) {
+                $bad     = true;
+                $lines[] = '✕ The gateway has never created a webhook delivery for this client — it is not attempting to send events anywhere. The gateway operator should check the client\'s webhook URL and that the client is active.';
+            }
+
+            foreach (array_slice($recent, 0, 3) as $d) {
+                $code   = $d['last_response_code'] ?? $d['response_code'] ?? $d['http_status'] ?? $d['status_code'] ?? null;
+                $status = $d['status'] ?? null;
+                $parts  = array_filter([
+                    $d['event'] ?? null,
+                    $status ? "status {$status}" : null,
+                    $code !== null ? "HTTP {$code}" : null,
+                    $d['created_at'] ?? null,
+                ]);
+                $stuck = in_array(strtolower((string) $status), ['pending', 'queued', 'retrying'], true);
+
+                $lines[] = ($stuck ? '! ' : '· ') . 'gateway delivery: ' . implode(' · ', $parts)
+                    . ($stuck ? ' → queued but not delivered: the gateway\'s scheduler (gateway:retry-webhooks, every minute) is probably not running' : '');
+            }
+        }
+
         // ── This CRM's side: what actually arrived here, and what the chatbot does with it ──
         $registered = WhatsappGatewayClient::registeredWebhookUrl();
         $ours       = url('/webhook/wa-gateway');

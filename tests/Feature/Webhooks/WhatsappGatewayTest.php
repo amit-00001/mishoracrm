@@ -701,13 +701,20 @@ class WhatsappGatewayTest extends TestCase
         $this->assertStringContainsString('webhook secret', $res->json('message'));
     }
 
-    private function fakeDiagnose(?string $registeredUrl, string $gatewayMessageAt): void
+    // $recentDeliveries = what the gateway lists for "latest deliveries, any status"
+    // (the "failed" list is always empty here).
+    private function fakeDiagnose(?string $registeredUrl, string $gatewayMessageAt, ?array $recentDeliveries = null): void
     {
+        $recentDeliveries ??= [['event' => 'message.received', 'status' => 'delivered', 'response_code' => 200, 'created_at' => $gatewayMessageAt]];
+
         Http::fake([
             'gw.test/*/workspaces/*/messages*' => Http::response(['success' => true, 'data' => [
                 ['id' => 'm-1', 'direction' => 'inbound', 'phone' => '919876543210', 'text' => 'hi', 'created_at' => $gatewayMessageAt],
             ]], 200),
-            'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => []], 200),
+            'gw.test/*/webhook-deliveries*'    => fn ($request) => Http::response([
+                'success' => true,
+                'data'    => str_contains($request->url(), 'status=failed') ? [] : $recentDeliveries,
+            ], 200),
             'gw.test/*/client'                 => $registeredUrl === null
                 ? Http::response(['success' => false], 404)
                 : Http::response(['success' => true, 'data' => ['webhook_url' => $registeredUrl]], 200),
@@ -764,6 +771,36 @@ class WhatsappGatewayTest extends TestCase
 
         $this->assertTrue($res->json('success'), $res->json('message'));
         $this->assertStringContainsString('chatbot is on with 1 active flow(s), including a default flow', $res->json('message'));
+    }
+
+    public function test_diagnose_says_when_the_gateway_never_tried_to_deliver(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose(url('/webhook/wa-gateway'), now()->toIso8601String(), []);
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('has never created a webhook delivery', $res->json('message'));
+    }
+
+    public function test_diagnose_points_at_the_gateway_scheduler_for_queued_deliveries(): void
+    {
+        $this->enableGateway();
+        $this->fakeDiagnose(url('/webhook/wa-gateway'), now()->toIso8601String(), [
+            ['event' => 'message.received', 'status' => 'pending', 'created_at' => now()->toIso8601String()],
+        ]);
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertStringContainsString('queued but not delivered', $res->json('message'));
+        $this->assertStringContainsString('gateway:retry-webhooks', $res->json('message'));
     }
 
     public function test_diagnose_notices_a_gateway_message_that_never_arrived(): void
