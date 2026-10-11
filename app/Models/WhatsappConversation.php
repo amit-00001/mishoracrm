@@ -89,8 +89,37 @@ class WhatsappConversation extends Model
             $conv->status         = 'open';
         }
 
+        // Team Inbox auto-assign: an unassigned chat goes to the next person in
+        // the owner's round-robin list. A chat that already has an owner keeps
+        // them, so a returning customer reaches the same agent.
+        if ($inbound && !$conv->assigned_to) {
+            $conv->assigned_to = static::nextAutoAssignee($tenantId);
+        }
+
         $conv->save();
 
         return $conv;
+    }
+
+    // Next user in the tenant's auto-assign list after the one served last,
+    // or null when auto-assign is off / the list has no active user left.
+    public static function nextAutoAssignee(int $tenantId): ?int
+    {
+        $setting = WhatsappSetting::where('tenant_id', $tenantId)->first();
+        if (!$setting || !$setting->inbox_auto_assign) {
+            return null;
+        }
+
+        $ids = User::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('is_active', true)
+            ->whereIn('id', $setting->inbox_auto_assign_users ?: [])
+            ->orderBy('id')->pluck('id')->all();
+        if (!$ids) {
+            return null;
+        }
+
+        $next = collect($ids)->first(fn ($id) => $id > (int) $setting->inbox_last_assigned_to) ?? $ids[0];
+        $setting->forceFill(['inbox_last_assigned_to' => $next])->save();
+
+        return $next;
     }
 }

@@ -185,6 +185,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'whatsapp.view_logs',
             'whatsapp.manage_templates',
             'whatsapp.inbox',          // Team Inbox (also needs the whatsapp_inbox module)
+            'whatsapp.assign',         // Inbox: assign chats, auto-assign settings
+            'whatsapp.view_all',       // Inbox: see every chat (without it: own + unassigned only)
+            'whatsapp.quick_replies',  // Inbox: manage saved quick replies
 
             // ── Email ─────────────────────────────────────────────
             'email.send',
@@ -248,6 +251,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'purchase_requests.create',
             'whatsapp.send',
             'whatsapp.inbox',
+            'whatsapp.assign',
+            'whatsapp.view_all',
             'email.send',
             'reports.view_basic',
             'notifications.view',

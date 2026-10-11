@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Web\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\WhatsappConversation;
+use App\Models\WhatsappConversationNote;
+use App\Models\WhatsappQuickReply;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use App\Services\WhatsappChatbotService;
@@ -22,17 +25,37 @@ class WhatsappInboxController extends Controller
         return auth()->user()->tenant_id;
     }
 
+    // Without whatsapp.view_all a person sees only the chats assigned to them
+    // plus the unassigned ones (so new chats can still be picked up).
+    private function scoped($query)
+    {
+        $query->where('tenant_id', $this->tenantId());
+
+        if (!auth()->user()->can('whatsapp.view_all')) {
+            $me = auth()->id();
+            $query->where(fn ($q) => $q->where('assigned_to', $me)->orWhereNull('assigned_to'));
+        }
+
+        return $query;
+    }
+
     private function conversation(int $id): WhatsappConversation
     {
-        return WhatsappConversation::where('tenant_id', $this->tenantId())
-            ->with(['lead:id,name,phone', 'contact:id,name,phone'])
+        return $this->scoped(WhatsappConversation::query())
+            ->with(['lead:id,name,phone', 'contact:id,name,phone', 'assignee:id,name'])
             ->findOrFail($id);
+    }
+
+    private function team(): \Illuminate\Support\Collection
+    {
+        return User::where('tenant_id', $this->tenantId())->where('is_active', true)
+            ->orderBy('name')->get(['id', 'name']);
     }
 
     // ── Inbox page ────────────────────────────────────────────────
     public function index(Request $request): View
     {
-        $filter = $request->input('filter', 'open'); // open | unread | resolved | all
+        $filter = $request->input('filter', 'open'); // open | mine | unassigned | unread | resolved | all
 
         $conversations = $this->listQuery($filter, $request->input('search'))->limit(100)->get();
 
@@ -61,18 +84,26 @@ class WhatsappInboxController extends Controller
             'connected'     => (bool) $settings->is_connected,
             'templates'     => $templates,
             'canReply'      => auth()->user()->can('whatsapp.send'),
+            'canAssign'     => auth()->user()->can('whatsapp.assign'),
+            'canQuick'      => auth()->user()->can('whatsapp.quick_replies'),
+            'team'          => $this->team()->map(fn ($u) => ['id' => $u->id, 'name' => $u->name])->values(),
+            'me'            => auth()->id(),
+            'autoAssign'    => ['on' => (bool) $settings->inbox_auto_assign, 'users' => $settings->inbox_auto_assign_users ?: []],
+            'quickReplies'  => WhatsappQuickReply::where('tenant_id', $this->tenantId())->orderBy('shortcut')->get(['id', 'shortcut', 'body']),
             'list'          => $conversations->map(fn ($c) => $this->summary($c))->values(),
             'head'          => $selected ? $this->head($selected) : null,
-            'bubbles'       => $messages->map(fn ($m) => $this->bubble($m))->values(),
+            'bubbles'       => $this->timeline($selected, $messages, 0),
         ]);
     }
 
     private function counts(): array
     {
-        $base = fn () => WhatsappConversation::where('tenant_id', $this->tenantId());
+        $base = fn () => $this->scoped(WhatsappConversation::query());
 
         return [
             'open'     => $base()->where('status', 'open')->count(),
+            'mine'     => $base()->where('status', 'open')->where('assigned_to', auth()->id())->count(),
+            'unassigned' => $base()->where('status', 'open')->whereNull('assigned_to')->count(),
             'unread'   => $base()->where('unread_count', '>', 0)->count(),
             'resolved' => $base()->where('status', 'resolved')->count(),
         ];
@@ -89,14 +120,18 @@ class WhatsappInboxController extends Controller
             'contact_url' => $c->contact_id ? route('tenant.contacts.show', $c->contact_id) : null,
             'status'      => $c->status,
             'window_open' => $c->windowOpen(),
+            'assigned_to' => $c->assigned_to,
+            'assignee'    => $c->assignee?->name,
         ];
     }
 
     private function listQuery(string $filter, ?string $search)
     {
-        return WhatsappConversation::where('tenant_id', $this->tenantId())
-            ->with(['lead:id,name', 'contact:id,name'])
+        return $this->scoped(WhatsappConversation::query())
+            ->with(['lead:id,name', 'contact:id,name', 'assignee:id,name'])
             ->when($filter === 'open',     fn ($q) => $q->where('status', 'open'))
+            ->when($filter === 'mine',     fn ($q) => $q->where('status', 'open')->where('assigned_to', auth()->id()))
+            ->when($filter === 'unassigned', fn ($q) => $q->where('status', 'open')->whereNull('assigned_to'))
             ->when($filter === 'unread',   fn ($q) => $q->where('unread_count', '>', 0))
             ->when($filter === 'resolved', fn ($q) => $q->where('status', 'resolved'))
             ->when($search, function ($q) use ($search) {
@@ -118,8 +153,7 @@ class WhatsappInboxController extends Controller
         $head = null;
         if ($request->filled('c')) {
             $conv = $this->conversation((int) $request->input('c'));
-            $new  = $conv->messages()->where('id', '>', (int) $request->input('after', 0))
-                ->orderBy('id')->get()->map(fn ($m) => $this->bubble($m))->values();
+            $new  = $this->timeline($conv, $conv->messages()->with('sentBy:id,name')->where('id', '>', (int) $request->input('after', 0))->orderBy('id')->get(), (int) $request->input('after_note', 0));
             if ($conv->unread_count > 0) {
                 $conv->update(['unread_count' => 0]);
             }
@@ -140,7 +174,7 @@ class WhatsappInboxController extends Controller
 
         return response()->json([
             'head'     => $this->head($conv),
-            'messages' => $msgs->map(fn ($m) => $this->bubble($m))->values(),
+            'messages' => $this->timeline($conv, $msgs, 0),
             'counts'   => $this->counts(),
         ]);
     }
@@ -154,12 +188,43 @@ class WhatsappInboxController extends Controller
             'unread'  => $c->unread_count,
             'time'    => $c->last_message_at?->diffForHumans(null, true, true),
             'status'  => $c->status,
+            'assignee' => $c->assignee?->name,
+        ];
+    }
+
+    // Messages plus private notes, in one list for the page (notes newer than
+    // $afterNote). The page orders them by 'ts'.
+    private function timeline(?WhatsappConversation $conv, $messages, int $afterNote)
+    {
+        if (!$conv) {
+            return collect();
+        }
+
+        $notes = WhatsappConversationNote::where('conversation_id', $conv->id)->where('id', '>', $afterNote)
+            ->with('user:id,name')->orderBy('id')->limit(300)->get()
+            ->map(fn ($n) => $this->noteBubble($n));
+
+        return $messages->map(fn ($m) => $this->bubble($m))->concat($notes)->sortBy('ts')->values();
+    }
+
+    public function noteBubble(WhatsappConversationNote $n): array
+    {
+        return [
+            'key'  => 'n' . $n->id,
+            'id'   => $n->id,
+            'note' => true,
+            'text' => $n->body,
+            'by'   => $n->user?->name,
+            'time' => $n->created_at->format('d M, h:i A'),
+            'ts'   => $n->created_at->toIso8601String(),
         ];
     }
 
     public function bubble(WhatsappLog $m): array
     {
         return [
+            'key'      => 'm' . $m->id,
+            'ts'       => ($m->sent_at ?? $m->created_at)?->toIso8601String(),
             'id'       => $m->id,
             'in'       => $m->status === 'received',
             'text'     => $m->message,
@@ -255,6 +320,10 @@ class WhatsappInboxController extends Controller
         ]);
 
         if ($ok) {
+            // Replying to a chat nobody owns makes it yours.
+            if (!$conv->assigned_to) {
+                $conv->assigned_to = auth()->id();
+            }
             $conv->update([
                 'last_message_preview' => mb_substr(($fileName ? "📎 {$fileName} " : '') . $logText, 0, 140),
                 'last_message_at'      => now(),
@@ -267,6 +336,94 @@ class WhatsappInboxController extends Controller
             'error'   => $error,
             'message' => $this->bubble($log->load('sentBy')),
         ], $ok ? 200 : 422);
+    }
+
+    // ── Assign ────────────────────────────────────────────────────
+    public function assign(Request $request, int $id): JsonResponse
+    {
+        $request->validate(['user_id' => ['nullable', 'integer']]);
+
+        $conv   = $this->conversation($id);
+        $userId = $request->filled('user_id') ? (int) $request->input('user_id') : null;
+
+        if ($userId && !$this->team()->contains('id', $userId)) {
+            return response()->json(['error' => 'That person is not on your team.'], 422);
+        }
+
+        $conv->update(['assigned_to' => $userId]);
+        $conv->load('assignee:id,name');
+
+        return response()->json(['head' => $this->head($conv), 'counts' => $this->counts()]);
+    }
+
+    // ── Internal notes ────────────────────────────────────────────
+    public function addNote(Request $request, int $id): JsonResponse
+    {
+        $request->validate(['body' => ['required', 'string', 'max:2000']]);
+
+        $conv = $this->conversation($id);
+        $note = WhatsappConversationNote::create([
+            'tenant_id'       => $this->tenantId(),
+            'conversation_id' => $conv->id,
+            'user_id'         => auth()->id(),
+            'body'            => trim($request->input('body')),
+        ]);
+
+        return response()->json(['message' => $this->noteBubble($note->load('user:id,name'))]);
+    }
+
+    // ── Quick replies ─────────────────────────────────────────────
+    public function saveQuickReply(Request $request, ?int $id = null): JsonResponse
+    {
+        $data = $request->validate([
+            'shortcut' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_\-]+$/'],
+            'body'     => ['required', 'string', 'max:2000'],
+        ]);
+        $data['shortcut'] = strtolower($data['shortcut']);
+
+        $dupe = WhatsappQuickReply::where('tenant_id', $this->tenantId())->where('shortcut', $data['shortcut'])
+            ->when($id, fn ($q) => $q->where('id', '!=', $id))->exists();
+        if ($dupe) {
+            return response()->json(['error' => "/{$data['shortcut']} already exists."], 422);
+        }
+
+        $reply = $id
+            ? tap(WhatsappQuickReply::where('tenant_id', $this->tenantId())->findOrFail($id))->update($data)
+            : WhatsappQuickReply::create($data + ['tenant_id' => $this->tenantId(), 'created_by' => auth()->id()]);
+
+        return response()->json(['reply' => $reply->only(['id', 'shortcut', 'body'])]);
+    }
+
+    public function deleteQuickReply(int $id): JsonResponse
+    {
+        WhatsappQuickReply::where('tenant_id', $this->tenantId())->findOrFail($id)->delete();
+
+        return response()->json(['ok' => true]);
+    }
+
+    // ── Auto-assign settings (owner) ──────────────────────────────
+    public function saveAutoAssign(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'on'      => ['required', 'boolean'],
+            'users'   => ['nullable', 'array'],
+            'users.*' => ['integer'],
+        ]);
+
+        $valid = $this->team()->pluck('id')->all();
+        $users = array_values(array_intersect($data['users'] ?? [], $valid));
+
+        if ($data['on'] && !$users) {
+            return response()->json(['error' => 'Pick at least one person to share new chats with.'], 422);
+        }
+
+        $setting = WhatsappSetting::forTenant($this->tenantId());
+        $setting->fill([
+            'inbox_auto_assign'       => (bool) $data['on'],
+            'inbox_auto_assign_users' => $users,
+        ])->save();
+
+        return response()->json(['on' => (bool) $data['on'], 'users' => $users]);
     }
 
     // ── Resolve / reopen ──────────────────────────────────────────

@@ -27,6 +27,9 @@ class WhatsappSetting extends Model
         'hours_end',
         'hours_days',
         'after_hours_message',
+        'inbox_auto_assign',
+        'inbox_auto_assign_users',
+        'inbox_last_assigned_to',
     ];
 
     protected $casts = [
@@ -34,6 +37,8 @@ class WhatsappSetting extends Model
         'is_connected'    => 'boolean',
         'hours_enabled'   => 'boolean',
         'hours_days'      => 'array',
+        'inbox_auto_assign'       => 'boolean',
+        'inbox_auto_assign_users' => 'array',
     ];
 
     protected $hidden = ['access_token', 'registration_pin'];

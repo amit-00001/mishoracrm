@@ -1074,6 +1074,12 @@ Route::middleware(['tenant', 'auth', 'subscription'])
                 Route::get('{id}',             [Tenant\WhatsappInboxController::class, 'show'])->whereNumber('id')->name('show');
                 Route::post('{id}/reply',      [Tenant\WhatsappInboxController::class, 'reply'])->name('reply')->middleware('permission:whatsapp.send');
                 Route::post('{id}/status',     [Tenant\WhatsappInboxController::class, 'toggleStatus'])->name('status');
+                Route::post('{id}/assign',     [Tenant\WhatsappInboxController::class, 'assign'])->name('assign')->middleware('permission:whatsapp.assign');
+                Route::post('{id}/notes',      [Tenant\WhatsappInboxController::class, 'addNote'])->name('notes');
+                Route::post('quick-replies',        [Tenant\WhatsappInboxController::class, 'saveQuickReply'])->name('quick.store')->middleware('permission:whatsapp.quick_replies');
+                Route::put('quick-replies/{id}',    [Tenant\WhatsappInboxController::class, 'saveQuickReply'])->whereNumber('id')->name('quick.update')->middleware('permission:whatsapp.quick_replies');
+                Route::delete('quick-replies/{id}', [Tenant\WhatsappInboxController::class, 'deleteQuickReply'])->whereNumber('id')->name('quick.delete')->middleware('permission:whatsapp.quick_replies');
+                Route::post('auto-assign',     [Tenant\WhatsappInboxController::class, 'saveAutoAssign'])->name('auto-assign')->middleware('permission:whatsapp.assign');
             });
 
             // WhatsApp Chatbot & Business API settings
