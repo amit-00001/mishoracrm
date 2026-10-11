@@ -658,6 +658,47 @@ class WhatsappGatewayTest extends TestCase
             ->assertOk()->assertSee('Ready to reply')->assertSee('including a default flow')->assertDontSee("Won't reply yet", false);
     }
 
+    public function test_diagnose_says_the_gateway_itself_gets_no_customer_messages(): void
+    {
+        $this->enableGateway();
+        Http::fake([
+            'gw.test/*/workspaces/*/messages*' => Http::response(['success' => true, 'data' => []], 200),
+            'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => []], 200),
+        ]);
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('NO message from any customer', $res->json('message'));
+        Http::assertSent(fn ($r) => str_contains($r->url(), "/workspaces/tenant-{$tenant->id}/messages") && $r['direction'] === 'inbound');
+    }
+
+    public function test_diagnose_reads_messages_and_failed_deliveries_and_explains_a_401(): void
+    {
+        $this->enableGateway();
+        Http::fake([
+            'gw.test/*/workspaces/*/messages*' => Http::response(['success' => true, 'data' => [
+                ['id' => 'm-1', 'direction' => 'inbound', 'phone' => '919876543210', 'text' => 'hi', 'created_at' => '2026-10-11T10:00:00+05:30'],
+            ]], 200),
+            'gw.test/*/webhook-deliveries*'    => Http::response(['success' => true, 'data' => [
+                ['event' => 'message.received', 'last_response_code' => 401, 'last_error' => 'Invalid signature.'],
+            ]], 200),
+        ]);
+        $tenant = $this->setUpTenant();
+        $super  = $this->makeUser($tenant, 'superadmin');
+        $this->gatewaySetting($tenant);
+
+        $res = $this->actingAs($super)->postJson(route('superadmin.platform-settings.whatsapp-gateway.diagnose'))->assertOk();
+
+        $this->assertFalse($res->json('success'));
+        $this->assertStringContainsString('the gateway has received 1 recent customer message', $res->json('message'));
+        $this->assertStringContainsString('HTTP 401', $res->json('message'));
+        $this->assertStringContainsString('webhook secret', $res->json('message'));
+    }
+
     public function test_superadmin_can_test_credentials_while_switched_off(): void
     {
         PlatformSetting::set('wa_gateway_base_url', 'https://gw.test/api/v1/gateway');

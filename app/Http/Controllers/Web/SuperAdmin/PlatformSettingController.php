@@ -131,6 +131,102 @@ class PlatformSettingController extends Controller
         ]);
     }
 
+    // "Why doesn't the chatbot answer?" in two questions put to the gateway:
+    // 1) does it hold the customers' messages (Meta → gateway works), and
+    // 2) what happened when it tried to deliver events to this CRM.
+    // The two answers tell the Meta/gateway side apart from our side.
+    // The payload shapes of these two read endpoints aren't fully documented,
+    // so the output is defensive and falls back to raw JSON.
+    public function diagnoseWhatsappGateway(): JsonResponse
+    {
+        $lines = [];
+        $bad   = false;
+
+        $workspaces = WhatsappSetting::where('connection_mode', 'gateway')
+            ->whereNotNull('gateway_workspace_id')
+            ->limit(5)
+            ->pluck('gateway_workspace_id');
+
+        if ($workspaces->isEmpty()) {
+            $bad     = true;
+            $lines[] = '✕ No tenant is connected through the gateway yet.';
+        }
+
+        foreach ($workspaces as $workspace) {
+            $res = WhatsappGatewayClient::inboundMessages($workspace);
+
+            if (!$res['ok']) {
+                $bad     = true;
+                $lines[] = "✕ {$workspace}: could not read its messages from the gateway — {$res['error']}";
+                continue;
+            }
+
+            $items = $this->listFrom($res['data'], ['data', 'messages', 'items']);
+
+            if ($items === []) {
+                $bad     = true;
+                $lines[] = "✕ {$workspace}: the gateway holds NO message from any customer. WhatsApp is not delivering customer messages to the gateway itself — the gateway operator must check the Meta app's webhook (callback URL + the \"messages\" field) and that this number was connected through the gateway.";
+                continue;
+            }
+
+            $latest  = $items[0]['created_at'] ?? $items[0]['sent_at'] ?? null;
+            $lines[] = '✓ ' . $workspace . ': the gateway has received ' . count($items) . ' recent customer message(s)' . ($latest ? ", latest {$latest}" : '') . '. So Meta → gateway works; if the chatbot is silent, the problem is gateway → this CRM (next line) or the chatbot settings.';
+        }
+
+        $res = WhatsappGatewayClient::webhookDeliveries('failed');
+
+        if (!$res['ok']) {
+            $lines[] = "! Could not read the gateway's delivery log — {$res['error']}";
+        } else {
+            $failed = $this->listFrom($res['data'], ['data', 'deliveries', 'items']);
+
+            if ($failed === []) {
+                $lines[] = '✓ The gateway reports no failed webhook deliveries to this CRM.';
+            }
+
+            foreach (array_slice($failed, 0, 5) as $d) {
+                $bad  = true;
+                $code = $d['last_response_code'] ?? $d['response_code'] ?? $d['http_status'] ?? $d['status_code'] ?? null;
+                $err  = $d['last_error'] ?? $d['error'] ?? null;
+
+                $meaning = match (true) {
+                    (int) $code === 401                       => 'our server rejected the signature — the webhook secret saved here differs from the gateway client\'s secret',
+                    (int) $code === 503                       => 'the WhatsApp gateway switch is OFF here',
+                    (int) $code >= 500                        => 'our server errored while handling it — see Superadmin → Error Logs',
+                    $code === null || (int) $code === 0       => 'no answer from our server within 8 seconds (down, asleep or too slow) or the registered webhook URL is wrong',
+                    default                                   => null,
+                };
+
+                $parts   = array_filter([
+                    $d['event'] ?? null,
+                    $code !== null ? "HTTP {$code}" : null,
+                    is_scalar($err) ? $err : null,
+                    $d['created_at'] ?? null,
+                ]);
+                $lines[] = '✕ failed delivery: ' . ($parts ? implode(' · ', $parts) : mb_substr(json_encode($d), 0, 200)) . ($meaning ? " → {$meaning}" : '');
+            }
+        }
+
+        return response()->json(['success' => !$bad, 'message' => implode("\n", $lines)]);
+    }
+
+    // First list found in a gateway "data" payload: the payload itself when it
+    // is a list, or the first of $keys that holds one.
+    private function listFrom(array $data, array $keys): array
+    {
+        if (array_is_list($data)) {
+            return $data;
+        }
+
+        foreach ($keys as $key) {
+            if (is_array($data[$key] ?? null) && array_is_list($data[$key])) {
+                return $data[$key];
+            }
+        }
+
+        return [];
+    }
+
     // Points the gateway at our /webhook/wa-gateway URL (PUT /client).
     public function registerWhatsappGatewayWebhook(): JsonResponse
     {

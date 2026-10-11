@@ -418,6 +418,19 @@ class WhatsappGatewayClient
         return static::call('get', '/workspaces', ['limit' => 1], null, 10, true);
     }
 
+    // Read-only diagnostics for "customers' messages don't reach the chatbot":
+    // does the gateway hold the customer's message (Meta → gateway works), and
+    // what did it get back when it tried to deliver events to us.
+    public static function inboundMessages(string $workspaceId, int $limit = 3): array
+    {
+        return static::call('get', "/workspaces/{$workspaceId}/messages", ['direction' => 'inbound', 'limit' => $limit], null, 15, true);
+    }
+
+    public static function webhookDeliveries(string $status = 'failed', int $limit = 5): array
+    {
+        return static::call('get', '/webhook-deliveries', ['status' => $status, 'limit' => $limit], null, 15, true);
+    }
+
     // Tells the gateway where to POST our events (PUT /client).
     public static function registerWebhookUrl(string $url): array
     {

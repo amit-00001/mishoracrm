@@ -263,6 +263,7 @@ Route::prefix('superadmin')
             Route::post('/whatsapp-gateway/toggle',            'toggleWhatsappGateway')->name('whatsapp-gateway.toggle');
             Route::post('/whatsapp-gateway/test',              'testWhatsappGateway')->name('whatsapp-gateway.test');
             Route::post('/whatsapp-gateway/register-webhook',  'registerWhatsappGatewayWebhook')->name('whatsapp-gateway.register-webhook');
+            Route::post('/whatsapp-gateway/diagnose',          'diagnoseWhatsappGateway')->name('whatsapp-gateway.diagnose');
         });
 
         // Coupon management

@@ -30,7 +30,7 @@
 .gw-steps strong { color:var(--text-200); }
 .gw-steps code { font-family:var(--mono); font-size:12px; background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:4px; padding:1px 6px; color:var(--text-200); }
 
-.gw-result { font-size:12.5px; margin-top:10px; display:none; }
+.gw-result { font-size:12.5px; margin-top:10px; display:none; white-space:pre-line; line-height:1.6; }
 .gw-result.ok  { color:var(--green); }
 .gw-result.bad { color:var(--red); }
 </style>
@@ -124,6 +124,7 @@
             <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-subtle);display:flex;gap:10px;flex-wrap:wrap;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="gwAction('{{ route('superadmin.platform-settings.whatsapp-gateway.test') }}', this)" @disabled(!$has_api_key || !$base_url)>Test connection</button>
                 <button type="button" class="btn btn-secondary btn-sm" onclick="gwAction('{{ route('superadmin.platform-settings.whatsapp-gateway.register-webhook') }}', this)" @disabled(!$has_api_key || !$base_url)>Register webhook URL with gateway</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="gwAction('{{ route('superadmin.platform-settings.whatsapp-gateway.diagnose') }}', this)" @disabled(!$has_api_key || !$base_url)>Diagnose inbound messages</button>
             </div>
             <div class="gw-result" id="gwResult"></div>
         </div>
