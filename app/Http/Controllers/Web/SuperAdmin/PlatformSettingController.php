@@ -263,7 +263,19 @@ class PlatformSettingController extends Controller
             $lines[] = '✓ The gateway is registered to send events to this CRM.';
         }
 
-        $lastEvent = Schema::hasTable('whatsapp_webhook_events')
+        $hasEventsTable = Schema::hasTable('whatsapp_webhook_events');
+
+        if (!$hasEventsTable) {
+            $bad     = true;
+            $lines[] = '✕ The whatsapp_webhook_events table is missing in this CRM\'s database — run php artisan migrate.';
+        } else {
+            $seen = DB::table('whatsapp_webhook_events')->latest('id')->limit(3)->get();
+            $lines[] = $seen->isEmpty()
+                ? '· This CRM has recorded no gateway events at all yet.'
+                : '· Events this CRM recorded: ' . $seen->map(fn ($e) => ($e->event ?? '?') . ' ' . Carbon::parse($e->created_at)->diffForHumans())->implode(', ') . '.';
+        }
+
+        $lastEvent = $hasEventsTable
             ? DB::table('whatsapp_webhook_events')->where('event', 'message.received')->latest('id')->first()
             : null;
 

@@ -6,6 +6,7 @@ use App\Models\ErrorLog;
 use App\Models\Quotation;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 // What happens to a customer's inbound WhatsApp message once it has been
@@ -20,14 +21,14 @@ class WhatsappInboundService
     {
         // Log incoming message
         try {
-            WhatsappLog::create([
+            $this->isolated(fn () => WhatsappLog::create([
                 'tenant_id' => $setting->tenant_id,
                 'to_phone'  => $waId,
                 'to_name'   => $contactName,
                 'message'   => $messageText ?? "[{$messageType}]",
                 'status'    => 'received',
                 'sent_at'   => now(),
-            ]);
+            ]));
         } catch (\Throwable $e) {
             Log::error('WA log create failed', ['error' => $e->getMessage()]);
         }
@@ -44,7 +45,7 @@ class WhatsappInboundService
         // replies first, then the tenant's own flows.
         if ($messageText) {
             try {
-                (new WhatsappChatbotService($setting))->handleIncomingMessage($waId, $messageText, $contactName, $buttonId);
+                $this->isolated(fn () => (new WhatsappChatbotService($setting))->handleIncomingMessage($waId, $messageText, $contactName, $buttonId));
             } catch (\Throwable $e) {
                 Log::error('WhatsApp inbound processing failed', ['error' => $e->getMessage()]);
                 // Swallowed so the webhook still answers 2xx — but a chatbot that
@@ -52,6 +53,20 @@ class WhatsappInboundService
                 ErrorLog::capture($e);
             }
         }
+    }
+
+    // Runs a step whose failure is caught and ignored by the caller. When the
+    // gateway webhook has an open transaction (it records the event id and
+    // handles the event atomically), the step gets its own savepoint: on
+    // PostgreSQL ANY failed statement aborts the whole transaction and the
+    // final COMMIT silently becomes a ROLLBACK — which would drop the event row
+    // and every later query (chatbot included) even though the failure was
+    // "handled". A savepoint rolls back just this step and leaves the
+    // transaction usable. Outside a transaction (direct-Meta webhook) it just
+    // runs the step.
+    private function isolated(\Closure $step): mixed
+    {
+        return DB::transactionLevel() > 0 ? DB::transaction($step) : $step();
     }
 
     // Mirrors the accept/reject rules in Public\QuotationController — no e-sign

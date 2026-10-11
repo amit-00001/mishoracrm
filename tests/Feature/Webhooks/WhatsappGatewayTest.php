@@ -311,6 +311,52 @@ class WhatsappGatewayTest extends TestCase
         $this->assertTrue(WhatsappSetting::forTenant($tenant->id)->is_connected);
     }
 
+    // PostgreSQL (production) silently turns the COMMIT of a transaction that hit
+    // an error into a ROLLBACK. Simulated here by the event row vanishing while the
+    // event is being handled — the webhook must answer 500, not a false 200.
+    public function test_an_event_that_was_silently_rolled_back_is_not_acknowledged(): void
+    {
+        $this->enableGateway();
+        $tenant = $this->setUpTenant();
+        WhatsappSetting::create(['tenant_id' => $tenant->id, 'gateway_workspace_id' => 'tenant-' . $tenant->id]);
+
+        WhatsappSetting::saving(function () {
+            DB::table('whatsapp_webhook_events')->where('event_id', 'evt-gone')->delete();
+        });
+
+        $this->signedPost([
+            'id' => 'evt-gone', 'event' => 'account.connected', 'workspace' => ['id' => 'tenant-' . $tenant->id],
+            'data' => ['connected' => true],
+        ])->assertStatus(500);
+
+        $this->assertStringContainsString('rolled back', ErrorLog::latest('id')->first()->message);
+    }
+
+    // A swallowed failure of the "received" log insert must not take the event row
+    // (same transaction) or the chatbot reply down with it.
+    public function test_a_failed_inbound_log_does_not_stop_the_chatbot_or_lose_the_event(): void
+    {
+        $this->enableGateway();
+        Http::fake(['gw.test/*' => Http::response(['success' => true, 'data' => ['wamid' => 'wamid.OUT']], 201)]);
+        $tenant = $this->setUpTenant();
+        $this->gatewaySetting($tenant, ['chatbot_enabled' => true]);
+        WhatsappChatbotFlow::create([
+            'tenant_id' => $tenant->id, 'name' => 'Hello', 'trigger_keywords' => ['hello'],
+            'keyword_match' => 'exact', 'response_message' => 'Hi there!', 'is_active' => true,
+        ]);
+
+        WhatsappLog::creating(function ($log) {
+            if ($log->status === 'received') {
+                throw new \RuntimeException('violates check constraint whatsapp_logs_status_check');
+            }
+        });
+
+        $this->signedPost($this->received($tenant, 'hello', 'evt-log-fail'))->assertOk();
+
+        Http::assertSent(fn ($r) => $r['type'] === 'text' && $r['text'] === 'Hi there!');
+        $this->assertDatabaseHas('whatsapp_webhook_events', ['event_id' => 'evt-log-fail']);
+    }
+
     public function test_old_event_ids_are_pruned_by_the_daily_schedule(): void
     {
         DB::table('whatsapp_webhook_events')->insert([

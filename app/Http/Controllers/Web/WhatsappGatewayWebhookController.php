@@ -66,6 +66,14 @@ class WhatsappGatewayWebhookController extends Controller
 
                 return false;
             });
+
+            // PostgreSQL turns the COMMIT of a transaction that hit an error
+            // into a silent ROLLBACK — no exception, so we would answer 200
+            // for an event that was never recorded or handled. Make that loud
+            // (500 → the gateway retries, and it shows up in Error Logs).
+            if (!$duplicate && $eventId !== '' && !DB::table('whatsapp_webhook_events')->where('event_id', $eventId)->exists()) {
+                throw new \RuntimeException("WhatsApp gateway event {$eventId} (" . ($event['event'] ?? '?') . ") was rolled back by the database after being handled");
+            }
         } catch (\Throwable $e) {
             // Let the gateway retry this delivery.
             Log::error('WhatsApp gateway event failed', ['event' => $event['event'] ?? null, 'error' => $e->getMessage()]);

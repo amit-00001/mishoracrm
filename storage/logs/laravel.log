@@ -3915,3 +3915,24 @@ Content-Transfer-Encoding: quoted-printable
 [2026-10-11 11:36:53] testing.ERROR: WhatsApp gateway message failed {"tenant_id":27,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
 [2026-10-11 11:36:57] testing.WARNING: WhatsApp gateway unreachable: cURL error 6: Could not resolve host: gw.test (see https://curl.se/libcurl/c/libcurl-errors.html) for https://gw.test/api/v1/gateway/workspaces/tenant-32/messages  
 [2026-10-11 11:36:57] testing.ERROR: WhatsApp gateway message failed {"tenant_id":32,"to":"919876543210","error":"Could not reach the WhatsApp gateway. Please try again.","meta_code":null} 
+[2026-10-11 11:50:10] local.ERROR: Illuminate\Database\Schema\Blueprint::__construct(): Argument #2 ($callback) must be of type ?Closure, string given, called in C:\Users\91812\AppData\Local\Temp\claude\c--Users-91812-Herd-MishoraCRM\96a42e7c-f2ad-445d-92e3-5b3ecc0ae286\scratchpad\pgsql.php on line 14 {"exception":"[object] (TypeError(code: 0): Illuminate\\Database\\Schema\\Blueprint::__construct(): Argument #2 ($callback) must be of type ?Closure, string given, called in C:\\Users\\91812\\AppData\\Local\\Temp\\claude\\c--Users-91812-Herd-MishoraCRM\\96a42e7c-f2ad-445d-92e3-5b3ecc0ae286\\scratchpad\\pgsql.php on line 14 at C:/Users/91812/Herd/MishoraCRM/vendor/laravel/framework/src/Illuminate/Database/Schema/Blueprint.php:98)
+[stacktrace]
+#0 C:/Users/91812/AppData/Local/Temp/claude/c--Users-91812-Herd-MishoraCRM/96a42e7c-f2ad-445d-92e3-5b3ecc0ae286/scratchpad/pgsql.php(14): Illuminate/Database/Schema/Blueprint->__construct(Object(Illuminate/Database/PostgresConnection), 'whatsapp_logs', Object(Closure))
+#1 {main}
+"} 
+[2026-10-11 11:52:13] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:52:13] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 11:52:15] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 11:52:17] testing.ERROR: WhatsApp gateway event failed {"event":"account.connected","error":"database went away"} 
+[2026-10-11 11:52:17] testing.ERROR: WhatsApp gateway event failed {"event":"account.connected","error":"WhatsApp gateway event evt-gone (account.connected) was rolled back by the database after being handled"} 
+[2026-10-11 11:52:18] testing.ERROR: WA log create failed {"error":"violates check constraint whatsapp_logs_status_check"} 
+[2026-10-11 11:52:18] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:52:18] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the signature does not match — the webhook secret saved here differs from the gateway client's secret"} 
+[2026-10-11 11:52:18] testing.WARNING: WhatsApp gateway webhook rejected: bad signature {"reason":"the timestamp is 3600s away from this server's clock (limit 300s) — a stale replay or a wrong server clock"} 
+[2026-10-11 11:52:18] testing.INFO: WhatsApp gateway event for an unknown workspace {"workspace":"tenant-9999","event":"message.received"} 
+[2026-10-11 11:52:19] testing.ERROR: WhatsApp inbound processing failed {"error":"chatbot session store is broken"} 
+[2026-10-11 11:52:21] testing.INFO: WhatsApp gateway account update ignored {"field":"quality_rating","tenant":23} 
+[2026-10-11 11:52:22] testing.ERROR: WhatsApp gateway message failed {"tenant_id":27,"to":"919876543210","error":"Re-engagement message","meta_code":131047} 
+[2026-10-11 11:52:23] testing.ERROR: WhatsApp gateway message failed {"tenant_id":29,"to":"919876543210","error":"Save the WhatsApp gateway URL and API key first.","meta_code":null} 
+[2026-10-11 11:52:26] testing.WARNING: WhatsApp gateway unreachable: cURL error 6: Could not resolve host: gw.test (see https://curl.se/libcurl/c/libcurl-errors.html) for https://gw.test/api/v1/gateway/workspaces/tenant-34/messages  
+[2026-10-11 11:52:26] testing.ERROR: WhatsApp gateway message failed {"tenant_id":34,"to":"919876543210","error":"Could not reach the WhatsApp gateway. Please try again.","meta_code":null} 
