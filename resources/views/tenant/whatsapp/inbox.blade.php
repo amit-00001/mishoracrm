@@ -254,7 +254,7 @@ function tplChanged() {
     const n = parseInt(opt.dataset.params || '0', 10);
     box.insertAdjacentHTML('beforeend', `<div style="font-size:12px;color:var(--text-300);white-space:pre-wrap">${esc(opt.dataset.body)}</div>`);
     for (let i = 0; i < n; i++) {
-        box.insertAdjacentHTML('beforeend', `<input class="ib-search tpl-param" placeholder="Value for {{ '{{' }}${i + 1}{{ '}}' }}">`);
+        box.insertAdjacentHTML('beforeend', `<input class="ib-search tpl-param" placeholder="Value for field ${i + 1}">`);
     }
 }
 
