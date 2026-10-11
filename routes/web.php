@@ -1071,6 +1071,7 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::middleware(['module:whatsapp_inbox', 'permission:whatsapp.inbox'])->prefix('inbox')->name('inbox.')->group(function () {
                 Route::get('/',                [Tenant\WhatsappInboxController::class, 'index'])->name('index');
                 Route::get('poll',             [Tenant\WhatsappInboxController::class, 'poll'])->name('poll');
+                Route::get('{id}',             [Tenant\WhatsappInboxController::class, 'show'])->whereNumber('id')->name('show');
                 Route::post('{id}/reply',      [Tenant\WhatsappInboxController::class, 'reply'])->name('reply')->middleware('permission:whatsapp.send');
                 Route::post('{id}/status',     [Tenant\WhatsappInboxController::class, 'toggleStatus'])->name('status');
             });

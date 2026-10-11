@@ -73,75 +73,39 @@
     {{-- Chat list --}}
     <div class="ib-list">
         <div class="ib-tools">
-            <form method="GET" action="{{ route('tenant.whatsapp.inbox.index') }}">
-                <input type="hidden" name="filter" value="{{ $filter }}">
-                <input type="text" name="search" class="ib-search" placeholder="Search name or number…" value="{{ request('search') }}">
-            </form>
-            <div class="ib-tabs">
+            <input type="text" id="ibSearch" class="ib-search" placeholder="Search name or number…" value="{{ request('search') }}" autocomplete="off">
+            <div class="ib-tabs" id="ibTabs">
                 @foreach(['open' => 'Open', 'unread' => 'Unread', 'resolved' => 'Resolved', 'all' => 'All'] as $key => $label)
-                <a class="ib-tab {{ $filter === $key ? 'active' : '' }}"
-                   href="{{ route('tenant.whatsapp.inbox.index', ['filter' => $key]) }}">{{ $label }}@if(isset($counts[$key]))<b>{{ $counts[$key] }}</b>@endif</a>
+                <a class="ib-tab {{ $filter === $key ? 'active' : '' }}" href="#" data-filter="{{ $key }}">{{ $label }}@if(isset($counts[$key]))<b data-count="{{ $key }}">{{ $counts[$key] }}</b>@endif</a>
                 @endforeach
             </div>
         </div>
-        <div class="ib-items" id="ibItems">
-            @forelse($conversations as $c)
-            <a href="{{ route('tenant.whatsapp.inbox.index', ['filter' => $filter, 'c' => $c->id]) }}"
-               class="ib-item {{ $selected?->id === $c->id ? 'active' : '' }}" data-id="{{ $c->id }}">
-                <div class="ib-row">
-                    <span class="ib-name">{{ $c->displayName() }}</span>
-                    <span class="ib-time">{{ $c->last_message_at?->diffForHumans(null, true, true) }}</span>
-                </div>
-                <div class="ib-row">
-                    <span class="ib-prev">{{ $c->last_message_preview }}</span>
-                    @if($c->unread_count > 0)<span class="ib-badge">{{ $c->unread_count }}</span>@endif
-                </div>
-            </a>
-            @empty
-            <div class="ib-empty">No conversations here yet.<br>Chats appear when a customer messages your WhatsApp number.</div>
-            @endforelse
-        </div>
+        <div class="ib-items" id="ibItems"></div>
     </div>
 
-    {{-- Conversation --}}
-    @if($selected)
-    <div class="ib-chat">
+    {{-- Conversation (filled by JS, never reloads the page) --}}
+    <div class="ib-chat" id="ibChat" style="display:none">
         <div class="ib-head">
             <div>
-                <div class="ib-head-name">{{ $selected->displayName() }}</div>
-                <div class="ib-head-sub">
-                    +{{ $selected->wa_id }}
-                    @if($selected->lead) · <a href="{{ route('tenant.leads.show', $selected->lead_id) }}">Lead</a> @endif
-                    @if($selected->contact) · <a href="{{ route('tenant.contacts.show', $selected->contact_id) }}">Contact</a> @endif
-                </div>
+                <div class="ib-head-name" id="ibHeadName"></div>
+                <div class="ib-head-sub" id="ibHeadSub"></div>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" id="statusBtn" onclick="toggleStatus()">
-                {{ $selected->status === 'open' ? 'Mark resolved' : 'Reopen' }}
-            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="statusBtn">Mark resolved</button>
         </div>
 
-        <div class="ib-msgs" id="ibMsgs">
-            @foreach($messages as $m)
-            <div class="ib-msg {{ $m->status === 'received' ? 'in' : 'out' }} {{ $m->status === 'failed' ? 'failed' : '' }}" data-id="{{ $m->id }}">
-                @if($m->attachment_name)<div class="ib-file">📎 {{ $m->attachment_name }}</div>@endif
-                {{ $m->message }}
-                @if($m->status === 'failed' && $m->error_message)<div class="ib-err">Not sent: {{ $m->error_message }}</div>@endif
-                <div class="ib-meta">{{ $m->sentBy?->name ? $m->sentBy->name . ' · ' : '' }}{{ ($m->sent_at ?? $m->created_at)?->format('d M, h:i A') }}</div>
-            </div>
-            @endforeach
-        </div>
+        <div class="ib-msgs" id="ibMsgs"></div>
 
         @if($canReply)
         <div class="ib-reply" id="ibReply">
-            <div id="ibWindowNote" class="ib-note" style="display:{{ $selected->windowOpen() ? 'none' : 'block' }}">
+            <div id="ibWindowNote" class="ib-note" style="display:none">
                 The 24-hour reply window has closed.
                 @if(!empty($templates)) Send an approved template to restart the chat.
                 @else WhatsApp allows free-form replies only within 24 hours of the customer's last message. @endif
             </div>
 
             @if(!empty($templates))
-            <div id="ibTplBox" style="display:{{ $selected->windowOpen() ? 'none' : 'block' }}">
-                <select id="ibTpl" class="field-input field-select" onchange="tplChanged()">
+            <div id="ibTplBox" style="display:none">
+                <select id="ibTpl" class="field-input field-select">
                     <option value="">— Choose approved template —</option>
                     @foreach($templates as $t)
                     <option value="{{ $t['name'] }}|{{ $t['language'] }}" data-body="{{ $t['body'] }}" data-params="{{ $t['params'] }}">{{ $t['name'] }} ({{ $t['language'] }})</option>
@@ -151,42 +115,80 @@
             </div>
             @endif
 
-            <div class="ib-reply-row" id="ibFreeRow" style="display:{{ $selected->windowOpen() ? 'flex' : 'none' }}">
+            <div class="ib-reply-row" id="ibFreeRow">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0" title="Attach a file (image, PDF, doc — up to 16 MB)">
-                    📎<input type="file" id="ibFile" hidden accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx" onchange="fileChosen()">
+                    📎<input type="file" id="ibFile" hidden accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
                 </label>
                 <textarea id="ibText" rows="1" placeholder="Type a reply… (Enter to send, Shift+Enter for a new line)"></textarea>
             </div>
             <div id="ibFileName" style="font-size:12px;color:var(--text-300);display:none"></div>
+            <div id="ibError" class="ib-err" style="display:none"></div>
             <div style="display:flex;justify-content:flex-end">
-                <button type="button" class="btn btn-primary" id="ibSend" onclick="sendReply()">Send</button>
+                <button type="button" class="btn btn-primary" id="ibSend">Send</button>
             </div>
         </div>
         @else
         <div class="ib-reply"><div class="ib-note">You don't have permission to send WhatsApp messages.</div></div>
         @endif
     </div>
-    @else
-    <div class="ib-none">Select a conversation to read and reply.</div>
-    @endif
+    <div class="ib-none" id="ibNone">Select a conversation to read and reply.</div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
 (function () {
-const IB_CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
-const FILTER = @json($filter);
-const CUR = @json($selected?->id);
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
 const BASE = @json(route('tenant.whatsapp.inbox.index'));
-let lastId = {{ $messages->max('id') ?? 0 }};
-let windowOpen = @json($selected ? $selected->windowOpen() : false);
-let busy = false;
+const HAS_TPL = @json(!empty($templates));
+const CAN_REPLY = @json($canReply);
 
+let filter = @json($filter);
+let search = @json(request()->input('search') ?? '');
+let cur = @json($selected?->id);
+let lastId = 0;
+let head = null;
+let sending = false;
+let listSeq = 0;
+
+const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const msgsEl = document.getElementById('ibMsgs');
-if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+const json = async (url, opts = {}) => {
+    const r = await fetch(url, {...opts, headers: {'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, ...(opts.headers || {})}});
+    const d = await r.json().catch(() => ({}));
+    return {ok: r.ok, data: d};
+};
 
+// ── List ──
+function renderList(list) {
+    const box = $('ibItems');
+    if (!list.length) {
+        box.innerHTML = '<div class="ib-empty">No conversations here yet.<br>Chats appear when a customer messages your WhatsApp number.</div>';
+        return;
+    }
+    box.innerHTML = list.map(c =>
+        `<a href="${BASE}/${c.id}" class="ib-item ${c.id === cur ? 'active' : ''}" data-id="${c.id}">`
+        + `<div class="ib-row"><span class="ib-name">${esc(c.name)}</span><span class="ib-time">${esc(c.time)}</span></div>`
+        + `<div class="ib-row"><span class="ib-prev">${esc(c.preview)}</span>`
+        + (c.unread > 0 && c.id !== cur ? `<span class="ib-badge">${c.unread}</span>` : '') + `</div></a>`
+    ).join('');
+}
+
+function renderCounts(counts) {
+    if (!counts) return;
+    Object.entries(counts).forEach(([k, v]) => { const el = document.querySelector(`[data-count="${k}"]`); if (el) el.textContent = v; });
+}
+
+async function refreshList() {
+    const seq = ++listSeq;
+    const q = new URLSearchParams({filter, search});
+    const {ok, data} = await json(`${BASE}/poll?${q}`);
+    if (!ok || seq !== listSeq) return;
+    renderList(data.conversations);
+    renderCounts(data.counts);
+}
+
+// ── Conversation ──
 function bubbleHtml(m) {
     const cls = (m.in ? 'in' : 'out') + (m.status === 'failed' ? ' failed' : '');
     return `<div class="ib-msg ${cls}" data-id="${m.id}">`
@@ -196,108 +198,193 @@ function bubbleHtml(m) {
         + `<div class="ib-meta">${m.by ? esc(m.by) + ' · ' : ''}${esc(m.time)}</div></div>`;
 }
 
-function appendMessages(list) {
-    if (!msgsEl || !list.length) return;
-    const atBottom = msgsEl.scrollHeight - msgsEl.scrollTop - msgsEl.clientHeight < 80;
+function addMessages(list, replace = false) {
+    const el = $('ibMsgs');
+    if (replace) { el.innerHTML = ''; lastId = 0; }
+    const atBottom = replace || el.scrollHeight - el.scrollTop - el.clientHeight < 80;
     list.forEach(m => {
-        if (msgsEl.querySelector(`[data-id="${m.id}"]`)) return;
-        msgsEl.insertAdjacentHTML('beforeend', bubbleHtml(m));
+        if (el.querySelector(`[data-id="${m.id}"]`)) return;
+        el.insertAdjacentHTML('beforeend', bubbleHtml(m));
         lastId = Math.max(lastId, m.id);
     });
-    if (atBottom) msgsEl.scrollTop = msgsEl.scrollHeight;
+    if (atBottom) el.scrollTop = el.scrollHeight;
 }
 
-function renderList(list) {
-    const box = document.getElementById('ibItems');
-    if (!box || !list.length) return;
-    box.innerHTML = list.map(c =>
-        `<a href="${BASE}?filter=${FILTER}&c=${c.id}" class="ib-item ${c.id === CUR ? 'active' : ''}" data-id="${c.id}">`
-        + `<div class="ib-row"><span class="ib-name">${esc(c.name)}</span><span class="ib-time">${esc(c.time)}</span></div>`
-        + `<div class="ib-row"><span class="ib-prev">${esc(c.preview)}</span>`
-        + (c.unread > 0 && c.id !== CUR ? `<span class="ib-badge">${c.unread}</span>` : '') + `</div></a>`
-    ).join('');
-}
+function applyHead(h) {
+    if (!h) return;
+    head = h;
+    $('ibHeadName').textContent = h.name;
+    $('ibHeadSub').innerHTML = esc(h.phone)
+        + (h.lead_url ? ` · <a href="${esc(h.lead_url)}">Lead</a>` : '')
+        + (h.contact_url ? ` · <a href="${esc(h.contact_url)}">Contact</a>` : '');
+    $('statusBtn').textContent = h.status === 'open' ? 'Mark resolved' : 'Reopen';
 
-async function poll() {
-    if (busy || document.hidden) return;
-    try {
-        const q = new URLSearchParams({filter: FILTER, search: @json(request('search', ''))});
-        if (CUR) { q.set('c', CUR); q.set('after', lastId); }
-        const r = await fetch(BASE + '/poll?' + q, {headers: {'Accept': 'application/json'}});
-        if (!r.ok) return;
-        const d = await r.json();
-        renderList(d.conversations);
-        appendMessages(d.messages);
-    } catch (e) {}
-}
-setInterval(poll, 6000);
-
-// ── Reply ──
-const txt = document.getElementById('ibText');
-if (txt) {
-    txt.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } });
-    txt.addEventListener('input', () => { txt.style.height = 'auto'; txt.style.height = Math.min(txt.scrollHeight, 140) + 'px'; });
-}
-
-function fileChosen() {
-    const f = document.getElementById('ibFile').files[0];
-    const el = document.getElementById('ibFileName');
-    el.style.display = f ? 'block' : 'none';
-    el.textContent = f ? '📎 ' + f.name : '';
-}
-
-function tplChanged() {
-    const sel = document.getElementById('ibTpl');
-    const box = document.getElementById('ibTplParams');
-    box.innerHTML = '';
-    const opt = sel.value ? sel.options[sel.selectedIndex] : null;
-    if (!opt) return;
-    const n = parseInt(opt.dataset.params || '0', 10);
-    box.insertAdjacentHTML('beforeend', `<div style="font-size:12px;color:var(--text-300);white-space:pre-wrap">${esc(opt.dataset.body)}</div>`);
-    for (let i = 0; i < n; i++) {
-        box.insertAdjacentHTML('beforeend', `<input class="ib-search tpl-param" placeholder="Value for field ${i + 1}">`);
+    if (CAN_REPLY) {
+        const free = h.window_open;
+        $('ibFreeRow').style.display = free ? 'flex' : 'none';
+        $('ibWindowNote').style.display = free ? 'none' : 'block';
+        if ($('ibTplBox')) $('ibTplBox').style.display = free ? 'none' : 'block';
+        $('ibSend').style.display = (free || HAS_TPL) ? '' : 'none';
     }
 }
 
+async function openChat(id, push = true) {
+    cur = id;
+    document.querySelectorAll('.ib-item').forEach(a => a.classList.toggle('active', Number(a.dataset.id) === id));
+    const {ok, data} = await json(`${BASE}/${id}`);
+    if (!ok) return;
+    $('ibChat').style.display = 'flex';
+    $('ibNone').style.display = 'none';
+    applyHead(data.head);
+    addMessages(data.messages, true);
+    renderCounts(data.counts);
+    clearError();
+    const badge = document.querySelector(`.ib-item[data-id="${id}"] .ib-badge`);
+    if (badge) badge.remove();
+    if (push) history.pushState({c: id}, '', `${BASE}?filter=${filter}&c=${id}`);
+    if ($('ibText')) $('ibText').focus();
+}
+
+function closeChat() {
+    cur = null;
+    $('ibChat').style.display = 'none';
+    $('ibNone').style.display = 'flex';
+    document.querySelectorAll('.ib-item').forEach(a => a.classList.remove('active'));
+}
+
+// ── Live refresh ──
+async function poll() {
+    if (sending || document.hidden) return;
+    const q = new URLSearchParams({filter, search});
+    if (cur) { q.set('c', cur); q.set('after', lastId); }
+    const {ok, data} = await json(`${BASE}/poll?${q}`);
+    if (!ok) return;
+    renderList(data.conversations);
+    renderCounts(data.counts);
+    if (cur && data.head) applyHead(data.head);
+    if (cur) addMessages(data.messages);
+}
+setInterval(poll, 6000);
+
+// ── List interactions (no page reloads) ──
+$('ibItems').addEventListener('click', e => {
+    const a = e.target.closest('.ib-item');
+    if (!a) return;
+    e.preventDefault();
+    openChat(Number(a.dataset.id));
+});
+
+$('ibTabs').addEventListener('click', e => {
+    const t = e.target.closest('.ib-tab');
+    if (!t) return;
+    e.preventDefault();
+    filter = t.dataset.filter;
+    document.querySelectorAll('.ib-tab').forEach(x => x.classList.toggle('active', x === t));
+    history.replaceState({c: cur}, '', `${BASE}?filter=${filter}${cur ? '&c=' + cur : ''}`);
+    refreshList();
+});
+
+let searchTimer;
+$('ibSearch').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    search = e.target.value.trim();
+    searchTimer = setTimeout(refreshList, 250);
+});
+
+window.addEventListener('popstate', e => {
+    const id = (e.state && e.state.c) || Number(new URLSearchParams(location.search).get('c')) || null;
+    id ? openChat(id, false) : closeChat();
+});
+
+$('statusBtn').addEventListener('click', async () => {
+    if (!cur) return;
+    const btn = $('statusBtn');
+    btn.disabled = true;
+    const {ok, data} = await json(`${BASE}/${cur}/status`, {method: 'POST'});
+    btn.disabled = false;
+    if (!ok) return;
+    applyHead(data.head);
+    renderCounts(data.counts);
+    refreshList();
+});
+
+// ── Reply ──
+function showError(msg) { const el = $('ibError'); if (!el) return; el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+function clearError() { showError(''); }
+
+if (CAN_REPLY) {
+    const txt = $('ibText');
+    txt.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } });
+    txt.addEventListener('input', () => { txt.style.height = 'auto'; txt.style.height = Math.min(txt.scrollHeight, 140) + 'px'; });
+    $('ibSend').addEventListener('click', sendReply);
+
+    $('ibFile').addEventListener('change', () => {
+        const f = $('ibFile').files[0];
+        const el = $('ibFileName');
+        el.style.display = f ? 'block' : 'none';
+        el.textContent = f ? '📎 ' + f.name : '';
+    });
+
+    if ($('ibTpl')) $('ibTpl').addEventListener('change', () => {
+        const sel = $('ibTpl');
+        const box = $('ibTplParams');
+        box.innerHTML = '';
+        const opt = sel.value ? sel.options[sel.selectedIndex] : null;
+        if (!opt) return;
+        box.insertAdjacentHTML('beforeend', `<div style="font-size:12px;color:var(--text-300);white-space:pre-wrap">${esc(opt.dataset.body)}</div>`);
+        for (let i = 0; i < parseInt(opt.dataset.params || '0', 10); i++) {
+            box.insertAdjacentHTML('beforeend', `<input class="ib-search tpl-param" placeholder="Value for field ${i + 1}">`);
+        }
+    });
+}
+
 async function sendReply() {
-    if (busy || !CUR) return;
+    if (sending || !cur || !head) return;
     const fd = new FormData();
-    const tpl = document.getElementById('ibTpl');
-    if (tpl && tpl.value && (!windowOpen || document.getElementById('ibFreeRow').style.display === 'none')) {
+    const tpl = $('ibTpl');
+
+    if (!head.window_open) {
+        if (!tpl || !tpl.value) { showError('Choose an approved template first.'); return; }
         fd.append('meta_template', tpl.value);
         document.querySelectorAll('.tpl-param').forEach((el, i) => fd.append(`template_params[${i}]`, el.value));
     } else {
-        const t = txt.value.trim();
-        const f = document.getElementById('ibFile').files[0];
+        const t = $('ibText').value.trim();
+        const f = $('ibFile').files[0];
         if (!t && !f) return;
         fd.append('message', t);
         if (f) fd.append('attachment', f);
     }
-    busy = true;
-    const btn = document.getElementById('ibSend');
+
+    sending = true;
+    clearError();
+    const btn = $('ibSend');
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
-        const r = await fetch(`${BASE}/${CUR}/reply`, {method: 'POST', body: fd, headers: {'X-CSRF-TOKEN': IB_CSRF, 'Accept': 'application/json'}});
-        const d = await r.json().catch(() => ({}));
-        if (d.message) appendMessages([d.message]);
-        if (!r.ok && d.error && !d.message) alert(d.error);
-        if (r.ok) {
-            txt.value = ''; txt.style.height = 'auto';
-            document.getElementById('ibFile').value = ''; fileChosen();
-            if (tpl) { tpl.value = ''; tplChanged(); }
+        const {ok, data} = await json(`${BASE}/${cur}/reply`, {method: 'POST', body: fd});
+        if (data.message) addMessages([data.message]);
+        if (!ok && data.error) showError(data.error);
+        if (ok) {
+            $('ibText').value = ''; $('ibText').style.height = 'auto';
+            $('ibFile').value = ''; $('ibFileName').style.display = 'none';
+            if (tpl) { tpl.value = ''; $('ibTplParams').innerHTML = ''; }
+            refreshList();
         }
     } catch (e) {
-        alert('Network error — message not sent.');
+        showError('Network error — message not sent.');
     }
-    busy = false; btn.disabled = false; btn.textContent = 'Send';
+    sending = false; btn.disabled = false; btn.textContent = 'Send';
 }
 
-async function toggleStatus() {
-    const r = await fetch(`${BASE}/${CUR}/status`, {method: 'POST', headers: {'X-CSRF-TOKEN': IB_CSRF, 'Accept': 'application/json'}});
-    if (r.ok) location.reload();
+// ── First paint (from the server, no extra request) ──
+renderList(@json($list));
+const firstHead = @json($head);
+if (firstHead) {
+    $('ibChat').style.display = 'flex';
+    $('ibNone').style.display = 'none';
+    applyHead(firstHead);
+    addMessages(@json($bubbles), true);
+    history.replaceState({c: cur}, '');
 }
-
-window.sendReply = sendReply; window.toggleStatus = toggleStatus; window.fileChosen = fileChosen; window.tplChanged = tplChanged;
 })();
 </script>
 @endpush

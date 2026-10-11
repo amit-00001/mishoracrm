@@ -39,7 +39,7 @@ class WhatsappInboxController extends Controller
         $selected = $request->filled('c') ? $this->conversation((int) $request->input('c')) : null;
         $messages = collect();
         if ($selected) {
-            $messages = $selected->messages()->orderBy('id')->limit(300)->get();
+            $messages = $selected->messages()->with('sentBy:id,name')->orderBy('id')->limit(300)->get();
             if ($selected->unread_count > 0) {
                 $selected->update(['unread_count' => 0]);
             }
@@ -50,11 +50,7 @@ class WhatsappInboxController extends Controller
             ? WhatsappGatewayClient::approvedTemplates($settings->gateway_workspace_id)
             : [];
 
-        $counts = [
-            'open'     => WhatsappConversation::where('tenant_id', $this->tenantId())->where('status', 'open')->count(),
-            'unread'   => WhatsappConversation::where('tenant_id', $this->tenantId())->where('unread_count', '>', 0)->count(),
-            'resolved' => WhatsappConversation::where('tenant_id', $this->tenantId())->where('status', 'resolved')->count(),
-        ];
+        $counts = $this->counts();
 
         return view('tenant.whatsapp.inbox', [
             'conversations' => $conversations,
@@ -65,7 +61,35 @@ class WhatsappInboxController extends Controller
             'connected'     => (bool) $settings->is_connected,
             'templates'     => $templates,
             'canReply'      => auth()->user()->can('whatsapp.send'),
+            'list'          => $conversations->map(fn ($c) => $this->summary($c))->values(),
+            'head'          => $selected ? $this->head($selected) : null,
+            'bubbles'       => $messages->map(fn ($m) => $this->bubble($m))->values(),
         ]);
+    }
+
+    private function counts(): array
+    {
+        $base = fn () => WhatsappConversation::where('tenant_id', $this->tenantId());
+
+        return [
+            'open'     => $base()->where('status', 'open')->count(),
+            'unread'   => $base()->where('unread_count', '>', 0)->count(),
+            'resolved' => $base()->where('status', 'resolved')->count(),
+        ];
+    }
+
+    // Header + state of one chat, for the page to draw without reloading.
+    private function head(WhatsappConversation $c): array
+    {
+        return [
+            'id'          => $c->id,
+            'name'        => $c->displayName(),
+            'phone'       => '+' . $c->wa_id,
+            'lead_url'    => $c->lead_id ? route('tenant.leads.show', $c->lead_id) : null,
+            'contact_url' => $c->contact_id ? route('tenant.contacts.show', $c->contact_id) : null,
+            'status'      => $c->status,
+            'window_open' => $c->windowOpen(),
+        ];
     }
 
     private function listQuery(string $filter, ?string $search)
@@ -90,7 +114,8 @@ class WhatsappInboxController extends Controller
             ->limit(100)->get()
             ->map(fn ($c) => $this->summary($c))->values();
 
-        $new = [];
+        $new  = [];
+        $head = null;
         if ($request->filled('c')) {
             $conv = $this->conversation((int) $request->input('c'));
             $new  = $conv->messages()->where('id', '>', (int) $request->input('after', 0))
@@ -98,9 +123,26 @@ class WhatsappInboxController extends Controller
             if ($conv->unread_count > 0) {
                 $conv->update(['unread_count' => 0]);
             }
+            $head = $this->head($conv);
         }
 
-        return response()->json(['conversations' => $list, 'messages' => $new]);
+        return response()->json(['conversations' => $list, 'messages' => $new, 'counts' => $this->counts(), 'head' => $head]);
+    }
+
+    // ── One chat, as JSON (opened without a page reload) ──────────
+    public function show(int $id): JsonResponse
+    {
+        $conv = $this->conversation($id);
+        $msgs = $conv->messages()->with('sentBy:id,name')->orderBy('id')->limit(300)->get();
+        if ($conv->unread_count > 0) {
+            $conv->update(['unread_count' => 0]);
+        }
+
+        return response()->json([
+            'head'     => $this->head($conv),
+            'messages' => $msgs->map(fn ($m) => $this->bubble($m))->values(),
+            'counts'   => $this->counts(),
+        ]);
     }
 
     public function summary(WhatsappConversation $c): array
@@ -233,6 +275,6 @@ class WhatsappInboxController extends Controller
         $conv = $this->conversation($id);
         $conv->update(['status' => $conv->status === 'open' ? 'resolved' : 'open']);
 
-        return response()->json(['status' => $conv->status]);
+        return response()->json(['status' => $conv->status, 'head' => $this->head($conv), 'counts' => $this->counts()]);
     }
 }
