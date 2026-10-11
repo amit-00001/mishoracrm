@@ -184,6 +184,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'whatsapp.bulk_send',
             'whatsapp.view_logs',
             'whatsapp.manage_templates',
+            'whatsapp.inbox',          // Team Inbox (also needs the whatsapp_inbox module)
 
             // ── Email ─────────────────────────────────────────────
             'email.send',
@@ -246,6 +247,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'purchase_requests.view_own',
             'purchase_requests.create',
             'whatsapp.send',
+            'whatsapp.inbox',
             'email.send',
             'reports.view_basic',
             'notifications.view',

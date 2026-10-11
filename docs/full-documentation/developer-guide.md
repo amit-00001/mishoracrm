@@ -138,6 +138,7 @@ Platforms: **Meta Lead Ads**, **IndiaMART**, **JustDial**, **TradeIndia**, **Sul
 - **Email** (`Tenant\EmailController`, `EmailService`, `EmailSetting`, `EmailTemplate`, `EmailLog`) — send/bulk-send, templates, logs, **tenant-supplied custom SMTP** (tenants can connect their own mail server instead of the platform default).
 - **WhatsApp** (`Tenant\WhatsappController`) — same shape as Email; gated by the plan's `whatsapp` feature.
 - **WhatsApp Chatbot** (`Tenant\WhatsappChatbotController`, `WhatsappChatbotFlow/Session`) — separate sub-feature: Meta WhatsApp Business API OAuth (incl. QR-code connect), automated conversational flow builder.
+- **WhatsApp Team Inbox** (`Tenant\WhatsappInboxController`, `WhatsappConversation`, `module:whatsapp_inbox` + `permission:whatsapp.inbox`) — shared inbox over `whatsapp_logs`. Rollout tracker and details: `docs/whatsapp-team-inbox.md`.
 - **Instagram** (`Tenant\InstagramController`, tenant_admin only) — OAuth connect, comment/DM auto-reply automations, its own chatbot flow builder. This is the feature behind the plan's `social_leads` flag. Docs: `docs/instagram-automation/`.
 - **Slack** (`Tenant\SlackController`, tenant_admin only) — incoming-webhook-based internal alerts (new lead, deal won, etc.).
 

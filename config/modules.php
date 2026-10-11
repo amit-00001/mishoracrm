@@ -75,6 +75,13 @@ return [
         'icon'  => 'gift',
         'tier'  => 'business',
     ],
+    'whatsapp_inbox' => [
+        'label' => 'WhatsApp Team Inbox',
+        'desc'  => 'Shared inbox for customer WhatsApp chats — team replies, unread tracking, resolve/reopen',
+        'blurb' => 'One WhatsApp number, whole team replying from a shared inbox',
+        'icon'  => 'chat',
+        'tier'  => 'pro',
+    ],
     'customer_portal' => [
         'label' => 'Customer Portal / Wallet',
         'desc'  => 'Global customer login + cross-shop loyalty wallet, QR counter redemption. Requires the Customer Loyalty module to also be ON.',

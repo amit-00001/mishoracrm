@@ -560,7 +560,7 @@
         <div class="sb-sub {{ request()->routeIs('whatsapp.*','email.*','tenant.instagram.*') ? 'open' : '' }}"
              id="sub-comm">
             <a href="{{ route('tenant.whatsapp.index') }}"
-               class="sb-item {{ request()->routeIs('whatsapp.*') && !request()->routeIs('whatsapp.chatbot*','whatsapp.api-settings*') ? 'active' : '' }}">
+               class="sb-item {{ request()->routeIs('whatsapp.*') && !request()->routeIs('whatsapp.chatbot*','whatsapp.api-settings*','tenant.whatsapp.inbox.*') ? 'active' : '' }}">
                 <span class="sb-icon">
                     <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/>
@@ -568,6 +568,17 @@
                 </span>
                 <span class="sb-label">WhatsApp</span>
             </a>
+            @if(auth()->user()->tenant?->hasModuleEnabled('whatsapp_inbox') && auth()->user()->can('whatsapp.inbox'))
+            <a href="{{ route('tenant.whatsapp.inbox.index') }}"
+               class="sb-item {{ request()->routeIs('tenant.whatsapp.inbox.*') ? 'active' : '' }}">
+                <span class="sb-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"/>
+                    </svg>
+                </span>
+                <span class="sb-label">WA Inbox</span>
+            </a>
+            @endif
             <a href="{{ route('tenant.whatsapp.chatbot') }}"
                class="sb-item {{ request()->routeIs('tenant.whatsapp.chatbot*','tenant.whatsapp.api-settings*') ? 'active' : '' }}">
                 <span class="sb-icon">

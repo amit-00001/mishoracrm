@@ -246,7 +246,7 @@ Same order as the ranking in §3. For each industry you get what to lead with, w
 
 **Customer Loyalty & Wallet (Business plan)** — Points and stamps, tiers, rewards, and targeted offer campaigns aimed at a segment (high spenders, frequent visitors, inactive customers, a tier, or hand-picked contacts), plus birthday and anniversary rewards. The Customer Portal gives each customer one login to see their points across every shop they visit, with QR redemption at the counter.
 
-**Communication** — Email and WhatsApp (send, bulk-send, templates, full logs; bring-your-own SMTP), a WhatsApp chatbot flow builder, Instagram comment/DM automation, Slack alerts for the team.
+**Communication** — Email and WhatsApp (send, bulk-send, templates, full logs; bring-your-own SMTP), a WhatsApp chatbot flow builder, a **WhatsApp Team Inbox** (Pro and above — the whole team answers customer chats from one number; see `docs/whatsapp-team-inbox.md`), Instagram comment/DM automation, Slack alerts for the team.
 
 **Automation & Reliability** — SLA breach detection (leads and tickets), automatic reminders (follow-ups, tasks, invoices, subscriptions, appointments), automatic no-show handling — the platform proactively surfaces what needs attention instead of making staff remember to check.
 

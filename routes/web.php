@@ -1067,8 +1067,16 @@ Route::middleware(['tenant', 'auth', 'subscription'])
             Route::post('preview-template',    [Tenant\WhatsappController::class, 'previewTemplate'])->name('preview')
                 ->middleware('permission:whatsapp.send|whatsapp.bulk_send|whatsapp.manage_templates');
 
+            // WhatsApp Team Inbox — plan/superadmin-gated module + role permission
+            Route::middleware(['module:whatsapp_inbox', 'permission:whatsapp.inbox'])->prefix('inbox')->name('inbox.')->group(function () {
+                Route::get('/',                [Tenant\WhatsappInboxController::class, 'index'])->name('index');
+                Route::get('poll',             [Tenant\WhatsappInboxController::class, 'poll'])->name('poll');
+                Route::post('{id}/reply',      [Tenant\WhatsappInboxController::class, 'reply'])->name('reply')->middleware('permission:whatsapp.send');
+                Route::post('{id}/status',     [Tenant\WhatsappInboxController::class, 'toggleStatus'])->name('status');
+            });
+
             // WhatsApp Chatbot & Business API settings
-            Route::get('chatbot',                   [Tenant\WhatsappChatbotController::class, 'flows'])->name('chatbot');
+            Route::get('chatbot',                  [Tenant\WhatsappChatbotController::class, 'flows'])->name('chatbot');
             Route::get('conversations',             [Tenant\WhatsappChatbotController::class, 'conversations'])->name('conversations');
             Route::post('chatbot',                  [Tenant\WhatsappChatbotController::class, 'storeFlow'])->name('chatbot.store')->middleware('tenant.admin');
             Route::put('chatbot/{id}',              [Tenant\WhatsappChatbotController::class, 'updateFlow'])->name('chatbot.update')->middleware('tenant.admin');

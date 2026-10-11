@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ErrorLog;
 use App\Models\Quotation;
+use App\Models\WhatsappConversation;
 use App\Models\WhatsappLog;
 use App\Models\WhatsappSetting;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,16 @@ class WhatsappInboundService
             ]));
         } catch (\Throwable $e) {
             Log::error('WA log create failed', ['error' => $e->getMessage()]);
+        }
+
+        // Team Inbox thread — kept for every tenant (cheap) so history is already
+        // there the day the WhatsApp Team Inbox module is switched on.
+        try {
+            $this->isolated(fn () => WhatsappConversation::touchFor(
+                $setting->tenant_id, $waId, $contactName, $messageText ?? "[{$messageType}]", true
+            ));
+        } catch (\Throwable $e) {
+            Log::error('WA conversation update failed', ['error' => $e->getMessage()]);
         }
 
         // A tap on a quotation Accept/Reject button sent from QuotationController@sendWhatsapp —

@@ -82,6 +82,8 @@ Customers can submit a support request through your **public support link**, or 
 
 Under **Email** and **WhatsApp**, you can send one-off messages, do a bulk send to a filtered list, build reusable **Templates** (with live preview), and review a full log of everything sent. You can connect your **own email server (SMTP)** instead of the platform default if you prefer sending from your own domain. If enabled on your plan, the **WhatsApp Chatbot** lets you build automated conversation flows that respond to customers without a human involved, and **Instagram** automation can auto-reply to comments and DMs.
 
+If your plan includes the **WhatsApp Team Inbox**, open **Messages → WA Inbox** to read and answer customer chats with your whole team from one number. Reply with text or a file, mark a chat resolved when it's done, and see unread chats at a glance. WhatsApp allows free replies only within 24 hours of the customer's last message — after that, send an approved template. Full steps: `docs/whatsapp-team-inbox.md`.
+
 ## 10. Reports
 
 Under **Reports**, pick a date range and explore: Overview (top-line KPIs), Deals, Deal-to-Quotation conversion, Revenue, Staff performance, and — if those modules are on — Subscriptions, Appointments, Tickets, and Time Tracking, each with its own KPIs and breakdowns relevant to that area.
